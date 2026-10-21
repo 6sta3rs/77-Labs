@@ -1,31 +1,33 @@
-# Kontekst projektu
+# Project context
 
-**Seventy Seven Labs 0.2.0** to lokalne studio głosu na Windows. Publiczne źródła mają nową historię bez danych poprzedniego użytkownika. Nazwę produktu zapisuj dokładnie jako Seventy Seven Labs.
+**Seventy Seven Labs 0.2.0** is a local voice studio for Windows. The public source has a fresh history without the previous user's data. Write the product name exactly as Seventy Seven Labs.
 
-## Architektura
+The application interface is Polish. Public documentation is English; filenames and compatibility identifiers remain stable.
 
-- Svelte 5 / TypeScript / Vite: interfejs, edytor, biblioteka i transport.
-- Tauri 2 / Rust: okno, natywne pliki, nadzór procesów i instalacja.
-- Python / FastAPI: przypięty VoiceStudio 0.5.7 z adapterami w `scripts/runtime/`.
-- `engine.zip` i `engine-provenance.json`: niezmienne źródła upstream, licencje i pochodzenie.
-- Dane: domyślnie `%LOCALAPPDATA%/VoiceStudioNext`, poza repozytorium.
+## Architecture
 
-Identyfikator Tauri `local.studioa1tts.voicestudio-next`, klucze `voicestudio.*` i katalogi runtime zachowano dla zgodności. Kosmetyczna zmiana nazwy produktu nie powinna zmieniać tych identyfikatorów.
+- Svelte 5 / TypeScript / Vite: interface, editor, library, and transport.
+- Tauri 2 / Rust: window, native files, process supervision, and installation.
+- Python / FastAPI: pinned VoiceStudio 0.5.7 with adapters in `scripts/runtime/`.
+- `engine.zip` and `engine-provenance.json`: immutable upstream sources, licenses, and provenance.
+- Data defaults to `%LOCALAPPDATA%/VoiceStudioNext`, outside the repository.
 
-## Uruchamianie i rozwój
+The Tauri identifier `local.studioa1tts.voicestudio-next`, `voicestudio.*` storage keys, and runtime directories are retained for compatibility. A cosmetic product rename should not change these identifiers.
 
-`npm ci`, potem `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` pokazuje fikcyjne dane i proceduralny ton. `inputy.html` otwiera katalog komponentów.
+## Running and development
 
-`npm run desktop:dev` uruchamia Tauri; `npm run desktop:build` tworzy EXE bez instalatora. Backend 4312 startuje na żądanie, kończy się po potwierdzonej bezczynności i wymaga własnego środowiska oraz wag. [Runtime](runtime.md), [instalacja](instalacja-runtime.md).
+Run `npm ci`, then `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` displays fictional data and a procedural tone. `inputy.html` opens the component gallery.
 
-Mapa „gdzie zmienić X?” jest w [README](../README.md). Zakres i kryteria: [PRD](PRD.md), bieżące wyniki: [weryfikacja](weryfikacja.md), przekazanie pracy: [postęp](postep.md).
+`npm run desktop:dev` starts Tauri; `npm run desktop:build` creates an EXE without an installer. The backend on port 4312 starts on demand, stops after confirmed inactivity, and requires its own environment and weights. See [runtime](runtime.md) and [installation](instalacja-runtime.md).
 
-Build i health nie potwierdzają syntezy ani całego dubbingu/audiobooka. Dawnych wyników prywatnego wdrożenia nie przenoszono do nowej historii.
+The file map is in the [README](../README.md). See the [PRD](PRD.md) for scope and criteria, [verification](weryfikacja.md) for recorded results, and [progress](postep.md) for handover notes.
 
-## Prywatność i licencje
+A build and a health response do not prove synthesis or a complete dubbing/audiobook workflow. Historical private-deployment results were not copied into the new history.
 
-Nie dodawaj nagrań, baz, kont, tokenów ani prywatnych ścieżek. Wyniki QA zapisuj pod `.tmp/qa`. Autorskie audio demo to wyłącznie proceduralny ton; upstream zachowuje swoje opisane zasoby w przypiętym archiwum.
+## Privacy and licenses
 
-Nie edytuj modeli/bibliotek współdzielonych hardlinkami. Publiczna wersja używa neutralnych ikon i autorskich wizualizacji. Legacy wariant kuli `elevenlabs` jest kompatybilnym identyfikatorem; nie oznacza dołączenia kodu ani tekstur tej firmy.
+Do not add recordings, databases, accounts, tokens, or private paths. Write QA output under `.tmp/qa`. The project's demo audio is only a procedural tone; upstream retains its documented assets in the pinned archive.
 
-Każdą logiczną zmianę commituj wraz z aktualizacją postępu zgodnie z [AGENTS.md](../AGENTS.md). Przed publikacją wykonaj [kontrolę](publikacja.md).
+Do not edit hardlinked models or libraries in place. The public version uses neutral icons and original visualizations. The legacy `elevenlabs` orb variant is a compatibility identifier; it does not mean that company's code or textures are bundled.
+
+Commit each logical change with a progress update, following [AGENTS.md](../AGENTS.md). Run the [publication check](publikacja.md) before publishing.

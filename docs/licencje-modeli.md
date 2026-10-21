@@ -1,46 +1,49 @@
-# Warunki modeli
+# Model terms
 
-Licencja aplikacji, kodu modelu, wag, tokenizera i referencji głosu mogą być
-różne. **Modele i silnik → Warunki modelu** pokazuje informacje dla konkretnego
-repozytorium oraz jego jawnie zadeklarowanych zależności. Dane `unknown`
-i `NOASSERTION` pozostają nieustalone; nie są potwierdzeniem prawa użycia.
+The application, model code, weights, tokenizer and voice references may have
+different licenses. **Modele i silnik → Warunki modelu** (Models and engine →
+Model terms) shows information for a specific repository and its explicitly
+declared dependencies. `unknown` and `NOASSERTION` mean the terms are unresolved;
+they do not confirm permission to use the material.
 
-## Przegląd i decyzja
+## Reviewing and recording a decision
 
-Panel pokazuje deklarację licencji, źródła, ograniczenia, odcisk informacji
-i lokalną historię decyzji. Nie zastępuje pełnych dokumentów dostawcy.
-Otwarcie źródła, pobranie wag i odczyt katalogu nie zapisują potwierdzenia.
+The panel shows the declared license, sources, restrictions, an information
+fingerprint and local decision history. It does not replace the provider's full
+documents. Opening a source, downloading weights or reading the catalog does not
+record acceptance.
 
-Użytkownik przegląda warunki, zaznacza początkowo puste pole i wybiera zapis
-potwierdzenia **jednego modelu**. Akcja nie uruchamia syntezy. Zmiana odcisku
-w czasie zapisu wymaga ponownego przeglądu; aplikacja czyści zaznaczenie zamiast
-automatycznie zatwierdzać nową treść. Cofnięcie jest osobną akcją i nie usuwa
-wag ani nagrań. Lokalny zapis nie udziela praw do głosu i nie zastępuje zgody
-lub dostępu wymaganego przez dostawcę.
+The user reviews the terms, selects the initially unchecked box and records
+acceptance for **one model**. This action does not start synthesis. If the
+fingerprint changes while the decision is being saved, another review is
+required; the application clears the checkbox instead of automatically accepting
+the new content. Revoking acceptance is a separate action and does not remove
+weights or recordings. A local record does not grant rights to a voice or replace
+consent or access required by the provider.
 
-## Kontrakt API
+## API contract
 
-- `GET /models/licenses/details/{repo_id:path}` — informacje, stan i historia.
-- `GET /models/licenses/acceptance/{repo_id:path}` — sam stan.
+- `GET /models/licenses/details/{repo_id:path}` — information, state and history.
+- `GET /models/licenses/acceptance/{repo_id:path}` — state only.
 - `POST /models/licenses/accept` — `{ repo_id, fingerprint, accepted: true }`.
 - `POST /models/licenses/revoke` — `{ repo_id }`.
-- HTTP 409 `terms_changed` — odczyt nowych informacji, bez automatycznego POST.
-- HTTP 403 `model_licence_required` — przejście do wymaganych repozytoriów;
-  ponowienie generacji pozostaje jawną decyzją.
+- HTTP 409 `terms_changed` — read the updated information without an automatic POST.
+- HTTP 403 `model_licence_required` — open the required repositories for review;
+  retrying generation remains an explicit user decision.
 
-Starszy serwer bez tego kontraktu daje komunikat braku obsługi. Nie ma
-zastępczego endpointu, który zapisywałby zgodę po cichu. Pobranie modelu
-nie oznacza przejścia blokady pierwszego użycia.
+An older server without this contract produces an unsupported-feature message.
+There is no fallback endpoint that silently records acceptance. Downloading a
+model does not clear the first-use check.
 
-## Pliki i sprawdzanie
+## Files and checks
 
-- `src/lib/ModelLicenseReview.svelte` — przegląd, zapis i cofnięcie.
-- `src/lib/model-licenses.ts` — parser, transport i obsługa 403/409.
-- `src/lib/EngineCatalog.svelte` — wejście z katalogu.
-- `src/lib/api.ts` — błędy generowania.
+- `src/lib/ModelLicenseReview.svelte` — review, acceptance and revocation.
+- `src/lib/model-licenses.ts` — parsing, transport and HTTP 403/409 handling.
+- `src/lib/EngineCatalog.svelte` — entry point from the catalog.
+- `src/lib/api.ts` — generation errors.
 
-Regresja: `node scripts/model-licenses-check.mjs`. Zapis i cofnięcie w teście
-powinny trafiać wyłącznie do kontrolowanego stanu testowego. Nie wolno
-akceptować rzeczywistych warunków za użytkownika. Zobacz
-[pierwsze wejście](onboarding-modeli.md), [licencje składników](../THIRD_PARTY_NOTICES.md)
-i [zasady głosu oraz danych](../SECURITY.md).
+Regression check: `node scripts/model-licenses-check.mjs`. Test acceptance and
+revocation must use controlled fixture state only. Do not accept real terms on
+the user's behalf. See [first-run setup](onboarding-modeli.md),
+[third-party notices](../THIRD_PARTY_NOTICES.md) and
+[voice and data policies](../SECURITY.md).

@@ -1,42 +1,42 @@
-# Parametry syntezy mowy
+# Speech synthesis parameters
 
-`AdvancedSpeechSettings.svelte` pokazuje opcje wybranego adaptera,
-a `speech-settings.ts` waliduje je i serializuje do multipart `/generate`.
-Szybkość, kroki i seed pozostają podstawowymi ustawieniami generacji.
+`AdvancedSpeechSettings.svelte` displays options for the selected adapter, while
+`speech-settings.ts` validates and serializes them into a multipart `/generate`
+request. Speed, steps, and seed remain the basic generation settings.
 
-## Możliwości silnika
+## Engine capabilities
 
-Klient ma jawną mapę dokładnych identyfikatorów adapterów. Nie wywodzi obsługi
-parametrów z nazwy modelu ani samej flagi emocji. Po zmianie archiwum backendu
-mapa wymaga ponownego sprawdzenia.
+The client has an explicit map of exact adapter identifiers. It does not infer
+parameter support from a model name or an emotion flag alone. The map must be
+checked again whenever the backend archive changes.
 
-| Adapter | Dodatkowe pola |
+| Adapter | Additional fields |
 | --- | --- |
-| OmniVoice i wariant subprocess | Instrukcja, guidance, t-shift, odszumianie, postprocess, kara warstw i temperatury. |
-| OmniVoice GGUF | Instrukcja i odszumianie. |
-| VoxCPM2 | Instrukcja i guidance. |
-| CosyVoice | Instrukcja przy potwierdzonej referencji. |
-| Adapter bez zweryfikowanej mapy | Bez dodatkowych kontrolek modelu. |
+| OmniVoice and its subprocess variant | Instruction, guidance, t-shift, denoising, postprocessing, layer penalty, and temperatures. |
+| OmniVoice GGUF | Instruction and denoising. |
+| VoxCPM2 | Instruction and guidance. |
+| CosyVoice | Instruction with a confirmed reference. |
+| Adapter without a verified mapping | No additional model controls. |
 
-Wspólne pola obejmują długość fragmentu, crossfade i słownik wymowy.
-Wartość długości 0 wyłącza dzielenie. Puste nadpisanie numeryczne zachowuje
-ustawienie silnika. Walidacja odrzuca NaN, nieskończoność, niepoprawne zakresy
-i zerowy t-shift. Ukryte pola nie trafiają do żądania po zmianie modelu.
-Instrukcje OmniVoice mają własną taksonomię, odrębną od swobodnych opisów
-innych silników.
+Shared fields include chunk length, crossfade, and the pronunciation dictionary.
+A chunk length of 0 disables splitting. An empty numeric override preserves the
+engine setting. Validation rejects NaN, infinity, invalid ranges, and a zero
+t-shift. Hidden fields are omitted from requests after a model change.
+OmniVoice instructions have their own taxonomy, separate from the free-form
+descriptions used by other engines.
 
-WAV, głosy wbudowane i szkic projektowania wymagają odkrycia rzeczywistego
-kontraktu źródeł: [parametry 0.5.7](parametry-wav-0.5.7.md).
-Dla wielu mówców metadane silnika i ustawienia są zamrażane na początku zadania,
-żeby zmiana UI nie zmieniała kolejnych bloków trwającej generacji.
+WAV settings, built-in voices, and the voice design draft require discovery of the
+actual source contract: [0.5.7 parameters](parametry-wav-0.5.7.md).
+For multiple speakers, engine metadata and settings are frozen at the start of the
+job so UI changes cannot alter later blocks of an ongoing generation.
 
-## Strumień a gotowy WAV
+## Streaming versus a completed WAV
 
-Backend może obsługiwać `stream=true` jako NDJSON z ramkami start/chunk/done/error.
-Klient oczekujący gotowego Blob WAV nie może otrzymać takiego strumienia.
-HTTP 200 nie dowodzi ukończenia, jeśli późniejsza ramka zawiera błąd.
-Odsłuch audiobooka ma osobną [kolejkę porcji](audiobook-porcjami.md).
+The backend may support `stream=true` as NDJSON with start/chunk/done/error frames.
+A client expecting a completed WAV Blob must not receive that stream. HTTP 200 does
+not prove completion if a later frame contains an error.
+Audiobook listening uses a separate [chunk queue](audiobook-porcjami.md).
 
-Regresja bez modeli: `node scripts/speech-settings-check.mjs`.
-Check/build i test serializacji nie potwierdzają brzmienia parametrów;
-wymagany jest osobny odbiór na wybranym modelu.
+Regression check without models: `node scripts/speech-settings-check.mjs`.
+Type checking, a build, and serialization tests do not validate how these
+parameters sound; a separate acceptance check on the selected model is required.

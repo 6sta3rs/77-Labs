@@ -1,54 +1,56 @@
-# Dodatkowe modele TTS
+# Additional TTS models
 
-Adaptery rozszerzają katalog bez zmiany oryginalnego archiwum backendu.
-Każda rodzina może mieć własne środowisko Python, poza bazowym venv.
-Wagi, biblioteki, warunki i wybór aktywnego silnika są odrębnymi krokami.
+Adapters extend the catalog without changing the original backend archive.
+Each family can have its own Python environment outside the base venv.
+Weights, libraries, terms and active engine selection are separate steps.
 
-| Rodzina | Typ wejścia głosu | Wykonanie |
+| Family | Voice input | Execution |
 | --- | --- | --- |
-| Chatterbox Multilingual | Nagranie referencyjne | Własny Python CPU/CUDA. |
-| Kokoro | Wbudowany głos odpowiedni do języka | CPU. |
-| KittenTTS 0.8 | Wbudowany głos | Adapter lub osobne środowisko. |
-| KittenTTS 2 | Nagranie i jego tekst | Własny Python CPU/CUDA. |
-| Qwen3-TTS Base 0.6B / 1.7B | Nagranie i jego tekst | CPU/CUDA. |
-| Qwen3-TTS VoiceDesign | Opis głosu | CPU/CUDA. |
-| Fish S2 Pro | Nagranie i jego tekst | Osobna usługa Linux/WSL i lokalny adapter HTTP. |
+| Chatterbox Multilingual | Reference recording | Dedicated Python environment, CPU/CUDA. |
+| Kokoro | Built-in voice appropriate for the language | CPU. |
+| KittenTTS 0.8 | Built-in voice | Adapter or separate environment. |
+| KittenTTS 2 | Recording and its transcript | Dedicated Python environment, CPU/CUDA. |
+| Qwen3-TTS Base 0.6B / 1.7B | Recording and its transcript | CPU/CUDA. |
+| Qwen3-TTS VoiceDesign | Voice description | CPU/CUDA. |
+| Fish S2 Pro | Recording and its transcript | Separate Linux/WSL service and local HTTP adapter. |
 
-Obsługiwane języki i dokładne rewizje wynikają z `scripts/runtime/tts_catalog.py`
-i aktywnego katalogu. Wybranie nieobsługiwanego języka ma dać czytelny błąd;
-nie wolno wyprowadzać obsługi polskiego z samej nazwy rodziny.
+Supported languages and exact revisions come from `scripts/runtime/tts_catalog.py`
+and the active catalog. Selecting an unsupported language must produce a readable
+error; support for Polish must not be inferred from a family name alone.
 
-## Przygotowanie
+## Preparation
 
-W **Modele i silnik → Dodatkowe modele TTS** wybierz właściwy wariant CPU/CUDA
-oraz **Przygotuj biblioteki**. Instalator tworzy własny katalog rodziny,
-instaluje pakiety i sprawdza importy. Później pobierz komplet wymaganych wag
-w katalogu modeli i przejrzyj osobne warunki modelu oraz zależności.
-Nieudany import nie powinien być prezentowany jako gotowość.
+In **Modele i silnik → Dodatkowe modele TTS** (Models and engine → Additional TTS
+models), choose the appropriate CPU/CUDA option and **Przygotuj biblioteki**
+(Prepare libraries). The installer creates a dedicated directory for the family,
+installs packages and checks imports. Then download all required weights from
+the model catalog and review the separate terms for the model and its dependencies.
+A failed import must not be presented as readiness.
 
-Rodziny mają środowiska w `runtime/tts-envs`, manifest `environment.json`
-i zapis faktycznie rozwiązanych zależności. Wybrany CPU/CUDA pochodzi
-z manifestu, nie z przypadkowo dostępnego urządzenia. Biblioteki innych
-instalacji i współdzielone niezmienne pliki nie są aktualizowane w miejscu.
+Family environments live in `runtime/tts-envs`, with an `environment.json`
+manifest and a record of the dependencies actually resolved. The selected
+CPU/CUDA mode comes from the manifest, not from whichever device happens to be
+available. Libraries from other installations and shared immutable files are not
+updated in place.
 
 ## Fish S2 Pro
 
-Operator przygotowuje zgodny serwer Fish w Linux/WSL i konkretny checkpoint.
-W panelu podaje adres loopback oraz deklaruje zgodny model i rewizję.
-Sprawny `/health` potwierdza transport, a nie tożsamość modelu.
-Adapter przesyła referencję do tej lokalnej usługi; nie włączaj jej na publicznym
-interfejsie. Dane logowania w URL i przekierowania są odrzucane.
+The operator prepares a compatible Fish server on Linux/WSL and a specific
+checkpoint. In the panel, enter its loopback address and declare the matching
+model and revision. A successful `/health` response verifies transport, not model
+identity. The adapter sends the reference to this local service; do not expose
+the service on a public interface. Credentials in URLs and redirects are rejected.
 
-## Gdzie zmienić zachowanie
+## Where to change behavior
 
-- `scripts/runtime/tts_catalog.py` — rewizje, pliki, języki i warianty.
-- `scripts/runtime/tts_extensions.py` — rejestr, statusy i API `/next/tts/*`.
-- `scripts/runtime/tts_worker.py` — parametry i wykonanie syntezy.
-- `scripts/runtime/prepare_tts.py` — przygotowanie bibliotek.
-- `src/lib/ExtraTtsEnvironments.svelte` — panel.
+- `scripts/runtime/tts_catalog.py` — revisions, files, languages and variants.
+- `scripts/runtime/tts_extensions.py` — registry, statuses and the `/next/tts/*` API.
+- `scripts/runtime/tts_worker.py` — synthesis parameters and execution.
+- `scripts/runtime/prepare_tts.py` — library preparation.
+- `src/lib/ExtraTtsEnvironments.svelte` — the panel.
 
-Regresje: `scripts/runtime/test_tts_extensions.py`
-i `scripts/runtime/test_tts_registry.py`. Nie wykonują zbiorczego odbioru
-brzmienia wszystkich modeli. Próbę generacji planuj osobno na czystych danych,
-z modelem i sprzętem zapisanymi w raporcie. Zobacz [warunki modeli](licencje-modeli.md)
-i [katalog wag](modele-produkcja.md).
+Regression checks: `scripts/runtime/test_tts_extensions.py`
+and `scripts/runtime/test_tts_registry.py`. They do not collectively verify
+the sound of every model. Plan generation tests separately with clean data,
+recording the model and hardware in the report. See [model terms](licencje-modeli.md)
+and the [weights catalog](modele-produkcja.md).

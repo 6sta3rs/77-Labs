@@ -1,14 +1,14 @@
-# Publikacja źródeł
+# Publishing the source
 
-To repozytorium jest osobnym publicznym początkiem projektu. Prywatny checkout i jego historia nie są częścią publikacji. Nie kopiuj starego katalogu `.git`, checkpointów ani ignorowanych wyników do tego repozytorium.
+This repository is a separate public starting point. The private checkout and its history are not part of the publication. Do not copy the old `.git` directory, checkpoints, or ignored output into this repository.
 
-## Zawartość
+## Contents
 
-Kod aplikacji i adapterów, przypięty licencjonowany silnik, dokumentacja, fikcyjne dane demo, proceduralny ton oraz nowe zrzuty UI. Przykłady w `engine.zip` pochodzą z przypiętych źródeł upstream; nie są nagraniami użytkownika Seventy Seven Labs.
+Application and adapter code, the pinned licensed engine, documentation, fictional demo data, a procedural tone, and new UI screenshots. Examples in `engine.zip` come from the pinned upstream sources; they are not Seventy Seven Labs user recordings.
 
-Nie przeniesiono prywatnych projektów, baz, nagrań, głosów, raportów, screenów konta ani decyzji licencyjnych. Materiały bez ustalonej licencji zastąpiono neutralnymi ikonami i autorską wizualizacją. Atrybucje zewnętrznych autorów zachowano.
+Private projects, databases, recordings, voices, reports, account screenshots, and model-term decisions were not transferred. Assets without established redistribution terms were replaced with neutral icons and original visualizations. Third-party author attributions were preserved.
 
-## Kontrola
+## Checks
 
 ```powershell
 npm ci
@@ -22,18 +22,18 @@ git diff --check
 git status --short
 ```
 
-Skrypt bada pliki, indeks, wszystkie obiekty Git (także nieosiągalne), checkpoint refs, prywatne formaty, tokeny, ścieżki użytkownika, osadzone audio i dokładny SHA silnika. Ton jest przypięty w `public-assets.json` i odtwarzalny przez `scripts/generate_demo_tone.py`.
+The script checks files, the index, all Git objects (including unreachable ones), checkpoint refs, private formats, tokens, personal paths, embedded audio, and the exact engine SHA. The tone is pinned in `public-assets.json` and reproducible with `scripts/generate_demo_tone.py`.
 
-Dodatkowe prywatne wzorce podaj przez `--deny-file`: plik JSON z tablicą ciągów, przechowywany **poza repozytorium**. Dopasowane wartości nie są drukowane. Przy pierwszym wydaniu dodaj `--require-anonymous`, aby sprawdzić autora, committera i taggera.
+Supply additional private strings through `--deny-file`: a JSON array stored **outside the repository**. Matched values are not printed. For the first release, add `--require-anonymous` to check authors, committers, and taggers.
 
-Kontrola ma określone reguły i nie zastępuje przeglądu nowych screenów, nagrań ani licencji. Obecne zrzuty pokazują wyłącznie fikcyjne dane demo.
+These rules do not replace reviewing new screenshots, recordings, or licenses. Current screenshots show only fictional demo data.
 
-## Dalsza praca
+## Ongoing work
 
-Raporty harnessów zapisuj do ignorowanego `.tmp/qa`. Własną mowę wskaż jawnie argumentem skryptu i trzymaj poza Git. `integration.py` wymaga `--run --profile ID`; ASR/konwersja/dubbing wymagają własnej referencji zgodnie z `--help`. Ton demo nie jest mową.
+Write QA reports to ignored `.tmp/qa`. Select your own speech explicitly through script arguments and keep it outside Git. `integration.py` requires `--run --profile ID`; ASR/conversion/dubbing require a speech reference as described by `--help`. The demo tone is not speech.
 
-Pierwsze publiczne commity mają neutralną tożsamość. Przed kolejnym commitem sprawdź lokalne `git config user.name` i `git config user.email`, aby nie przejąć prywatnych ustawień globalnych.
+Initial public commits have a neutral identity. Before another commit, check local `git config user.name` and `git config user.email` to avoid inheriting private global settings.
 
-CI sprawdza frontend i źródła. Nie uruchamia modeli, nie akceptuje warunków i nie dowodzi działania GPU, instalatora ani pełnego dubbingu.
+CI checks the frontend and source. It does not run models, accept terms, or prove GPU, installer, or complete dubbing behavior.
 
-Repozytorium nie ma zdalnego adresu. Publikacja wymaga osobnego utworzenia repo i wysłania **tej publicznej historii**. Gotowe archiwum źródeł powstaje z publicznego commita przez `git archive`; nie zawiera zależności, wyników kompilacji ani `.git`.
+No remote is configured. Publication requires creating a remote repository and sending **this public history**. A source archive is created from the public commit using `git archive`; it excludes dependencies, build output, and `.git`.

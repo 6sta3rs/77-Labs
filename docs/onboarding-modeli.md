@@ -1,44 +1,49 @@
-# Pierwsze wejście i przygotowanie modeli
+# First-run setup and model preparation
 
-Okno **Przygotuj modele do pracy** nie ładuje modeli przy samym wyświetleniu.
-Gdy silnik jest zatrzymany, powitanie nie uruchamia Pythona. Przycisk
-**Sprawdź modele i warunki** jawnie łączy się z silnikiem i w desktopie
-uruchamia zainstalowane środowisko. Środowisko i wagi instaluje się osobno
-w **Ustawienia → Modele i silnik**.
+Simply displaying the **Przygotuj modele do pracy** (Prepare models for use)
+window does not load models. When the engine is stopped, the welcome screen does
+not start Python. **Sprawdź modele i warunki** (Check models and terms) explicitly
+connects to the engine and, in the desktop application, starts the installed
+environment. Install the environment and weights separately in
+**Ustawienia → Modele i silnik** (Settings → Models and engine).
 
-## Decyzje użytkownika
+## User decisions
 
-Plan pokazuje każde wymagane repozytorium oddzielnie. Dla głównego OmniVoice
-może obejmować zarówno model, jak i tokenizer. Każdy składnik ma własne
-informacje, źródła oraz początkowo puste potwierdzenie. Nie ma zbiorczej zgody.
-Zapis dotyczy dokładnego odcisku przejrzanych informacji.
+The plan lists each required repository separately. For the main OmniVoice model,
+it may include both the model and its tokenizer. Each component has its own
+information, sources and initially unchecked acceptance box. There is no blanket
+acceptance. A saved decision applies to the exact fingerprint of the information
+reviewed.
 
-**Później**, zamknięcie i Escape odkładają przegląd. Można wrócić przez
-**Przejrzyj warunki modeli** w ustawieniach. Nieukończony przegląd może wrócić
-przy następnym wejściu. Zamknięcie i zmiana modelu są blokowane podczas zapisu
-oraz potwierdzania jego wyniku. Po błędzie odczytu dostępne jest ponowienie.
+**Później** (Later), closing the window or pressing Escape postpones the review.
+Return through **Przejrzyj warunki modeli** (Review model terms) in settings.
+An unfinished review may appear again on the next visit. Closing the review and
+changing the model are blocked while a decision is being saved and its result
+is being confirmed. A failed read can be retried.
 
-## Stan i kontrakt
+## State and contract
 
-`GET /next/models/onboarding` odczytuje plan wybranego TTS i przypiętego rejestru.
-Nie importuje ML, nie pobiera wag i nie zapisuje decyzji. Nieobsługiwany model
-lub starszy backend daje czytelny błąd, zamiast pustego planu oznaczającego sukces.
-Sam plan nie potwierdza pełnej listy praw do wszystkich składników.
+`GET /next/models/onboarding` reads the plan for the selected TTS model and the
+pinned registry. It does not import ML libraries, download weights or save
+decisions. An unsupported model or older backend produces a readable error
+instead of an empty plan that appears successful. The plan alone does not confirm
+a complete list of rights for every component.
 
-Klucz `voicestudio.license-onboarding.v1` w localStorage jest tylko wskazówką
-ukończenia. Autorytatywny stan pochodzi z backendu. Cofnięcie decyzji lub zmiana
-odcisku usuwa wskazówkę i ponownie wymaga przeglądu. HTTP 409 nie ponawia zgody
-automatycznie. Zapis jest uznany za udany po ponownym odczycie stanu.
+The `voicestudio.license-onboarding.v1` localStorage key is only a completion
+hint. The backend holds the authoritative state. Revoking a decision or changing
+the fingerprint clears the hint and requires another review. HTTP 409 does not
+automatically repeat acceptance. A save is considered successful only after
+the state has been read back.
 
-## Pliki i kontrola
+## Files and checks
 
-- `src/lib/ModelLicenseOnboarding.svelte`, `src/lib/license-onboarding.ts` — UI i stan.
-- `src/lib/ModelLicenseReview.svelte` — osobne decyzje.
-- `scripts/runtime/model_management.py` — plan.
+- `src/lib/ModelLicenseOnboarding.svelte`, `src/lib/license-onboarding.ts` — UI and state.
+- `src/lib/ModelLicenseReview.svelte` — individual decisions.
+- `scripts/runtime/model_management.py` — the plan.
 
-Regresje: `node scripts/license-onboarding-check.mjs`,
-`node scripts/model-licenses-check.mjs` i
+Regression checks: `node scripts/license-onboarding-check.mjs`,
+`node scripts/model-licenses-check.mjs` and
 `node scripts/model-onboarding-monitor-check.mjs`.
-Odbiór UI prowadź na własnym fixture, bez rzeczywistych decyzji i modeli.
-Zobacz [warunki modeli](licencje-modeli.md), [instalację](instalacja-runtime.md)
-i [weryfikację](weryfikacja.md).
+Use an isolated fixture for UI acceptance testing, without real decisions or models.
+See [model terms](licencje-modeli.md), [installation](instalacja-runtime.md)
+and [verification status](weryfikacja.md).

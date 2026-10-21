@@ -1,11 +1,11 @@
-# Bezpieczny podgląd interfejsu
+# Safe interface preview
 
-Po `npm ci` i `npm run dev` otwórz http://127.0.0.1:4310/?demo=tts.
+After `npm ci` and `npm run dev`, open http://127.0.0.1:4310/?demo=tts.
 
-Głosy, dialogi, modele, projekty i historia to fikcyjne dane z `src/lib/tts-demo.ts`, przechowywane w pamięci. Nie jest kopiowana biblioteka silnika. Zrzuty README wykonano w tym trybie, w osobnym profilu przeglądarki.
+Voices, dialogues, models, projects, and history are fictional data from `src/lib/tts-demo.ts`, held in memory. The engine's voice library is not copied. README screenshots were captured in this mode using a separate browser profile.
 
-Wszystkie karty używają `public/demo/interface-tone.wav`: 3,43 sekundy, mono PCM16, 24 kHz. Plik jest proceduralną sumą sinusoid 220 i 440 Hz z obwiednią. Nie zawiera głosu człowieka, nie wymaga modelu i nie demonstruje brzmienia fikcyjnych profili.
+All cards use `public/demo/interface-tone.wav`: 3.43 seconds, mono PCM16, 24 kHz. The file is a procedural sum of 220 and 440 Hz sine waves with an amplitude envelope. It contains no human voice, requires no model, and does not represent the sound of the fictional profiles.
 
-Ton pozwala sprawdzić metadane, play/pause, przewijanie, pobranie i wizualizację. Nie służy do jakości TTS, ASR ani klonowania; użyj własnej referencji poza Git.
+The tone supports metadata, play/pause, seeking, download, and visualization checks. It is not a TTS quality, ASR, or cloning test; supply your own speech reference outside Git.
 
-Generator: `python scripts/generate_demo_tone.py`. Kontrola mediów: `python scripts/publication_check.py`.
+Generator: `python scripts/generate_demo_tone.py`. Media check: `python scripts/publication_check.py`.

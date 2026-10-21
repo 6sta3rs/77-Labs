@@ -1,33 +1,33 @@
-# Katalog komponentów interfejsu
+# Interface component gallery
 
-Uruchom `npm run dev` i otwórz `http://127.0.0.1:4310/inputy.html`.
-Wejście `src/gallery.ts` pokazuje rzeczywiste komponenty Svelte studia:
-pola, listy, suwaki, przełączniki, przyciski, tooltipy, karty motywów,
-edytor, filtry, wybór modeli i przykłady audio.
+Run `npm run dev` and open `http://127.0.0.1:4310/inputy.html`.
+The `src/gallery.ts` entry point displays the studio's real Svelte components:
+inputs, selects, sliders, switches, buttons, tooltips, theme cards, the editor,
+filters, model selection, and audio examples. The interface labels are Polish.
 
-## Dane i zachowanie
+## Data and behavior
 
-Przykłady używają własnego stanu w pamięci. Zmiana palety, reset i wpisywanie
-nie powinny zmieniać prywatnych projektów, głosów lub preferencji aplikacji.
-Wartości demonstracyjne, np. stabilność lub podobieństwo, są przykładami
-kontrolek i nie tworzą nowych parametrów syntezy.
+Examples use their own in-memory state. Changing the palette, resetting examples,
+or typing should not change private application projects, voices, or preferences.
+Demonstration values such as stability or similarity illustrate controls; they do
+not introduce new synthesis parameters.
 
-Suwaki obsługują klawiaturę i wyświetlanie wartości. Select ma klawiaturowy
-wybór oraz powrót fokusu. Rozwijane panele i popupy respektują reduced motion;
-zamknięte treści nie przyjmują fokusu. Przykłady audio używają jawnego
-syntetycznego sygnału demonstracyjnego, bez głosu użytkownika i modelu.
+Sliders support the keyboard and display their values. Select supports keyboard
+selection and focus restoration. Expandable panels and popups respect reduced
+motion; closed content cannot receive focus. Audio examples use an explicitly
+synthetic demonstration signal, without a user's voice or a model.
 
-## Gdzie zmienić
+## Where to make changes
 
-- `src/lib/ControlGallery.svelte` — układ i lokalny stan przykładów.
-- `src/lib/ui/`, `src/lib/ui.css` — wspólne kontrolki.
-- `src/lib/AudioExamples.svelte` — przykłady odtwarzania i materiałów kuli.
-- `src/gallery.ts`, `inputy.html` — wejście developerskie.
-- `scripts/controls-preview.mjs` — opcjonalny generator samodzielnego podglądu.
+- `src/lib/ControlGallery.svelte`: layout and local example state.
+- `src/lib/ui/`, `src/lib/ui.css`: shared controls.
+- `src/lib/AudioExamples.svelte`: playback and orb material examples.
+- `src/gallery.ts`, `inputy.html`: development entry point.
+- `scripts/controls-preview.mjs`: optional standalone preview generator.
 
-Wygenerowany HTML jest artefaktem, nie drugim źródłem komponentów. Przed jego
-udostępnieniem sprawdź czyste dane i aktualność względem kodu.
-Katalog służy odbiorowi wyglądu i interakcji. Nie wykonuje odbioru syntezy,
-transkrypcji, instalacji modeli ani gotowości całej aplikacji.
-Zobacz [kontrolki](t3-controls.md), [motywy](motywy-t3-code.md)
-i [zasady współpracy](../CONTRIBUTING.md).
+Generated HTML is an artifact, not a second source of components. Before sharing
+it, check that its data is clean and that it reflects the current code.
+The gallery is for checking appearance and interaction. It does not validate
+synthesis, transcription, model installation, or readiness of the whole application.
+See [shared controls](t3-controls.md), [themes](motywy-t3-code.md),
+and the [contribution guidelines](../CONTRIBUTING.md).

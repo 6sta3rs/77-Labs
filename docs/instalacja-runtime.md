@@ -1,37 +1,42 @@
-# Instalacja środowiska Python
+# Installing the Python environment
 
-Interfejs można uruchomić bez modeli. Do lokalnej syntezy potrzebne są osobno:
-środowisko Python z bibliotekami, wagi modelu i przegląd jego warunków.
-EXE zawiera kod backendu; nie zawiera wielogigabajtowych zależności GPU i wag.
+The interface can run without models. Local synthesis requires three separate
+steps: installing Python and its libraries, obtaining the model weights, and
+reviewing the model terms. The EXE includes the backend source; it does not include
+the multi-gigabyte GPU dependencies or model weights.
 
-## Przepływ w Windows
+## Windows workflow
 
-1. Otwórz **Ustawienia → Modele i silnik → Samodzielne środowisko Python**.
-2. Wybierz CPU albo NVIDIA CUDA 12.8. Wariant CUDA wymaga zgodnego GPU
-   i sterownika. Panel podaje szacowane wymagane miejsce.
-3. Rozpocznij instalację. Powstaje nowy katalog `runtime_<id>` obok dotychczasowego
-   środowiska, z przypiętymi dystrybucjami CPython/uv i kontrolą SHA-256.
-4. Poczekaj na zakończenie kontroli doctor. Sprawdza ona importy, izolację
-   i własny test startu backendu, bez pobierania modeli i generowania audio.
-5. Zatrzymaj silnik i wybierz **Użyj tego środowiska**. Aktywacja jest osobnym
-   krokiem i nie usuwa wcześniejszego środowiska.
-6. Pobierz wybrane wagi w katalogu modeli, przejrzyj ich warunki i wykonaj
-   własną krótką próbę syntezy.
+1. Open **Ustawienia → Modele i silnik → Samodzielne środowisko Python**
+   (Settings → Models and engine → Standalone Python environment).
+2. Choose CPU or NVIDIA CUDA 12.8. The CUDA option requires a compatible GPU and
+   driver. The panel shows the estimated disk space requirement.
+3. Start installation. A new `runtime_<id>` directory is created alongside the
+   existing environment, using pinned CPython/uv distributions and SHA-256 checks.
+4. Wait for the doctor checks to finish. They check imports, isolation and startup
+   of the installer's own backend process, without downloading models or
+   generating audio.
+5. Stop the engine and select **Użyj tego środowiska** (Use this environment).
+   Activation is a separate step and does not remove the previous environment.
+6. Download the selected weights from the model catalog, review their terms and
+   perform your own short synthesis test.
 
-Anulowanie czeka na zakończenie własnego drzewa procesów. Ponowienie tworzy
-nowego kandydata. Instalacja nie powinna zmieniać globalnego Python/PATH,
-innych aplikacji ani prywatnych danych. `VOICESTUDIO_NEXT_PYTHON` jest jawnym
-nadpisaniem interpretera; wyłącz je przed użyciem wyboru z panelu.
+Cancellation waits for the installer's process tree to exit. A retry creates a
+new candidate. Installation should leave the global Python/PATH configuration,
+other applications and private data unchanged. `VOICESTUDIO_NEXT_PYTHON` is an
+explicit interpreter override; unset it before selecting an environment in the
+panel.
 
-## Pliki i granice
+## Files and limitations
 
-- `scripts/runtime/bootstrap-provenance.json` — źródła dystrybucji i hashe.
-- `scripts/runtime/bootstrap.py` — przygotowanie zależności oraz doctor.
-- `src-tauri/src/installer.rs` — pobieranie, procesy i aktywacja.
-- `src/lib/RuntimeInstaller.svelte` — panel i rzeczywisty postęp.
+- `scripts/runtime/bootstrap-provenance.json` — distribution sources and hashes.
+- `scripts/runtime/bootstrap.py` — dependency preparation and doctor checks.
+- `src-tauri/src/installer.rs` — downloads, processes and activation.
+- `src/lib/RuntimeInstaller.svelte` — the panel and actual progress reporting.
 
-Sam doctor nie potwierdza inferencji. Czysta maszyna CPU, CUDA oraz gotowa paczka
-instalacyjna wymagają odrębnego odbioru opisanego w [weryfikacji](weryfikacja.md).
-Zależności budowane ze źródeł mogą potrzebować narzędzi C++; przypięcie zależności
-runtime nie oznacza pełnej reprodukowalności narzędzi budowania.
-Zobacz [runtime](runtime.md) i [licencje składników](../THIRD_PARTY_NOTICES.md).
+Doctor checks alone do not verify inference. A clean CPU machine, CUDA setup and
+distributable installer each require separate acceptance testing, as described
+in the [verification status](weryfikacja.md). Dependencies built from source may
+require C++ build tools; pinned runtime dependencies do not make the build
+toolchain fully reproducible. See the [runtime guide](runtime.md) and
+[third-party notices](../THIRD_PARTY_NOTICES.md).

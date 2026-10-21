@@ -1,108 +1,113 @@
-# Licencje i pochodzenie składników
+# Third-party licenses and provenance
 
-Kod Seventy Seven Labs jest udostępniany na **AGPL-3.0-only**; pełny tekst
-znajduje się w [LICENSE](LICENSE). Poniższy spis opisuje istotne dostarczone
-składniki i granice ich licencji. Nie zmienia ich warunków.
+Seventy Seven Labs code is provided under **AGPL-3.0-only**; the full text
+is in [LICENSE](LICENSE). This inventory describes significant bundled
+components and the scope of their licenses. It does not modify their terms.
 
-## VoiceStudio — backend
+## VoiceStudio - backend
 
-- Źródło: [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio),
-  wersja 0.5.7, commit `7a6c8980bb9c04db145357a8190a37a0e9f462da`.
-- Dostarczone źródła: `scripts/runtime/engine.zip`; manifest plików i SHA-256:
+- Source: [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio),
+  version 0.5.7, commit `7a6c8980bb9c04db145357a8190a37a0e9f462da`.
+- Bundled sources: `scripts/runtime/engine.zip`; file manifest and SHA-256:
   `scripts/runtime/engine-provenance.json`.
-- Licencja aplikacji upstream: **AGPL-3.0-only**.
+- Upstream application license: **AGPL-3.0-only**.
 - Copyright 2024-present Palash Debnath and VoiceStudio contributors.
-- Oryginalne `LICENSE` oraz `LICENSE-NOTICE.md` pozostają w archiwum.
-  [Przypięty notice upstream](https://github.com/debpalash/VoiceStudio/blob/7a6c8980bb9c04db145357a8190a37a0e9f462da/LICENSE-NOTICE.md)
-  rozdziela kod aplikacji, pakiet OmniVoice i pobierane modele.
+- The original `LICENSE` and `LICENSE-NOTICE.md` remain in the archive.
+  The [pinned upstream notice](https://github.com/debpalash/VoiceStudio/blob/7a6c8980bb9c04db145357a8190a37a0e9f462da/LICENSE-NOTICE.md)
+  distinguishes application code, the OmniVoice package, and downloaded models.
 
-Seventy Seven Labs dostarcza osobny interfejs Svelte/Tauri oraz rozszerzenia
-w `scripts/runtime`. Launcher przygotowuje własną kopię backendu i stosuje
-udokumentowane adaptery. Zakres uruchamiania opisuje [runtime](docs/runtime.md).
-Nie jest to oficjalne wydanie VoiceStudio ani produkt jego autorów.
+Seventy Seven Labs provides a separate Svelte/Tauri interface and extensions
+in `scripts/runtime`. The launcher prepares its own copy of the backend
+and applies documented adapters. The [runtime](docs/runtime.md) document
+explains startup behavior. This is not an official VoiceStudio release
+or a product of its authors.
 
-## OmniVoice — pakiet Python
+## OmniVoice - Python package
 
-Katalog `omnivoice/` wewnątrz archiwum silnika jest według oryginalnego
-`LICENSE-NOTICE.md` osobnym pakietem autorstwa Han Zhu i autorów OmniVoice,
-na **Apache License 2.0**. Nie jest przez projekt ponownie licencjonowany.
-Kod aplikacji AGPL nie zmienia tej licencji ani warunków wag.
+According to the original `LICENSE-NOTICE.md`, the `omnivoice/` directory
+inside the engine archive is a separate package by Han Zhu and the OmniVoice
+authors, licensed under **Apache License 2.0**. This project does not relicense
+it. The application's AGPL license does not change that license or the terms
+of model weights.
 
-Źródło: [k2-fsa/OmniVoice](https://github.com/k2-fsa/OmniVoice).
-Pełny tekst: [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt);
-wersja kanoniczna: [Apache Software Foundation](https://www.apache.org/licenses/LICENSE-2.0).
-Przy przygotowaniu paczki binarnej trzeba dołączyć wymagane teksty i notices
-każdego faktycznie dostarczanego składnika.
+Source: [k2-fsa/OmniVoice](https://github.com/k2-fsa/OmniVoice).
+Full text: [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt);
+canonical version: [Apache Software Foundation](https://www.apache.org/licenses/LICENSE-2.0).
+Binary packages must include the required license texts and notices
+for each component actually distributed.
 
-## T3 Code — palety i wybrane style kontrolek
+## T3 Code - palettes and selected control styles
 
-Przeniesione palety i style pochodzą z
+Adapted palettes and styles come from
 [pingdotgg/t3code](https://github.com/pingdotgg/t3code).
-Copyright (c) 2026 T3 Tools Inc. Licencja **MIT**; pełny tekst pozostaje w
+Copyright (c) 2026 T3 Tools Inc. License: **MIT**; the full text remains in
 [src/lib/themes/LICENSE-T3](src/lib/themes/LICENSE-T3).
 
-- Palety: rewizja `86534db4d3525a070589a234d660a3e0373a42ea`,
+- Palettes: revision `86534db4d3525a070589a234d660a3e0373a42ea`,
   `packages/shared/src/themePalettes.ts`.
-- Referencja stylów kontrolek:
+- Control style reference:
   `89424d9fa01c6bd24664315c7ccda8d6cb1eab61`.
-- Komponenty oraz zachowanie są dostosowane do Svelte i lokalnego studia.
-  Szczegóły: [motywy](docs/motywy-t3-code.md), [kontrolki](docs/t3-controls.md).
+- Components and behavior are adapted to Svelte and the local studio.
+  Details: [themes](docs/motywy-t3-code.md), [controls](docs/t3-controls.md).
 
-## Circle Flags — oznaczenia języków
+## Circle Flags - language markers
 
-62 lokalne SVG pochodzą z
+The 62 local SVG files come from
 [HatScripts/circle-flags](https://github.com/HatScripts/circle-flags),
-rewizja `379588b5da95482d6bbf10bd45644a35b0609ea6`.
-Copyright (c) 2026 HatScripts. Licencja **MIT**;
-[oryginalny tekst](src/lib/ui/language-flags/LICENSE.md),
-[opis](src/lib/ui/language-flags/README.md) i `provenance.json` są dołączone
-do katalogu flag. Rozwiązanie dowiązań do plików źródłowych opisuje manifest.
+revision `379588b5da95482d6bbf10bd45644a35b0609ea6`.
+Copyright (c) 2026 HatScripts. License: **MIT**;
+the [original text](src/lib/ui/language-flags/LICENSE.md),
+[description](src/lib/ui/language-flags/README.md), and `provenance.json`
+are included in the flags directory. The manifest describes how source
+symlinks were resolved to file contents.
 
-## Zależności i materiały interfejsu
+## Dependencies and interface assets
 
-Zależności npm, Rust i Python zachowują własne licencje. Dokładne wersje
-opisują `package-lock.json`, `src-tauri/Cargo.lock` oraz `uv.lock` w archiwum
-silnika. Wersje i licencje należy oceniać dla faktycznej paczki; ten dokument
-nie jest kompletnym wykazem zależności przechodnich ani notices dla EXE.
+npm, Rust, and Python dependencies retain their own licenses. Exact versions
+are recorded in `package-lock.json`, `src-tauri/Cargo.lock`, and `uv.lock`
+inside the engine archive. Assess versions and licenses for the actual
+package; this document is not a complete transitive dependency inventory
+or set of notices for the EXE.
 
-Publiczna wersja nie dostarcza odzyskanego shadera, symulacji płynu ani tekstur
-ze strony ElevenLabs. Nie dostarcza też skopiowanych avatarów i logotypów
-wydawców modeli. Nazwy modeli służą ich identyfikacji; nie oznaczają patronatu
-ani powiązania z ich autorami. Starsze wewnętrzne identyfikatory mogą pozostać
-dla zgodności ustawień i nie udzielają praw do cudzych materiałów.
+The public release does not include the recovered shader, fluid simulation,
+or textures from the ElevenLabs website. It also excludes copied avatars
+and logos of model publishers. Model names identify models; they do not
+imply endorsement or affiliation with their authors. Legacy internal
+identifiers may remain for settings compatibility and do not grant rights
+to third-party materials.
 
-Zrzuty aplikacji powinny przedstawiać własny interfejs i czyste dane demo.
-Systemowe kroje pisma są używane przez nazwę; repozytorium nie dostarcza plików
-fontów systemu Windows.
+Application screenshots should show its own interface and clean demo data.
+System fonts are referenced by name; the repository does not distribute
+Windows system font files.
 
-## Modele, tokenizery i nagrania
+## Models, tokenizers, and recordings
 
-Repozytorium nie zawiera wag modeli, prywatnych profili głosów, nagrań,
-baz ani potwierdzeń warunków użytkownika. AGPL aplikacji nie udziela praw do
-pobieranych wag, tokenizerów, danych treningowych ani głosów. Poszczególne
-rewizje mogą mieć warunki komercyjne, niekomercyjne, atrybucyjne lub dostępu
-wymagające samodzielnego przeglądu.
+The repository does not contain model weights, private voice profiles,
+recordings, databases, or users' terms acknowledgments. The application's
+AGPL license does not grant rights to downloaded weights, tokenizers,
+training data, or voices. Individual revisions may have commercial,
+noncommercial, attribution, or access terms that require separate review.
 
-Dotyczy to także zależności głównego modelu, np. tokenizera audio.
-Odczyt metadanych ani lokalne potwierdzenie w panelu nie są zapewnieniem
-kompletności praw. Korzystaj ze źródeł wskazanych przy dokładnym modelu.
-Zgoda na klonowanie i prawa do referencyjnego nagrania są odrębne od licencji
-kodu i modelu.
+This also applies to dependencies of the main model, such as an audio tokenizer.
+Reading metadata or recording a local acknowledgment in the panel does not
+establish that all necessary rights have been secured. Consult the sources
+listed for the specific model. Cloning consent and rights to the reference
+recording are separate from code and model licenses.
 
-## Przed dystrybucją gotowych paczek
+## Before distributing ready-to-use packages
 
-Publikacja kodu źródłowego nie oznacza gotowości do redystrybucji wszystkich
-zależności binarnych. Przed dołączeniem bibliotek lub wag do wydania trzeba:
+Publishing source code does not establish readiness to redistribute all
+binary dependencies. Before including libraries or weights in a release:
 
-1. Sporządzić wykaz faktycznie dostarczonych plików i ich wersji.
-2. Dołączyć właściwe licencje, copyright, notices i odpowiadające źródła,
-   zgodnie z warunkami każdego składnika.
-3. Sprawdzić dystrybucje FFmpeg/PyAV, dołączone kodeki i opcjonalne biblioteki
-   GPU; sama licencja źródeł pakietu Python nie opisuje wszystkich jego binariów.
-4. Oddzielnie ocenić warunki wag i tokenizerów. Nie przenosić osobistych
-   potwierdzeń ani dostępu do modeli na odbiorców paczki.
+1. Inventory the files actually distributed and their versions.
+2. Include the applicable licenses, copyright statements, notices, and
+   corresponding source, as required by each component's terms.
+3. Review FFmpeg/PyAV distributions, bundled codecs, and optional GPU libraries;
+   the source license of a Python package alone does not describe all its binaries.
+4. Assess weight and tokenizer terms separately. Do not transfer personal
+   acknowledgments or model access to package recipients.
 
-Przy dystrybucji lub udostępnieniu zmodyfikowanego programu przez sieć
-obowiązki wynikają z pełnego tekstu AGPL. Zachowuj oryginalne notices,
-oznaczenia zmian i dostęp do odpowiednich źródeł. Licencje oprogramowania
-nie są zezwoleniem na użycie znaków towarowych jako własnych.
+When distributing or providing network access to a modified program,
+obligations follow the full AGPL text. Preserve original notices, modification
+statements, and access to the corresponding source. Software licenses do not
+grant permission to present third-party trademarks as your own.

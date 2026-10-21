@@ -1,45 +1,48 @@
-# Dyktowanie Windows i pływające okno
+# Windows dictation and the floating window
 
-Globalny skrót oraz wklejanie do innych aplikacji są domyślnie wyłączone.
-Samo otwarcie widgetu nie uruchamia mikrofonu, modelu ani Pythona.
+The global shortcut and pasting into other applications are disabled by default.
+Opening the widget alone does not start the microphone, a model, or Python.
 
-## Przepływ użytkownika
+## User workflow
 
-1. W ustawieniach dyktowania wybierz kombinację i jawnie włącz skrót.
-   Konflikt z inną aplikacją daje błąd i zachowuje dotychczasowe przypisanie.
-2. Skrót pokazuje lub ukrywa pływające okno. Przytrzymanie klawiszy nie powinno
-   wielokrotnie przełączać widoku.
-3. **Wczytaj modele bez nagrywania** przygotowuje silnik. Dopiero
-   **Rozpocznij dyktowanie** prosi o mikrofon i rozpoczyna sesję.
-4. **Zatrzymaj i zakończ** czeka na końcowy wynik. Anulowanie lub ukrycie
-   kończy nagrywanie. Tekst pozostaje edytowalny.
-5. **Kopiuj tekst** zapisuje tekst do schowka. Wklejenie wymaga oddzielnego
-   włączenia oraz kliknięcia przy wskazanym celu.
+1. Choose a key combination in dictation settings and explicitly enable the
+   shortcut. A conflict with another application produces an error and preserves
+   the previous binding.
+2. The shortcut shows or hides the floating window. Holding the keys should not
+   toggle the view repeatedly.
+3. **Wczytaj modele bez nagrywania** ("Load models without recording") prepares
+   the engine. Only **Rozpocznij dyktowanie** ("Start dictation") requests microphone
+   access and starts a session.
+4. **Zatrzymaj i zakończ** ("Stop and finish") waits for the final result.
+   Cancelling or hiding the window stops recording. The text remains editable.
+5. **Kopiuj tekst** ("Copy text") copies the text to the clipboard. Pasting requires
+   a separate opt-in and a click with a specified target.
 
-## Okno, rezerwacja i cel
+## Window, runtime lease, and target
 
-Widget ma osobny lokalny WebView. Korzysta ze wspólnego `LiveDictation`
-i AudioWorklet oraz własnej rezerwacji nadzorcy runtime. Ukrycie, zamknięcie
-lub wyjście zwalniają wyłącznie rezerwacje widgetu. Brak potwierdzenia
-zatrzymania ukrytego widoku prowadzi do zniszczenia tego WebView; tekst
-przechowywany jedynie w pamięci może zostać utracony.
+The widget has its own local WebView. It uses the shared `LiveDictation` and
+AudioWorklet implementation and holds its own lease on the runtime supervisor.
+Hiding, closing, or exiting releases only the widget's leases. If a hidden view
+does not confirm that it has stopped, that WebView is destroyed; text held only
+in memory may be lost.
 
-Wklejanie nie następuje automatycznie po rozpoznaniu. Cel pochodzi z wywołania
-widgetu skrótem z innego procesu i jest ponownie sprawdzany przed wysłaniem
-Ctrl+V. Windows może odmówić zmiany fokusu lub wejścia do aplikacji o wyższych
-uprawnieniach. Kod nie obchodzi tych ograniczeń; tekst można wkleić ręcznie.
-Samo wysłanie klawiszy nie dowodzi, że docelowy program przyjął tekst.
+Pasting does not happen automatically after recognition. The target is captured
+when the widget is invoked by the shortcut from another process and is checked
+again before sending Ctrl+V. Windows may refuse a focus change or input into an
+application running with higher privileges. The code does not bypass these
+restrictions; the text can be pasted manually. Sending keystrokes alone does not
+prove that the target application accepted the text.
 
-## Gdzie zmienić
+## Where to make changes
 
-- `src-tauri/src/dictation_desktop.rs` — skrót, widget, cel i rezerwacje.
-- `src/lib/dictation-desktop.ts` — IPC i cykl sesji.
-- `src/lib/DictationDesktopSettings.svelte` — jawne ustawienia.
-- `src/lib/DictationWidget.svelte` — tekst, Start/Stop i kopiowanie.
-- `src/lib/dictation.ts`, `src/lib/dictation-worklet.js` — transmisja PCM.
+- `src-tauri/src/dictation_desktop.rs`: shortcut, widget, target, and leases.
+- `src/lib/dictation-desktop.ts`: IPC and session lifecycle.
+- `src/lib/DictationDesktopSettings.svelte`: explicit settings.
+- `src/lib/DictationWidget.svelte`: text, Start/Stop, and copying.
+- `src/lib/dictation.ts`, `src/lib/dictation-worklet.js`: PCM transport.
 
-Kontrole: `node scripts/dictation-desktop-check.mjs`
-oraz `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.
-Testy kontraktu nie zastępują fizycznego mikrofonu i uruchomionego EXE.
-Wklejanie sprawdzaj wyłącznie we własnym kontrolowanym oknie testowym.
-Zobacz [weryfikację](weryfikacja.md) i [prywatność](../SECURITY.md).
+Checks: `node scripts/dictation-desktop-check.mjs`
+and `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.
+Contract tests do not replace testing with a physical microphone and the running
+EXE. Test pasting only in a controlled test window you own.
+See [verification](weryfikacja.md) and [privacy](../SECURITY.md).

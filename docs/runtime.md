@@ -1,46 +1,46 @@
-# Lokalny silnik
+# Local engine
 
-Seventy Seven Labs nadzoruje własny proces Python/FastAPI na `127.0.0.1:4312`. EXE zawiera kod VoiceStudio 0.5.7, a biblioteki Python/GPU oraz wagi instaluje się osobno. Repo nie dostarcza gotowych profili, bazy ani zgód modeli.
+Seventy Seven Labs supervises its own Python/FastAPI process at `127.0.0.1:4312`. The EXE includes VoiceStudio 0.5.7 code; Python/GPU libraries and weights are installed separately. The repository does not supply ready-made voice profiles, a private database, or accepted model terms.
 
-## Pierwszy start
+## First launch
 
-1. Uruchom `npm run desktop:dev` lub zbudowany EXE.
-2. W **Ustawienia → Modele i silnik → Samodzielne środowisko Python** wybierz CPU albo zgodną konfigurację NVIDIA CUDA.
-3. Poczekaj na pobranie i rzeczywiste sprawdzenie kandydata, następnie aktywuj gotowe środowisko.
-4. Przeczytaj warunki wybranego modelu i osobno pobierz jego wagi.
-5. Dodaj własny profil z nagrania, do którego masz zgodę, i sprawdź krótką wypowiedź w UI.
+1. Run `npm run desktop:dev` or the built EXE.
+2. Under **Ustawienia → Modele i silnik → Samodzielne środowisko Python** (Settings → Models and engine → Standalone Python environment), choose CPU or a compatible NVIDIA CUDA configuration.
+3. Wait for the download and actual candidate validation, then activate the ready environment.
+4. Read the selected model's terms and download its weights separately.
+5. Add your own profile from a recording you have permission to use, then test a short utterance in the UI.
 
-[Pełna instrukcja instalacji](instalacja-runtime.md). Obecność bibliotek lub wag nie oznacza potwierdzonej inferencji. Instalacja na czystym Windows i warianty CUDA wymagają osobnego odbioru.
+See the [full installation guide](instalacja-runtime.md). Installed libraries or weights do not prove inference works. Clean Windows installation and CUDA variants require separate acceptance tests.
 
-## Katalogi i izolacja
+## Directories and isolation
 
-Domyślnie dane są pod `%LOCALAPPDATA%/VoiceStudioNext`. `data/` zawiera bazę, głosy, wyniki i konfigurację; `runtime/` oraz `runtime_<id>/` zawierają środowiska. `active-runtime.json` wskazuje wybrane środowisko. Generacje źródeł i przypięte ZIP są w katalogach runtime.
+Data defaults to `%LOCALAPPDATA%/VoiceStudioNext`. `data/` contains the database, voices, output, and configuration; `runtime/` and `runtime_<id>/` contain environments. `active-runtime.json` points to the selected environment. Source generations and pinned ZIPs are stored in runtime directories.
 
-Lokalizacje danych i modeli odczytuj z ustawień. Opcjonalne `VOICESTUDIO_NEXT_PYTHON` wskazuje jawny interpreter i ma pierwszeństwo przed aktywowanym środowiskiem; wyłącz nadpisanie przy testach aktywacji.
+Read data and model locations from settings. Optional `VOICESTUDIO_NEXT_PYTHON` selects an explicit interpreter and takes precedence over the activated environment; disable this override when testing activation.
 
-Przed migracją launcher robi spójną kopię danych. Import zgodności może czytać dawną bazę OmniVoice tylko do odczytu i kopiować profile do nowego katalogu. Nie jest to pełna migracja projektów i historii. Nie edytuj bibliotek i modeli współdzielonych hardlinkami. [Kopie danych](kopie-danych-runtime.md).
+The launcher creates a consistent backup before migration. Compatibility import may open the old OmniVoice database read-only and copy profiles into the new directory. This is not a full project/history migration. Do not modify hardlinked libraries or models in place. See [backups](kopie-danych-runtime.md).
 
-## Nadzór
+## Supervision
 
-Okno startuje bez Pythona. Operacja wymagająca silnika uruchamia własny proces, którego marker jest sprawdzany w odpowiedzi health. Obcy serwer nie jest przejmowany. Start i kopie mają ograniczony czas oczekiwania oraz rzeczywisty postęp. Stop kończy wyłącznie własne procesy; automatyczne usypianie wymaga pięciu minut potwierdzonej bezczynności.
+The window starts without Python. An operation that needs the engine starts an owned process, whose marker is checked in the health response. An unrelated server is not taken over. Startup and backup have bounded waits and report actual progress. Stop terminates only owned processes; automatic shutdown requires five minutes of confirmed inactivity.
 
-GET katalogu używa lekkich metadanych. Jawne sprawdzenie i synteza wykonują rzeczywiste kontrole. Katalog i health nie potwierdzają działania modeli.
+Catalog GET requests use lightweight metadata. Explicit verification and synthesis perform the actual availability checks. Catalog and health responses do not prove a model works.
 
-Vite przekazuje `/backend` na port 4312, ale przeglądarka nie uruchamia nadzorcy Tauri. Bez modeli używaj `/?demo=tts`.
+Vite proxies `/backend` to port 4312, but the browser does not start the Tauri supervisor. Use `/?demo=tts` without models.
 
-## Mapa plików
+## File map
 
-| Odpowiedzialność | Plik |
+| Responsibility | File |
 | --- | --- |
-| Nadzór i IPC | `src-tauri/src/runtime.rs`, `src/lib/runtime.ts` |
-| Instalacja i doctor | `scripts/runtime/bootstrap.py`, `src-tauri/src/installer.rs` |
-| Start i adaptery | `scripts/runtime/launcher.py` |
-| Lekkie metadane | `scripts/runtime/engine_catalogue_metadata.py` |
-| Wagi i pobieranie | `scripts/runtime/model_management.py` |
-| Pochodzenie źródeł | `scripts/runtime/engine-provenance.json`, `bundle.py` |
+| Supervision and IPC | `src-tauri/src/runtime.rs`, `src/lib/runtime.ts` |
+| Installation and doctor | `scripts/runtime/bootstrap.py`, `src-tauri/src/installer.rs` |
+| Startup and adapters | `scripts/runtime/launcher.py` |
+| Lightweight metadata | `scripts/runtime/engine_catalogue_metadata.py` |
+| Weights and downloads | `scripts/runtime/model_management.py` |
+| Source provenance | `scripts/runtime/engine-provenance.json`, `scripts/runtime/bundle.py` |
 
-## Sprawdzanie
+## Verification
 
-`cargo check --manifest-path src-tauri/Cargo.toml` sprawdza kod Rust. `scripts/runtime/smoke.py` bada start/health/stop, nie generowanie. Testy mowy wymagają świadomego wskazania własnego profilu lub referencji. Wyniki zapisuj do ignorowanego `.tmp/qa`.
+`cargo check --manifest-path src-tauri/Cargo.toml` checks Rust code. `scripts/runtime/smoke.py` checks start/health/stop, not generation. Speech tests require an explicitly chosen profile or reference. Write results to ignored `.tmp/qa`.
 
-Ton demo służy do odtwarzacza i UI, nie do klonowania ani poprawnej mowy w ASR. Pełny odbiór wymaga krótkiej syntezy w UI, odtwarzania, zapisu/reload, stopu i zwolnienia portu. Dubbing, audiobooki i konfiguracje sprzętowe mają osobne testy. W ramach publikacji nie wykonywano nowej inferencji ani pobierania wag.
+The demo tone is for player and UI tests, not cloning or valid speech in ASR. Full acceptance requires short UI synthesis, playback, save/reload, stop, and port release. Dubbing, audiobooks, and hardware configurations need separate tests. Preparing the public release did not involve new inference or weight downloads.

@@ -1,44 +1,50 @@
-# Środowiska dodatkowych silników
+# Additional engine environments
 
-Panel **Środowiska dodatkowych silników** przygotowuje osobne środowiska Python
-lub program audio.cpp. To inna operacja niż pobranie wag. Sam odczyt katalogu
-nie instaluje pakietów i nie testuje modeli.
+The **Środowiska dodatkowych silników** (Additional engine environments) panel
+prepares separate Python environments or the audio.cpp executable. This is
+separate from downloading model weights. Reading the catalog does not install
+packages or test models.
 
-## Przepływ
+## Workflow
 
-1. Wybierz recepturę i sprawdź źródła, wersje, warunki oraz szacunek miejsca.
-2. Jawnie rozpocznij instalację. Katalog może pokazać brak obsługi platformy
-   lub wymagania CUDA zamiast oferować pozornie działającą opcję.
-3. Śledź etapy i log. Anulowanie czeka na zakończenie własnego drzewa procesów.
-4. Po udanej weryfikacji udostępnij środowisko osobną akcją i zrestartuj silnik.
-5. Oddzielnie pobierz wagi, przejrzyj ich warunki i wybierz model.
+1. Select a recipe and review its sources, versions, terms and estimated disk space.
+2. Start installation explicitly. The catalog may report an unsupported platform
+   or a CUDA requirement instead of presenting an option that only appears usable.
+3. Follow the stages and log. Cancellation waits for the installer's process tree
+   to exit.
+4. After successful verification, activate the environment with the separate
+   action and restart the engine.
+5. Download the weights, review their terms and select the model separately.
 
-Receptury pochodzą z przypiętego backendu, m.in. dla IndexTTS, MOSS, Confucius,
-Supertonic, PocketTTS, VoxCPM, CosyVoice i audio.cpp. Aktualna lista oraz
-wymagania są w panelu; obecność receptury nie oznacza odbioru każdej instalacji.
+Recipes come from the pinned backend, including those for IndexTTS, MOSS,
+Confucius, Supertonic, PocketTTS, VoxCPM, CosyVoice and audio.cpp. The current list
+and requirements appear in the panel; having a recipe does not mean every
+installation has passed acceptance testing.
 
-## Izolacja
+## Isolation
 
-Próby trafiają do `runtime_root/sidecars/<engine_id>/<attempt_id>`. Korzystają
-z własnego narzędzia uv i cache, bez instalacji do głównego venv lub globalnego
-Python. Gotowego venv nie należy przenosić: może zawierać ścieżki bezwzględne.
-Nowa receptura tworzy własny katalog, a częściowe dane pozostają do inspekcji.
+Installation attempts use `runtime_root/sidecars/<engine_id>/<attempt_id>`. They
+have their own uv executable and cache, without installing into the main venv or
+global Python. Do not move a prepared venv: it may contain absolute paths.
+A new recipe creates its own directory, and partial data is retained for inspection.
 
-Aktywacja zmienia wyłącznie dozwolony klucz prywatnego środowiska i wymaga
-restartu. Nie zmienia bieżącego modelu i nie akceptuje warunków za użytkownika.
-Część zależności przechodnich jest rozwiązywana podczas instalacji; receptura
-nie stanowi pełnego zahaszowanego locka każdego zewnętrznego środowiska.
+Activation changes only the permitted key in the private environment configuration
+and requires a restart. It does not change the active model or accept terms on
+the user's behalf. Some transitive dependencies are resolved during installation;
+a recipe is not a complete lockfile with hashes for every external environment.
 
-## Pliki i sprawdzanie
+## Files and checks
 
-- `scripts/runtime/engine_installation.py` — katalog AST, worker i statusy.
-- `scripts/runtime/private_environment.py` — atomowy zapis konfiguracji.
-- `src/lib/EngineRuntimeInstaller.svelte` — panel.
-- `src/lib/engine-installation.ts` — transport i zgoda na recepturę.
+- `scripts/runtime/engine_installation.py` — catalog extraction from the AST,
+  worker and status reporting.
+- `scripts/runtime/private_environment.py` — atomic configuration writes.
+- `src/lib/EngineRuntimeInstaller.svelte` — the panel.
+- `src/lib/engine-installation.ts` — transport and approval of the selected recipe.
 
-Kontrole bez kosztownej inferencji:
+Checks that do not require expensive inference:
 `python -S scripts/runtime/test_engine_installation.py`
-i `node scripts/engine-installation-check.mjs`.
-Testy fixture nie potwierdzają instalacji wszystkich silników na każdym Windows.
-Zobacz [instalację bazowego runtime](instalacja-runtime.md),
-[dodatkowe TTS](dodatkowe-modele-tts.md) i [licencje](licencje-modeli.md).
+
+and `node scripts/engine-installation-check.mjs`.
+Fixture tests do not verify installation of every engine on every Windows setup.
+See [base runtime installation](instalacja-runtime.md),
+[additional TTS models](dodatkowe-modele-tts.md) and [model terms](licencje-modeli.md).

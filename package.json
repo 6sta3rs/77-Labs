@@ -31,5 +31,5 @@
     "vite": "8.3.4"
   },
   "license": "AGPL-3.0-only",
-  "description": "Lokalne studio głosu na Windows: narracja, synteza mowy i transkrypcja."
+  "description": "A local voice studio for Windows: narration, speech synthesis, and transcription."
 }

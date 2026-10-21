@@ -1,47 +1,49 @@
-# Połączenie z własnym serwerem
+# Connecting to your own server
 
-**Ustawienia → Udostępnianie** może połączyć studio z API VoiceStudio na własnym
-serwerze. Tekst, referencje i media używane przez zdalną operację trafiają
-na ten serwer. Dostępność GPU, modeli i warunków pozostaje jego cechą.
-Test transportu nie wykonuje syntezy.
+**Ustawienia → Udostępnianie** (Settings → Sharing) can connect the studio to
+the VoiceStudio API on your own server. Text, references and media used by a
+remote operation are sent to that server. GPU availability, models and applicable
+terms depend on the server. The transport test does not perform synthesis.
 
-## Połączenie i powrót
+## Connecting and returning to local mode
 
-Test odczytuje `/health`, wymienia klucz na sesję przez `/api/auth/session`
-i sprawdza chronione `/system/info`. Nie zmienia aktywnego trybu.
-Dopiero **Połącz i używaj zdalnego silnika** przełącza operacje.
-Błąd zdalnego żądania nie uruchamia go automatycznie na lokalnym komputerze.
+The test reads `/health`, exchanges the key for a session through
+`/api/auth/session` and checks the protected `/system/info` endpoint. It does
+not change the active mode. Only **Połącz i używaj zdalnego silnika** (Connect
+and use the remote engine) switches operations to the server. A failed remote
+request is not automatically retried on the local computer.
 
-**Użyj lokalnego silnika** przywraca lokalny transport i czyści zapisaną sesję;
-próba jej odwołania na serwerze może się nie powieść, gdy serwer jest niedostępny.
-Po restarcie procesu połączenie trzeba włączyć jawnie. Przeładowanie samego
-okna synchronizuje stan z działającym mostkiem.
+**Użyj lokalnego silnika** (Use the local engine) restores local transport and
+clears the stored session. Revoking that session on the server may fail if the
+server is unavailable. After restarting the process, enable the connection
+explicitly. Reloading only the window synchronizes its state with the running
+bridge.
 
-Klucz administratora służy wymianie na sesję i nie trafia do pamięci przeglądarki.
-Wygasająca sesja korzysta z magazynu sekretów backendu. Zmiana serwera,
-wygaśnięcie lub odwołanie dostępu mogą wymagać ponownego logowania.
-Korzystaj z HTTPS dla połączenia opuszczającego zaufany loopback.
+The administrator key is used to obtain a session and is not stored in browser
+memory. The expiring session uses the backend's secret store. Changing servers,
+session expiration or revoked access may require signing in again.
+Use HTTPS for connections that leave the trusted loopback interface.
 
-## Granice transportu
+## Transport limitations
 
-Proxy obsługuje upload, pobranie, SSE i osobny bilet WebSocket. Nie przekazuje
-lokalnych Cookie, Origin lub Authorization jako dowolnych nagłówków.
-Przekierowania są odrzucane, ścieżka reverse proxy jest zachowywana,
-a prywatne `/next/*` nie służą jako zdalne API. Zmiana serwera jest blokowana,
-gdy trwają fizyczne transfery. Po wygaśnięciu sesji żądania pozostają zablokowane,
-bez cichego przełączenia do innego backendu.
+The proxy supports uploads, downloads, SSE and a separate WebSocket ticket.
+It does not forward local Cookie, Origin or Authorization values as arbitrary
+headers. Redirects are rejected, the reverse proxy path prefix is preserved,
+and private `/next/*` routes are not exposed as a remote API. Switching servers
+is blocked while transfers are still in progress. When a session expires,
+requests remain blocked without silently switching to another backend.
 
-Połączenie nie importuje profili i plików serwera do lokalnej bazy.
-Nie jest mechanizmem migracji danych ani przywróceniem historycznych workerów GPU.
+The connection does not import server profiles or files into the local database.
+It is not a data migration mechanism or a restoration of historical GPU workers.
 
-## Pliki i kontrola
+## Files and checks
 
-- `src/lib/RemoteBackendSettings.svelte` — ustawienia i jawne akcje.
-- `src/lib/remote-backend.ts`, `src/lib/remote-state.ts`, `src/lib/remote-routing.ts` — stan.
-- `scripts/runtime/remote_backend.py` — sesja i proxy.
-- `src/lib/api.ts`, `src/lib/dictation.ts` — wybór transportu operacji.
+- `src/lib/RemoteBackendSettings.svelte` — settings and explicit actions.
+- `src/lib/remote-backend.ts`, `src/lib/remote-state.ts`, `src/lib/remote-routing.ts` — state.
+- `scripts/runtime/remote_backend.py` — session and proxy.
+- `src/lib/api.ts`, `src/lib/dictation.ts` — transport selection for operations.
 
-Regresje: `scripts/runtime/test_remote_backend.py`, uruchamiane w wydzielonym
-środowisku. Kontrolowany serwer loopback nie odbiera publicznego wdrożenia,
-uwierzytelnienia reverse proxy ani inferencji. Zobacz [ochronę danych](../SECURITY.md)
-i [weryfikację](weryfikacja.md).
+Regression checks: `scripts/runtime/test_remote_backend.py`, run in an isolated
+environment. A controlled loopback server does not validate a public deployment,
+reverse proxy authentication or inference. See [data protection](../SECURITY.md)
+and [verification status](weryfikacja.md).

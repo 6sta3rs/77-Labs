@@ -1,43 +1,45 @@
-# Modele i katalog wag
+# Models and the weights catalog
 
-**Ustawienia → Modele i silnik** rozdzielają środowisko z bibliotekami,
-pobierane wagi oraz wybór aktywnego silnika. Pobranie modelu nie instaluje
-zależności każdej rodziny i nie potwierdza prawa do jej użycia.
+**Ustawienia → Modele i silnik** (Settings → Models and engine) separates the
+library environment, downloaded weights and active engine selection. Downloading
+a model does not install the dependencies for every family or confirm permission
+to use it.
 
-## Wybór katalogu
+## Choosing a directory
 
-Panel pokazuje ścieżkę skonfigurowaną i efektywną dla bieżącego procesu.
-**Zapisz katalog** zmienia `OMNIVOICE_CACHE_DIR` w prywatnym `data/environment`.
-Nie przenosi istniejących modeli. Uruchom ponownie silnik, aby użyć nowej
-ścieżki. Własny katalog wag musi być oddzielony od danych i runtime;
-nieprawidłowe ścieżki oraz dowiązania są odrzucane.
+The panel shows both the configured path and the effective path for the current
+process. **Zapisz katalog** (Save directory) changes `OMNIVOICE_CACHE_DIR` in the
+private `data/environment` file. It does not move existing models. Restart the
+engine to use the new path. The weights directory must be separate from data and
+runtime directories; invalid paths and links are rejected.
 
-## Pobranie i anulowanie
+## Downloading and cancellation
 
-**Pobierz wagi** uruchamia własny nadzorowany proces z przypiętymi rewizjami
-repozytoriów. Używany jest wyłącznie token zapisany dla tej aplikacji.
-Postęp pokazuje rzeczywiste bajty, gdy znany jest rozmiar. Stan zadania jest
-trwały; niedokończone pobranie może zostać uzupełnione po ponowieniu.
+**Pobierz wagi** (Download weights) starts a dedicated supervised process using
+pinned repository revisions. Only the token saved for this application is used.
+Progress reports actual bytes when the size is known. Task state is persistent;
+a retry can complete an unfinished download.
 
-Anulowanie czeka na zakończenie własnego procesu i jego potomków. Obce procesy
-pozostają poza nadzorem. Samo przerwanie połączenia nie dowodzi zakończenia pracy.
-Główny proces syntezy korzysta z lokalnych plików, bez pobierania w czasie inferencji.
+Cancellation waits for the owned process and its descendants to exit. Other
+processes remain outside the supervisor's control. A disconnected client alone
+does not prove that work has stopped. The main synthesis process uses local files
+without downloading anything during inference.
 
-## Usuwanie i warunki
+## Removal and terms
 
-Usunięcie pojedynczego modelu wymaga wskazania identyfikatora oraz stanu bez
-aktywnego użycia. Dotyczy własnego cache; nie usuwa cudzych bibliotek lub
-modeli w innych instalacjach. Przejrzyj [warunki modelu](licencje-modeli.md),
-w tym zależności tokenizera. Stan `installed` opisuje kompletność plików,
-a nie udany test syntezy.
+Removing an individual model requires its identifier and a state in which it is
+not actively in use. Removal is limited to the application's own cache; it does
+not remove another installation's libraries or models. Review the
+[model terms](licencje-modeli.md), including tokenizer dependencies. `installed`
+describes file completeness, not a successful synthesis test.
 
-## Pliki
+## Files
 
-- `src/lib/EngineCatalog.svelte`, `src/lib/model-management.ts` — katalog i UI.
-- `scripts/runtime/model_management.py` — zadania, cache, pobieranie i usuwanie.
-- `scripts/runtime/launcher.py` — efektywna konfiguracja procesu.
+- `src/lib/EngineCatalog.svelte`, `src/lib/model-management.ts` — catalog and UI.
+- `scripts/runtime/model_management.py` — tasks, cache, downloads and removal.
+- `scripts/runtime/launcher.py` — effective process configuration.
 
-Regresje: `scripts/runtime/test_model_management.py`.
-Do pełnego odbioru potrzebny jest dodatkowo rzeczywisty transfer, restart,
-próba wybranego modelu i kontrola danych. Zobacz [instalację runtime](instalacja-runtime.md)
-oraz [dodatkowe TTS](dodatkowe-modele-tts.md).
+Regression checks: `scripts/runtime/test_model_management.py`.
+Full acceptance testing also requires an actual transfer, a restart, a test of
+the selected model and data checks. See [runtime installation](instalacja-runtime.md)
+and [additional TTS models](dodatkowe-modele-tts.md).

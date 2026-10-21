@@ -1,149 +1,158 @@
-# Seventy Seven Labs — wymagania produktu
+# Seventy Seven Labs - product requirements
 
-Wersja dokumentu: 1.0, 21.10.2026. Dotyczy publicznego kodu aplikacji 0.2.0.
-To opis produktu i kryteriów dalszego rozwoju. Sam dokument nie potwierdza
-wykonania testów, dostępności instalatora ani działania każdego modelu.
+Document version: 1.0, October 21, 2026. Covers the public application source
+for version 0.2.0. This document describes the product and criteria for further
+development. It does not establish that tests have been run, an installer is
+available, or every model works.
 
-## Cel i odbiorcy
+## Purpose and users
 
-Seventy Seven Labs to lokalne studio głosu na Windows z polskim interfejsem.
-Łączy przygotowanie narracji, syntezę mowy, pracę z wieloma mówcami,
-transkrypcję i dalszą produkcję audio w jednym miejscu. Użytkownik powinien
-wiedzieć, gdzie są jego dane, co jest wykonywane lokalnie oraz kiedy operacja
-wymaga pobrania modeli lub połączenia z wybranym dostawcą.
+Seventy Seven Labs is a local voice studio for Windows with a Polish interface.
+It brings narration preparation, speech synthesis, multiple speakers,
+transcription, and further audio production into one application. Users should
+know where their data is stored, what runs locally, and when an operation
+requires downloading models or connecting to a selected provider.
 
-Główne potrzeby:
+Primary needs:
 
-- Autor narracji przygotowuje tekst, wybiera głos, generuje i pobiera nagranie.
-- Twórca materiałów wielogłosowych przypisuje głosy do bloków tekstu.
-- Osoba potrzebująca czytelnego zapisu mowy importuje plik i eksportuje tekst
-  lub napisy z czasami.
-- Zaawansowany użytkownik przygotowuje dubbing, audiobook albo lokalną recepturę
-  automatyzacji i śledzi rzeczywisty postęp zadania.
-- Współtwórca uruchamia interfejs bez prywatnej biblioteki głosów i bez GPU.
+- A narration author prepares text, selects a voice, generates a recording,
+  and downloads it.
+- A creator working with multiple speakers assigns voices to text blocks.
+- Someone who needs a readable record of speech imports a file and exports
+  text or timed subtitles.
+- An advanced user prepares dubbing, an audiobook, or a local automation recipe
+  and follows the task's actual progress.
+- A contributor runs the interface without a private voice library or a GPU.
 
-## Zakres obecnego kodu
+## Scope of the current code
 
-„Dostępny” oznacza obecny interfejs i implementację. Nie oznacza pełnego odbioru
-na czystym komputerze, wszystkich modelach ani dowolnej długości materiału.
-Publiczna wersja nie zawiera głosów, projektów, nagrań, decyzji licencyjnych,
-tokenów ani środowiska runtime autora. Dane demonstracyjne są przykładowe.
+"Available" means that the interface and implementation exist. It does not mean
+full acceptance testing on a clean computer, across all models, or with material
+of any length. The public release does not include the author's voices,
+projects, recordings, license acknowledgments, tokens, or runtime environment.
+Demonstration data is illustrative.
 
-| Obszar | Obecne zachowanie | Granica |
+| Area | Current behavior | Limitation |
 | --- | --- | --- |
-| Edytor narracji | Bloki mówców, wybór głosu i silnika, tagi OmniVoice, cofanie i ponawianie. | Obsługa tagów zależy od silnika; tag nie gwarantuje określonej ekspresji. |
-| Synteza i odtwarzanie | Parametry żądania, zadanie TTS, rzeczywisty wynik, fala, play/pause, przewijanie i pobranie. | Wymaga zainstalowanego runtime, zgodnego modelu i jego warunków. |
-| Projekty i historia | Lokalny tekst, mówcy, ustawienia i nagrania jako Blob-y w IndexedDB; biblioteka backendu. | Dane przeglądarki i desktopu mogą należeć do odrębnych profili. Pełna migracja starej aplikacji nie jest obiecana. |
-| Głosy | Profile, referencje, próbki, edycja, klonowanie i projektowanie zależne od modelu. | Materiał referencyjny wymaga praw i zgody właściciela głosu. Jakość podobieństwa nie jest gwarantowana. |
-| Transkrypcja | Import pliku, wybór trybu i języka, edycja, historia, TXT/SRT/VTT i opcjonalna redakcja LLM. | ASR może się mylić. Tekst pełny i segmenty napisów mają osobne zasady edycji. |
-| Dubbing | Przygotowanie źródła, transkrypcja, tłumaczenie, segmenty, głosy i eksport. | Pełny przepływ wideo, tło, wszystkie timingi i warianty eksportu wymagają dalszego odbioru. |
-| Audiobooki i sceny | Import i podział tekstu, rozdziały, głosy, biblioteka, render, anulowanie/wznowienie i odsłuch porcji. | Długie zadania, wszystkie importy i modele wymagają oddzielnych testów. |
-| Narzędzia audio | Lokalna obróbka, konwersja głosu, diagnostyka i narzędzia tekstowe. | Efekty wymagające modelu lub LLM mają osobne zależności; sama obecność panelu nie dowodzi ich gotowości. |
-| Automatyzacja i dyktowanie | Receptury, kolejka, obserwowany folder, dyktowanie i widget Windows. | Funkcje systemowe wymagają jawnego włączenia. Fizyczny mikrofon i wklejanie do innych aplikacji wymagają osobnego odbioru. |
-| Wygląd i dostępność | Motywy jasne/ciemne, palety, klawiatura, focus, skalowanie tekstu i ograniczenie animacji. | Animacja głosu jest wizualizacją, nie oceną jakości lub emocji. |
-| Modele i środowisko | Katalog, przypięte źródła, instalator CPU/CUDA, doctor, cache, postęp transferu i przegląd warunków. | EXE nie zawiera wielogigabajtowych bibliotek i wag. Cały wariant CUDA oraz czysta VM wymagają odbioru. |
-| Integracje | Opcjonalne usługi LLM, lokalne API, MCP i zdalny transport. | Połączenie z usługą może wysłać tekst lub media poza komputer i wykorzystać limit konta. |
+| Narration editor | Speaker blocks, voice and engine selection, OmniVoice tags, undo and redo. | Tag support depends on the engine; a tag does not guarantee a particular expression. |
+| Synthesis and playback | Request parameters, TTS tasks, actual output, waveforms, play/pause, seeking, and download. | Requires an installed runtime, a compatible model, and compliance with its terms. |
+| Projects and history | Local text, speakers, settings, and recordings stored as Blobs in IndexedDB; a backend library. | Browser and desktop data may belong to separate profiles. Full migration from the old application is not promised. |
+| Voices | Profiles, references, samples, editing, cloning, and model-dependent voice design. | Reference material requires the necessary rights and the speaker's consent. Voice similarity is not guaranteed. |
+| Transcription | File import, mode and language selection, editing, history, TXT/SRT/VTT, and optional LLM editing. | ASR can make mistakes. Full text and subtitle segments have separate editing rules. |
+| Dubbing | Source preparation, transcription, translation, segments, voices, and export. | The complete video workflow, background handling, all timing modes, and export variants need further acceptance testing. |
+| Audiobooks and scenes | Text import and splitting, chapters, voices, a library, rendering, cancellation/resumption, and chunk playback. | Long tasks, all import formats, and all models need separate testing. |
+| Audio tools | Local processing, voice conversion, diagnostics, and text tools. | Effects that require a model or LLM have separate dependencies; a panel's presence does not establish readiness. |
+| Automation and dictation | Recipes, a queue, a watched folder, dictation, and a Windows widget. | System integrations require explicit opt-in. A physical microphone and pasting into other applications need separate acceptance testing. |
+| Appearance and accessibility | Light/dark themes, palettes, keyboard controls, focus, text scaling, and reduced motion. | Voice animation is a visualization, not an assessment of quality or emotion. |
+| Models and environment | A catalog, pinned sources, a CPU/CUDA installer, doctor checks, cache, transfer progress, and terms review. | The EXE does not include libraries and weights that can occupy many gigabytes. The full CUDA configuration and a clean VM need acceptance testing. |
+| Integrations | Optional LLM services, a local API, MCP, and remote transport. | Connecting to a service may send text or media off the computer and consume the account's quota. |
 
-## Główne przepływy
+## Main workflows
 
-### Pierwsze wejście
+### First launch
 
-1. Studio otwiera się bez ładowania bibliotek ML i bez pobierania wag.
-2. Użytkownik może obejrzeć interfejs, odłożyć konfigurację albo otworzyć
-   **Ustawienia → Modele i silnik**.
-3. Instalacja tworzy osobny kandydat środowiska CPU/CUDA. Doctor i aktywacja
-   są odrębnymi krokami; niekompletny kandydat nie zastępuje działającego.
-4. Modele pobiera się osobno. Ich warunki są pokazywane per repozytorium
-   i wersja informacji, z początkowo pustym potwierdzeniem.
-5. Odczyt katalogu i warunków nie jest akceptacją, pobraniem ani testem syntezy.
+1. The studio opens without loading ML libraries or downloading weights.
+2. The user can explore the interface, postpone setup, or open
+   **Ustawienia > Modele i silnik** (Settings > Models and engine).
+3. Installation creates a separate candidate CPU/CUDA environment. Doctor checks
+   and activation are separate steps; an incomplete candidate does not replace
+   a working environment.
+4. Models are downloaded separately. Their terms are shown per repository
+   and information revision, with acknowledgment initially unchecked.
+5. Reading the catalog and terms does not accept them, download a model,
+   or test synthesis.
 
-### Tekst na mowę
+### Text to speech
 
-1. Użytkownik wpisuje tekst i wybiera głos dla każdego mówcy.
-2. Ustawienia pokazują parametry właściwe dla wybranego silnika.
-3. Generowanie uruchamia potrzebny lokalny silnik i rzeczywiste zadanie.
-4. Błąd przedstawia powód oraz możliwość poprawy lub ponowienia. Licencja,
-   brak modelu i brak środowiska mają czytelne komunikaty.
-5. Wynik można odtworzyć, przewinąć, pobrać i zachować wraz z projektem.
-   Przerwanie nie powinno usuwać już gotowych nagrań.
+1. The user enters text and selects a voice for each speaker.
+2. Settings show the parameters supported by the selected engine.
+3. Generation starts the required local engine and an actual task.
+4. Errors explain the cause and how to correct it or retry. Licensing,
+   missing models, and missing environments have readable messages.
+5. The user can play and seek within the result, download it, and save it with
+   the project. Interruption should not remove recordings that are already complete.
 
-### Mowa na tekst
+### Speech to text
 
-1. Użytkownik wybiera własny plik, silnik i tryb rozpoznawania.
-2. Widzi postęp, tekst i segmenty czasowe.
-3. Ręcznie poprawia wynik. Sugestia LLM jest opcjonalna i odwracalna.
-4. Eksportuje TXT albo napisy. Eksport zachowuje polskie znaki i prawidłowe
-   czasy segmentów; zmiana tekstu pełnego nie zgaduje nowych czasów.
+1. The user selects their own file, an engine, and a recognition mode.
+2. They see progress, text, and timed segments.
+3. They correct the result manually. An LLM suggestion is optional and reversible.
+4. They export TXT or subtitles. Export preserves Polish characters and correct
+   segment times; changing the full text does not invent new timings.
 
-## Architektura i przechowywanie
+## Architecture and storage
 
-- **Svelte 5, TypeScript i Vite** tworzą interfejs oraz podgląd przeglądarkowy.
-- **Tauri 2 i Rust** odpowiadają za okno Windows, komendy natywne,
-  izolację procesów, pliki, instalację i nadzór runtime.
-- **Python/FastAPI** uruchamia przypięty backend VoiceStudio 0.5.7 oraz lokalne
-  rozszerzenia. Źródło i SHA-256 podaje `scripts/runtime/engine-provenance.json`.
-- Nadzorowany backend używa `127.0.0.1:4312`; podgląd Vite używa portu 4310
-  oraz proxy `/backend`. Podgląd przeglądarkowy sam nie zastępuje nadzorcy Tauri.
-- Domyślne pliki runtime i danych trafiają do `%LOCALAPPDATA%\VoiceStudioNext`,
-  a część stanu interfejsu do localStorage/IndexedDB. Nazwy techniczne
-  `VoiceStudioNext` i starsze identyfikatory pozostają dla zgodności.
-- Dodatkowe rodziny modeli mogą mieć osobne środowiska. Modele, zależności,
-  logi i prywatne bazy nie należą do repozytorium.
+- **Svelte 5, TypeScript, and Vite** provide the interface and browser preview.
+- **Tauri 2 and Rust** handle the Windows window, native commands, process
+  isolation, files, installation, and runtime supervision.
+- **Python/FastAPI** runs the pinned VoiceStudio 0.5.7 backend and local
+  extensions. `scripts/runtime/engine-provenance.json` records its source
+  and SHA-256.
+- The supervised backend uses `127.0.0.1:4312`; the Vite preview uses port 4310
+  and the `/backend` proxy. The browser preview does not replace the Tauri
+  supervisor.
+- Runtime and data files default to `%LOCALAPPDATA%\VoiceStudioNext`,
+  while some interface state is stored in localStorage/IndexedDB. Technical
+  names such as `VoiceStudioNext` and legacy identifiers remain for compatibility.
+- Additional model families may use separate environments. Models, dependencies,
+  logs, and private databases do not belong in the repository.
 
-Szczegóły: [runtime](runtime.md), [instalacja środowiska](instalacja-runtime.md)
-oraz [kontekst projektu](kontekst-projektu.md).
+See the [runtime](runtime.md), [environment installation](instalacja-runtime.md),
+and [project context](kontekst-projektu.md) documents for details.
 
-## Prywatność i licencje
+## Privacy and licenses
 
-Licencją kodu projektu jest **AGPL-3.0-only**. Wagi, tokenizery, zależności
-i materiały osób trzecich zachowują własne warunki; licencja aplikacji nie
-udziela automatycznie praw do komercyjnego użycia modelu, nagrania lub głosu.
-Pełny tekst: [LICENSE](../LICENSE), źródła i wyjątki:
+Project code is licensed under **AGPL-3.0-only**. Weights, tokenizers,
+dependencies, and third-party materials retain their own terms; the application
+license does not automatically grant commercial rights to a model, recording,
+or voice. Full text: [LICENSE](../LICENSE). Sources and exceptions:
 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
-Lokalna synteza i eksport powinny działać na pobranych wcześniej modelach.
-Pobranie wag, usługi LLM, tłumacze i zdalny backend mogą wymagać sieci.
-Użytkownik musi widzieć wybraną usługę i świadomie uruchamiać taką operację.
-Tokeny i logowania nie są przenoszone do paczki projektu.
+Local synthesis and export should work with models downloaded in advance.
+Downloading weights, LLM services, translators, and a remote backend may
+require network access. Users must be able to see the selected service
+and deliberately start such operations. Tokens and login credentials are
+not included in the project package.
 
-Do klonowania wolno używać własnego głosu lub materiału z odpowiednią zgodą.
-Zapis lokalnego potwierdzenia nie zastępuje praw do nagrania ani zgody osoby.
-Zasady raportowania i ochrony danych: [SECURITY.md](../SECURITY.md).
+Cloning requires the user's own voice or material with appropriate consent.
+A local acknowledgment does not replace rights to a recording or the speaker's
+consent. Reporting and data protection: [SECURITY.md](../SECURITY.md).
 
-## Wymagania jakościowe i kryteria odbioru
+## Quality requirements and acceptance criteria
 
-Poniższe kryteria są warunkami odbioru, a nie listą zaliczonych testów.
-Każdy raport podaje commit publicznego kodu, wersję silnika, środowisko,
-rodzaj danych testowych, wynik i pominięte kroki.
+The following are acceptance conditions, not a list of passing tests.
+Each report records the public source commit, engine version, environment,
+test data type, result, and skipped steps.
 
-| Kryterium | Mierzalny warunek |
+| Criterion | Measurable condition |
 | --- | --- |
-| Czyste źródła | Zero prywatnych nagrań, profili, baz, tokenów i ścieżek autora w śledzonych plikach oraz publicznej historii Git. |
-| Powtarzalny frontend | `npm ci`, `npm run check` i `npm run build` kończą się sukcesem z publicznego checkoutu. |
-| Bezpieczny start | Otwarcie okna nie uruchamia inferencji ani pobierania; brak runtime daje dostęp do konfiguracji i czytelny stan. |
-| Własność procesu | Zajęty port nie powoduje przejęcia obcego serwera; Stop i wyjście zamykają wyłącznie własne procesy. |
-| TTS | Własna krótka referencja i tekst dają dekodowalny WAV z niezerową długością; play/pause/seek i pobranie działają; hash pobrania zgadza się z zapisem. |
-| Trwałość projektu | Po zamknięciu i ponownym otwarciu zachowane są tekst, mówcy, wybór głosu i zapisany Blob audio. |
-| Transkrypcja | Jawna próbka testowa daje edytowalny tekst; TXT/SRT/VTT zachowują UTF-8 i rosnące czasy. Błędy rozpoznania są odnotowane. |
-| Warunki modelu | Samo wejście nie zapisuje decyzji. Zmieniony odcisk warunków wymaga ponownego przeglądu, bez automatycznej akceptacji. |
-| Dostępność | Kluczowe przepływy są obsługiwane klawiaturą; focus jest widoczny, dialog przywraca focus, a reduced motion zatrzymuje ciągły ruch. |
-| Odbiór Windows | Build oraz rzeczywiste uruchomienie EXE są raportowane osobno. Czysta instalacja i wariant GPU wymagają własnych prób. |
-| Długie zadania | Dubbing i audiobook mają osobny test renderu, anulowania, wznowienia i końcowego pliku na wskazanym modelu. |
+| Clean sources | No private recordings, profiles, databases, tokens, or author-specific paths in tracked files or public Git history. |
+| Repeatable frontend setup | `npm ci`, `npm run check`, and `npm run build` succeed from the public checkout. |
+| Safe startup | Opening the window does not start inference or downloads; a missing runtime still allows configuration and shows a clear state. |
+| Process ownership | An occupied port does not lead to adopting another server; Stop and exit close only owned processes. |
+| TTS | An owned short reference and text produce a decodable WAV with nonzero duration; play/pause/seek and download work; the download hash matches the saved recording. |
+| Project persistence | Text, speakers, voice selection, and the saved audio Blob survive closing and reopening. |
+| Transcription | A disclosed test sample produces editable text; TXT/SRT/VTT preserve UTF-8 and increasing timestamps. Recognition errors are recorded. |
+| Model terms | Opening the interface does not record decisions. A changed terms fingerprint requires review again, without automatic acceptance. |
+| Accessibility | Key workflows work with a keyboard; focus is visible, dialogs restore focus, and reduced motion stops continuous animation. |
+| Windows acceptance | Building and actually running the EXE are reported separately. Clean installation and GPU configurations require their own trials. |
+| Long tasks | Dubbing and audiobooks have separate tests for rendering, cancellation, resumption, and the final file on the specified model. |
 
-## Plan dalszego rozwoju
+## Development plan
 
-1. **Publiczny punkt startowy:** pełna dokumentacja, czyste demo, jawne notices,
-   kontrola danych i powtarzalne budowanie źródeł.
-2. **Instalacja Windows:** odbiór od zera na czystej maszynie CPU oraz osobno
-   na zgodnej konfiguracji CUDA; błędy, brak miejsca, anulowanie i ponowienie.
-3. **Macierz modeli:** osobne dowody TTS/ASR dla konkretnych rewizji, języków,
-   sprzętu i warunków; brak zbiorczej deklaracji obsługi wszystkich adapterów.
-4. **Dłuższe produkcje:** pełny dubbing wideo, długie książki, retake,
-   synchronizacja, przywracanie po awarii i kompletność eksportów.
-5. **Dystrybucja:** decyzje dotyczące podpisu, instalatora, aktualizacji
-   i kompletnych notices binarnych zależności przed publikacją gotowych paczek.
+1. **Public starting point:** complete documentation, clean demo data, explicit
+   notices, data checks, and repeatable source builds.
+2. **Windows installation:** acceptance testing from scratch on a clean CPU
+   machine and separately on a compatible CUDA configuration; errors,
+   insufficient disk space, cancellation, and retry.
+3. **Model matrix:** separate TTS/ASR evidence for specific revisions, languages,
+   hardware, and terms; no blanket claim that every adapter is supported.
+4. **Longer productions:** complete video dubbing, long books, retakes,
+   synchronization, crash recovery, and export completeness.
+5. **Distribution:** decisions on signing, an installer, updates, and complete
+   binary dependency notices before publishing ready-to-use packages.
 
-Poza obecnymi zobowiązaniami pozostają: hosting usługi wielodostępnej,
-gwarancja pracy na macOS/Linux, pełna zgodność z każdą funkcją upstream,
-automatyczne przenoszenie wszystkich starych danych oraz zapewnienie praw do
-cudzych głosów i wszystkich modeli.
+Current commitments do not include hosting a multi-user service, guaranteed
+macOS/Linux support, full parity with every upstream feature, automatic
+migration of all old data, or securing rights to other people's voices
+and every model.

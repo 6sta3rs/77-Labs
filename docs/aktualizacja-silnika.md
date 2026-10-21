@@ -1,46 +1,50 @@
-# Aktualizacja kodu silnika
+# Updating the engine source
 
-Backend jest przypiętym archiwum `scripts/runtime/engine.zip`. Jego źródło,
-wersję, commit upstream i hashe plików opisuje `engine-provenance.json`
-w tym samym katalogu. Sam numer wersji nie identyfikuje zawartości.
+The backend is pinned in `scripts/runtime/engine.zip`. The adjacent
+`engine-provenance.json` records its source, version, upstream commit and
+individual file hashes. A version number alone does not identify the contents.
 
-## Przygotowanie źródeł
+## Preparing the source
 
-`scripts/runtime/bundle.py` odczytuje wskazany commit przez `git archive`,
-bez importowania backendu. Kandydat powinien trafić do osobnego katalogu,
-zamiast nadpisywać aktywny ZIP. Przykład dla własnego checkoutu upstream:
+`scripts/runtime/bundle.py` reads the selected commit through `git archive`,
+without importing the backend. Write a candidate to a separate directory
+instead of overwriting the active ZIP. For example, with your own upstream checkout:
 
 ```powershell
-python scripts/runtime/bundle.py .tmp/upstream --commit <pełny-SHA-upstream> --version <wersja> --output .tmp/engine-candidate/engine.zip
+python scripts/runtime/bundle.py .tmp/upstream --commit <full-upstream-SHA> --version <version> --output .tmp/engine-candidate/engine.zip
 python scripts/runtime/check_engine_candidate.py --current scripts/runtime/engine.zip --candidate .tmp/engine-candidate/engine.zip --report .tmp/engine-candidate/report.json --prepare
 python -m unittest discover -s scripts/runtime -p test_engine_bundle.py -v
 ```
 
-Archiwum musi zachować zasoby potrzebne do uruchomienia, migracje, konfigurację,
-lock i oryginalne notices. Wynik porównania statycznego nie dowodzi działania
-syntezy. Po zmianie backendu trzeba ponownie sprawdzić adaptery i parametry UI.
+The archive must retain the resources required at startup, migrations,
+configuration, lockfile and original notices. A static comparison does not prove
+that synthesis works. After changing the backend, verify the adapters and UI
+parameters again.
 
-## Wybór kompletnej generacji
+## Selecting a complete runtime generation
 
-Launcher publikuje nową wersję w osobnym `runtime/engines/engine-<SHA>-...`.
-Waliduje archiwum, przygotowuje źródła, sprawdza kompletność i dopiero wtedy
-atomowo zapisuje mały wskaźnik wyboru. Nie nadpisuje załadowanych plików Windows.
-Nieznany kontrakt wyłączenia automatycznego preload przerywa przygotowanie.
+The launcher publishes each new version to a separate
+`runtime/engines/engine-<SHA>-...` directory. It validates the archive, prepares
+the source and checks completeness before atomically writing the small selection
+pointer. It does not overwrite files already loaded on Windows. If the contract
+for disabling automatic preload is unknown, preparation stops.
 
-Przed migracją istniejących danych powstaje [spójna kopia](kopie-danych-runtime.md).
-Błąd kopii ma zatrzymać start. Nowe zależności instaluje się w osobnym środowisku,
-bez zmiany współdzielonych bibliotek i modeli.
+A [consistent backup](kopie-danych-runtime.md) is created before existing data
+is migrated. A backup failure must stop startup. Install new dependencies in a
+separate environment without changing shared libraries or models.
 
-## Odbiór i powrót
+## Acceptance checks and rollback
 
-1. Zakończ zadania i zatrzymaj wyłącznie własny backend.
-2. Zachowaj poprzedni pakiet, manifest, konfigurację i kompletną kopię danych.
-3. Najpierw uruchom kandydata na wydzielonym runtime i kopii danych.
-4. Sprawdź migracje, marker własności, start/stop oraz potrzebne przepływy:
-   zapis projektu, TTS, ASR, pobranie wyniku i funkcje objęte zmianą.
-5. Zbuduj i uruchom EXE z tym samym kompletem ZIP, manifestu oraz adapterów.
+1. Finish running tasks and stop only the backend process you own.
+2. Keep the previous package, manifest, configuration and a complete data backup.
+3. Run the candidate in an isolated runtime with a copy of the data first.
+4. Check migrations, the process ownership marker, startup and shutdown, and the
+   required workflows: saving a project, TTS, ASR, downloading output and any
+   features affected by the change.
+5. Build and run the EXE with the same set of ZIP, manifest and adapters.
 
-Przywrócenie starego ZIP nie cofa migracji bazy. Starszy backend potrzebuje
-zgodnej kopii danych; zachowaj także dane powstałe podczas próby. Czyszczenie
-nieużywanych generacji jest osobną operacją. Zobacz [runtime](runtime.md),
-[weryfikację](weryfikacja.md) i [zasady współpracy](../CONTRIBUTING.md).
+Restoring an older ZIP does not undo database migrations. An older backend needs
+a compatible data backup; also preserve any data created during the trial.
+Removing unused runtime generations is a separate operation. See the
+[runtime guide](runtime.md), [verification status](weryfikacja.md) and
+[contribution guidelines](../CONTRIBUTING.md).

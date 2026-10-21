@@ -1,37 +1,38 @@
-# Odsłuch audiobooka w trakcie renderowania
+# Listening to an audiobook while it renders
 
-Po przygotowaniu planu i wybraniu **Generuj audiobook** pierwsza gotowa porcja
-może pojawić się w odtwarzaczu pod tekstem. Kolejne porcje dołączają w kolejności.
-Gdy odsłuch dogoni generowanie, widoczny jest komunikat oczekiwania.
-Ręczna pauza pozostaje aktywna po otrzymaniu następnej porcji.
+After preparing the plan and selecting **Generuj audiobook** ("Generate audiobook"),
+the first completed chunk can appear in the player below the text. Later chunks
+join the queue in order. When playback catches up with generation, the player
+shows a waiting message. A manual pause remains in effect when another chunk arrives.
 
-Suwak obejmuje już wygenerowaną część. Po ukończeniu nadal powstaje pełny
-plik M4B albo MP3; M4B zachowuje rozdziały. Końcowy mastering może zmienić
-poziom głośności względem odsłuchu porcji. Pierwsze użycie modelu wymaga
-jego wczytania i nie gwarantuje natychmiastowego odtwarzania.
+The seek bar covers the audio generated so far. Completion still produces a full
+M4B or MP3 file; M4B preserves chapters. Final mastering may change the volume
+compared with chunk playback. A model needs to load on first use, so immediate
+playback is not guaranteed.
 
-## Kontrakt
+## Contract
 
-Lokalny adapter obsługuje `/audiobook` i `/audiobook/resume/{id}` z nagłówkiem
-`X-Next-Audiobook-Stream: 1`. Zdarzenia SSE `audio_chunk` wskazują osobne,
-kompletne WAV. Nie są to bajty dopisywane do otwartego M4B/MP3.
-Oryginalny renderer nadal odpowiada za licencje, zadania, historię i finał.
+The local adapter handles `/audiobook` and `/audiobook/resume/{id}` with the
+`X-Next-Audiobook-Stream: 1` header. SSE `audio_chunk` events point to separate,
+complete WAV files. They do not append bytes to an open M4B or MP3 file.
+The original renderer continues to own license checks, jobs, history, and final output.
 
-Wznowienie odtwarza kolejkę od początku z zachowanych porcji; nie przywraca
-lokalnej pozycji odsłuchu. Przejście między porcjami może mieć krótką przerwę
-dekodera. Zdalny lub starszy silnik może udostępniać dopiero gotowy pełny plik.
-Odtwarzacz porcji i zwykły podgląd nie powinny grać jednocześnie.
+Resuming rebuilds the playback queue from the start using retained chunks; it does
+not restore the local listening position. Decoder transitions may introduce a short
+gap between chunks. A remote or older engine may provide only the completed file.
+The chunk player and the ordinary preview should not play at the same time.
 
-## Gdzie zmienić
+## Where to make changes
 
-- `scripts/runtime/audiobook_streaming.py` — podział, cache i zdarzenia.
-- `src/lib/audiobook-playback.ts` — kolejka, pauza, oczekiwanie i seek.
-- `src/lib/AudiobookPlayer.svelte` — interfejs odsłuchu.
-- `src/lib/ProductionWorkspace.svelte` — zadanie i przekazywanie zdarzeń.
-- `scripts/runtime/launcher.py`, `src-tauri/src/runtime.rs` — osadzenie adaptera.
+- `scripts/runtime/audiobook_streaming.py`: splitting, cache, and events.
+- `src/lib/audiobook-playback.ts`: queue, pause, waiting, and seeking.
+- `src/lib/AudiobookPlayer.svelte`: playback interface.
+- `src/lib/ProductionWorkspace.svelte`: job handling and event delivery.
+- `scripts/runtime/launcher.py`, `src-tauri/src/runtime.rs`: adapter integration.
 
-Regresje: `node scripts/audiobook-playback-check.mjs`
-i `scripts/runtime/test_audiobook_streaming.py` we właściwym środowisku.
-Fixture z proceduralnym WAV nie potwierdza jakości głosu, długiej książki ani
-przepływu GPU. Osobno odbierz cancel/resume, pamięć, finał i uruchomione EXE.
-Zobacz [weryfikację](weryfikacja.md) i [runtime](runtime.md).
+Regression checks: `node scripts/audiobook-playback-check.mjs`
+and `scripts/runtime/test_audiobook_streaming.py` in the appropriate environment.
+A procedural WAV fixture does not validate voice quality, a long book, or the GPU
+workflow. Cancellation and resuming, memory use, final output, and the running EXE
+need separate acceptance checks.
+See [verification](weryfikacja.md) and [runtime](runtime.md).

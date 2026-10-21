@@ -1,41 +1,44 @@
-# Format WAV, presety i projektowanie głosu
+# WAV format, presets, and voice design
 
-Dodatkowe kontrolki włączają się po odkryciu rzeczywistej sygnatury `/generate`
-w aktywnych źródłach przez `generateCapabilities`. Sam numer wersji ani nazwa
-silnika nie wystarczają. Starszy backend bez metadanych nie otrzymuje nowych pól.
+Additional controls are enabled after `generateCapabilities` discovers the actual
+`/generate` signature in the active source code. A version number or engine name
+alone is not enough. An older backend without this metadata does not receive the
+new fields.
 
-## Format wyniku
+## Output format
 
-**Zaawansowane ustawienia mowy** mogą oferować PCM WAV16, PCM WAV24 i WAV32 float.
-To format zapisu, nie obietnica poprawy jakości modelu. Wiele bloków jest łączonych
-bez ukrytego resamplingu, z zachowaniem częstotliwości, kanałów i pauz. Niezgodne
-parametry wejściowych WAV dają czytelny błąd. Limit wyniku wynosi 512 MiB.
+**Zaawansowane ustawienia mowy** ("Advanced speech settings") may offer PCM WAV16,
+PCM WAV24, and WAV32 float. These are storage formats, not a promise of improved
+model quality. Multiple blocks are joined without hidden resampling, preserving
+the sample rate, channels, and pauses. Incompatible input WAV parameters produce a
+readable error. The output limit is 512 MiB.
 
-## Presety i szkic
+## Presets and the design draft
 
-Lista wbudowanych głosów pochodzi z `preset_voices` aktywnego katalogu.
-Wybór presetu wysyła `preset_voice`, zamiast udawać profil klonu. Zmiana silnika
-usuwa niepasujący wybór.
+The built-in voice list comes from `preset_voices` in the active catalog. Selecting
+a preset sends `preset_voice` instead of treating it as a cloned voice profile.
+Changing the engine clears an incompatible selection.
 
-Szkic projektowania jest opcjonalną metadaną: opis do 2000 znaków i wybory sześciu
-kategorii. Nie zastępuje referencji ani instrukcji brzmienia. Nie jest wysyłany
-jednocześnie z referencją klonu lub wybranym presetem. Backend wykonuje właściwe
-mapowanie. Nieobsługiwany silnik nie powinien pokazywać tej funkcji jako dostępnej.
+The voice design draft is optional metadata: a description of up to 2,000
+characters and selections in six categories. It does not replace a reference or
+a delivery instruction. It is not sent alongside a clone reference or a selected
+preset. The backend performs the actual mapping. An unsupported engine should not
+present this feature as available.
 
-Projekt i nagranie zachowują ustawienia, format, preset i szkic. Przywrócenie
-historycznego wyniku nie przełącza aktywnego silnika po cichu. Starsze dane bez
-opcjonalnych metadanych pozostają czytelne.
+The project and recording retain the settings, format, preset, and design draft.
+Restoring a historical result does not silently switch the active engine. Older
+data without optional metadata remains readable.
 
-## Pliki i sprawdzanie
+## Files and checks
 
-- `scripts/runtime/integration_settings.py` — odkrycie kontraktu źródeł.
-- `src/lib/speech-settings.ts` — walidacja i serializacja.
-- `src/lib/AdvancedSpeechSettings.svelte` — kontrolki.
-- `src/lib/audio.ts` — odczyt i łączenie PCM/float.
-- `src/App.svelte`, `src/lib/data.ts` — generacja, zapis i przywrócenie.
+- `scripts/runtime/integration_settings.py`: source contract discovery.
+- `src/lib/speech-settings.ts`: validation and serialization.
+- `src/lib/AdvancedSpeechSettings.svelte`: controls.
+- `src/lib/audio.ts`: PCM/float decoding and joining.
+- `src/App.svelte`, `src/lib/data.ts`: generation, persistence, and restoration.
 
-Regresje: `node scripts/speech-settings-check.mjs`,
-`node scripts/wav-format-check.mjs` oraz
+Regression checks: `node scripts/speech-settings-check.mjs`,
+`node scripts/wav-format-check.mjs`, and
 `node scripts/speech-app-contract-check.mjs`.
-Testy proceduralnego WAV nie wymagają klonowania głosu i nie potwierdzają TTS.
-Zobacz [parametry modelu](parametry-tts.md) i [warunki modeli](licencje-modeli.md).
+Procedural WAV tests do not require voice cloning and do not validate TTS.
+See [model parameters](parametry-tts.md) and [model terms](licencje-modeli.md).

@@ -1,52 +1,56 @@
-# Współtworzenie Seventy Seven Labs
+# Contributing to Seventy Seven Labs
 
-Zacznij od [README](README.md), [wymagań produktu](docs/PRD.md),
-[kontekstu](docs/kontekst-projektu.md) i [AGENTS.md](AGENTS.md).
-Interfejs oraz dokumentację użytkową pisz po polsku. Nazwa produktu to
-**Seventy Seven Labs**; starsze identyfikatory techniczne zachowujemy tam,
-gdzie służą zgodności danych.
+Start with the [README](README.md), [product requirements](docs/PRD.md),
+[project context](docs/kontekst-projektu.md), and [AGENTS.md](AGENTS.md).
+Keep the application interface in Polish and public release documentation
+in English. Preserve actual Polish UI labels when referring to controls,
+with an English explanation where useful. The product name is
+**Seventy Seven Labs**; keep legacy technical identifiers where they
+preserve data compatibility.
 
-## Uruchomienie
+## Getting started
 
-Do interfejsu potrzebne są Node.js zgodny z przypiętą wersją Vite oraz npm.
-Do desktopu Windows potrzebne są Rust, narzędzia kompilacji C++ dla Tauri
-i WebView2. Kompilacja EXE nie instaluje automatycznie modeli.
+The frontend needs npm and a Node.js version compatible with the pinned Vite
+version. The Windows desktop application also needs Rust, the C++ build tools
+required by Tauri, and WebView2. Building the EXE does not install models.
 
 ```powershell
 npm ci
 npm run dev
 ```
 
-Podgląd: `http://127.0.0.1:4310`. Dane przykładowe TTS:
-`http://127.0.0.1:4310/?demo=tts`; katalog komponentów: `/inputy.html`.
-Demo służy pracy nad interfejsem. Nie dowodzi działania lokalnej syntezy.
+Preview: `http://127.0.0.1:4310`. TTS demo data:
+`http://127.0.0.1:4310/?demo=tts`; component gallery: `/inputy.html`.
+The demo supports interface development. It does not establish that local
+synthesis works.
 
 ```powershell
 npm run desktop:dev
-# Lokalny build bez paczki instalacyjnej:
+# Local build without an installer package:
 npm run desktop:build
 ```
 
-Synteza wymaga własnego środowiska Python i wag. Konfigurację uruchamia się
-jawnie w **Ustawienia → Modele i silnik**. Zobacz
-[instalację runtime](docs/instalacja-runtime.md) i [kontrakt silnika](docs/runtime.md).
-Nie kopiuj prywatnej bazy, profili ani potwierdzeń warunków z innej instalacji.
+Synthesis requires a dedicated Python environment and model weights.
+Start setup explicitly in **Ustawienia > Modele i silnik**
+(Settings > Models and engine). See [runtime installation](docs/instalacja-runtime.md)
+and the [engine contract](docs/runtime.md). Do not copy a private database,
+profiles, or terms acknowledgments from another installation.
 
-## Zakres zmiany i sprawdzanie
+## Scope and validation
 
-Najpierw sprawdź stan Git i ostatnie commity. Zachowuj niezwiązane zmiany.
-Opis zmiany powinien wyjaśniać problem, wynikowe zachowanie, wykonane kontrole
-oraz ograniczenia. Przy błędzie podaj krótki, powtarzalny scenariusz na czystych
-danych. Przy zmianie przepływu pokaż widok lub kroki do ręcznego odbioru.
+Check Git status and recent commits first. Preserve unrelated changes.
+Describe the problem, resulting behavior, checks performed, and limitations.
+For a bug, provide a short reproducible scenario using clean data.
+For a workflow change, show the screen or steps for manual acceptance testing.
 
-| Zmieniany obszar | Wymagane kontrole |
+| Changed area | Required checks |
 | --- | --- |
-| Svelte / TypeScript | `npm run check` i `npm run build`; odpowiedni przepływ UI. |
-| Tagi narracji | Dodatkowo `node scripts/tag-check.mjs`. |
-| Wspólne kontrolki / zachowanie UI | Dodatkowo właściwe regresje z `npm run test:ui`; klawiatura, focus i istotne rozmiary okna. |
-| Rust / Tauri | `cargo check --manifest-path src-tauri/Cargo.toml`; dla zachowania natywnego rzeczywisty EXE. |
-| Python / runtime | Składnia i testy zmienionego modułu w wydzielonym środowisku; kontrakt lub przepływ runtime odpowiedni do zmiany. |
-| Dokumentacja | Treść, odnośniki i `git diff --check`; bez kosztownych generacji. |
+| Svelte / TypeScript | `npm run check` and `npm run build`; the relevant UI workflow. |
+| Narration tags | Also run `node scripts/tag-check.mjs`. |
+| Shared controls / UI behavior | Also run the relevant regressions in `npm run test:ui`; check keyboard use, focus, and relevant window sizes. |
+| Rust / Tauri | `cargo check --manifest-path src-tauri/Cargo.toml`; use the actual EXE for native behavior. |
+| Python / runtime | Syntax and tests for the changed module in an isolated environment; the runtime contract or workflow affected by the change. |
+| Documentation | Content, links, and `git diff --check`; no costly generation runs. |
 
 ```powershell
 npm run check
@@ -56,36 +60,38 @@ cargo check --manifest-path src-tauri/Cargo.toml
 git diff --check
 ```
 
-Dobieraj zakres do zmiany. Udany build, katalog modeli i `/health` nie zastępują
-syntezy. Test transportu z fixture opisuj jako fixture. Nie przedstawiaj
-historycznego wyniku jako kontroli wykonanej w bieżącej pracy. Test generacyjny
-powinien wskazać model, rewizję, sprzęt, własne wejście i granice odbioru.
+Match validation to the change. A successful build, model catalog, and `/health`
+do not replace synthesis testing. Identify fixture-based transport tests
+as such. Do not present a historical result as a check performed during
+current work. A generation test should identify the model, revision, hardware,
+owned input, and acceptance limits.
 
-## Czyste dane i zrzuty ekranu
+## Clean data and screenshots
 
-- Korzystaj z fikcyjnych nazw, krótkich neutralnych tekstów i proceduralnych
-  sygnałów audio. Do mowy używaj własnego nagrania z prawem do publikacji.
-- Prowadź QA w osobnym profilu przeglądarki/WebView i osobnym katalogu danych.
-  Nie testuj migracji, retencji ani usuwania na prywatnej bibliotece.
-- Nie dodawaj do Git nagrań użytkownika, modeli, baz SQLite, tokenów,
-  `.env`, logów zawierających dane, środowisk, buildów ani profili WebView.
-- Przed zrzutem sprawdź tekst projektu, listę głosów, tytuł okna, ścieżki,
-  nazwy kont i diagnostykę. Zrzut demo powinien być opisany jako demo.
-- Samo dodanie pliku do `.gitignore` nie usuwa go z wcześniejszych commitów.
-  Podejrzenie ujawnienia zgłoś zgodnie z [SECURITY.md](SECURITY.md).
+- Use fictional names, short neutral texts, and procedural audio signals.
+  For speech, use a recording you own and have the right to publish.
+- Run QA in a separate browser/WebView profile and data directory. Do not test
+  migration, retention, or deletion on a private library.
+- Do not commit user recordings, models, SQLite databases, tokens, `.env`,
+  logs containing data, environments, builds, or WebView profiles.
+- Before taking a screenshot, review project text, the voice list, window title,
+  paths, account names, and diagnostics. Label demo screenshots as demo.
+- Adding a file to `.gitignore` does not remove it from earlier commits.
+  Report a suspected disclosure according to [SECURITY.md](SECURITY.md).
 
-## Licencje i pochodzenie
+## Licensing and provenance
 
-Wkład do kodu projektu musi być zgodny z **AGPL-3.0-only** i
-[wyjątkami osób trzecich](THIRD_PARTY_NOTICES.md). Zachowuj istniejące notices
-i autorstwo upstream. Nie przenoś cudzych shaderów, zrzutów, logotypów lub
-nagrań wyłącznie dlatego, że można je pobrać ze strony.
+Contributions to project code must be compatible with **AGPL-3.0-only**
+and the [third-party exceptions](THIRD_PARTY_NOTICES.md). Keep existing notices
+and upstream attribution. Do not copy someone else's shaders, screenshots,
+logos, or recordings merely because they can be downloaded from a website.
 
-Nowa zależność albo zasób potrzebuje źródła, rewizji, licencji i opisu zmian.
-Licencje kodu, wag i tokenizera mogą być różne. Warunki modelu potwierdza
-użytkownik; testy nie mogą automatycznie zatwierdzać ich za niego.
+A new dependency or asset needs a source, revision, license, and description
+of modifications. Code, weights, and tokenizers may have different licenses.
+The user acknowledges model terms; tests must not automatically accept them
+on the user's behalf.
 
-Przed lokalnym commitem obejrzyj diff, dodaj jawnie pliki zadania i zaktualizuj
-`docs/postep.md`. Zmiany architektury lub uruchamiania wymagają również
-aktualizacji kontekstu i właściwej dokumentacji. Nie publikuj ani nie przepisuj
-cudzej historii Git bez wyraźnego uzgodnienia.
+Before a local commit, review the diff, explicitly stage task files, and update
+`docs/postep.md`. Architecture or startup changes also require updates to
+the project context and relevant documentation. Do not publish or rewrite
+someone else's Git history without explicit agreement.

@@ -1,28 +1,28 @@
-# Instrukcje dla agentów
+# Agent instructions
 
-## Kontekst na początku pracy
+## Context at the start of a task
 
-1. Przeczytaj `docs/kontekst-projektu.md`, `docs/postep.md` i `README.md`.
-2. Sprawdź `git status --short --branch` i `git log -5 --oneline`.
-3. Dla silnika przeczytaj `docs/runtime.md`, a dla oceny gotowości `docs/weryfikacja.md`.
-4. Stan kodu i aktualne wyniki mają pierwszeństwo przed starszym opisem. Nie przedstawiaj historycznego testu jako wykonanego w bieżącej sesji.
+1. Read `docs/kontekst-projektu.md`, `docs/postep.md`, and `README.md`.
+2. Check `git status --short --branch` and `git log -5 --oneline`.
+3. For engine work, read `docs/runtime.md`; for readiness assessments, read `docs/weryfikacja.md`.
+4. Current code and current results take precedence over older descriptions. Do not present a historical test as performed in the current session.
 
-## Obowiązkowe commity
+## Required commits
 
-- Każdą ukończoną, logiczną zmianę zapisuj w osobnym lokalnym commicie bez dodatkowego pytania o zgodę. Dotyczy to również dokumentacji i konfiguracji. Commituj po sprawdzeniu zmiany, nie po każdym zapisie pliku.
-- W tym samym commicie aktualizuj `docs/postep.md`: co zmieniono, dlaczego, jakie kontrole wykonano i z jakim wynikiem, ograniczenia oraz co pozostało. Przy zmianie architektury lub sposobu uruchamiania aktualizuj też `docs/kontekst-projektu.md` i odpowiednią dokumentację.
-- Przed commitem obejrzyj diff i dodaj jawnie pliki należące do zadania. Nie nadpisuj, nie cofaj i nie dołączaj cudzych niezwiązanych zmian. Zastany brudny katalog opisz w postępie, jeśli wpływa na zadanie.
-- Używaj krótkich, konkretnych komunikatów, np. `fix: popraw przewijanie nagrania`, `feat: dodaj filtr głosów`, `docs: uzupełnij kontekst silnika`.
-- Nie commituj sekretów, `.env`, modeli, prywatnych baz, nagrań użytkownika, zależności ani katalogów wynikowych. Publiczne audio to proceduralny `public/demo/interface-tone.wav`; archiwum silnika ma przypięte źródło i opis pochodzenia. Raporty zapisuj do ignorowanego `.tmp/qa`.
-- Nie wykonuj push, zmiany historii, amend ani usuwania gałęzi bez polecenia użytkownika. Brak zdalnego repozytorium nie blokuje lokalnych commitów.
-- Po commicie sprawdź `git status --short` i podaj użytkownikowi skrót commita oraz wynik kontroli. Jeśli commit lub kontrola się nie uda, opisz przyczynę; nie deklaruj zakończenia ani zaliczenia testów.
+- Record each completed logical change in its own local commit without asking for additional approval. This includes documentation and configuration. Commit after checking a change, not after every file save.
+- Update `docs/postep.md` in the same commit: what changed, why, checks performed and their results, limitations, and remaining work. For architecture or startup changes, also update `docs/kontekst-projektu.md` and the relevant documentation.
+- Review the diff before committing and explicitly stage task-owned files. Do not overwrite, revert, or include unrelated changes made by others. Describe an existing dirty checkout in the progress log if it affects the task.
+- Use short, specific commit messages, such as `fix: correct recording seeking`, `feat: add voice filter`, or `docs: clarify engine context`.
+- Do not commit secrets, `.env`, models, private databases, user recordings, dependencies, or generated output. Public audio is the procedural `public/demo/interface-tone.wav`; the engine archive has pinned provenance. Write reports to ignored `.tmp/qa`.
+- Do not push, rewrite history, amend commits, or delete branches without the user's instruction. A missing remote does not prevent local commits.
+- After committing, check `git status --short` and report the commit's short hash and check results. If a commit or check fails, explain the cause; do not claim completion or a passing result.
 
-## Weryfikacja i zasady projektu
+## Verification and project rules
 
-- Dobieraj kontrole do zakresu zmiany. Dla kodu Svelte/TypeScript: `npm run check` i `npm run build`; dla tagów dodatkowo `node scripts/tag-check.mjs`.
-- Dla Rust/Tauri: `cargo check --manifest-path src-tauri/Cargo.toml`. Dla zachowania produktu sprawdzaj odpowiedni przepływ UI/runtime; sam build lub health nie dowodzi działania syntezy.
-- Dla zmian wyłącznie dokumentacyjnych sprawdź treść, odnośniki i `git diff --check` dla zmienionych plików; nie uruchamiaj kosztownych generacji bez potrzeby.
-- Przed commitem i publikacją uruchom `python scripts/publication_check.py`. Prywatne wzorce `--deny-file` trzymaj poza repozytorium. Nie kopiuj prywatnej historii Git ani checkpointów do publicznego repozytorium.
-- Interfejs i dokumentację użytkową pisz po polsku. Zachowuj czytelne komunikaty błędów i rzeczywisty postęp.
-- Nie zmieniaj starej instalacji VoiceStudio, jej bazy ani współdzielonych przez hardlink bibliotek i modeli. Używaj wydzielonego runtime opisanego w `docs/runtime.md`.
-- Nie deklaruj pełnej gotowości dubbingu, audiobooków, instalatora ani migracji bez testów tych funkcji.
+- Match checks to the change. For Svelte/TypeScript code, run `npm run check` and `npm run build`; for tags, also run `node scripts/tag-check.mjs`.
+- For Rust/Tauri, run `cargo check --manifest-path src-tauri/Cargo.toml`. Check the relevant UI/runtime flow for product behavior; a build or health response alone does not prove synthesis.
+- For documentation-only changes, review content and links and run `git diff --check` on changed files. Do not run expensive generation unnecessarily.
+- Before committing and publishing, run `python scripts/publication_check.py`. Keep private `--deny-file` patterns outside the repository. Do not copy private Git history or checkpoints into this public repository.
+- Keep the application UI in Polish and public documentation in English. Preserve clear error messages and real progress. When documenting a Polish control, retain its actual label and add an English explanation where useful.
+- Do not modify the old VoiceStudio installation, its database, or libraries and models shared through hardlinks. Use the isolated runtime described in `docs/runtime.md`.
+- Do not claim full readiness for dubbing, audiobooks, the installer, or migration without testing those features.

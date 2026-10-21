@@ -1,65 +1,65 @@
 # Seventy Seven Labs
 
-Lokalne studio głosu na Windows. Pisz narrację, przypisuj głosy mówcom, pracuj z transkrypcją i przechowuj projekty na swoim komputerze.
+A local voice studio for Windows. Write narration, assign voices to speakers, work with transcripts, and keep projects on your computer.
 
 **Svelte 5 · TypeScript · Tauri 2 · Python/FastAPI · AGPL-3.0-only**
 
-Wersja rozwojowa **0.2.0**. Repozytorium zawiera kod aplikacji i przypięte źródła silnika VoiceStudio 0.5.7. Modele, środowisko Python, prywatne nagrania i dane kont nie są dołączone.
+Development version **0.2.0**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned VoiceStudio 0.5.7 engine sources. Model weights, the Python environment, private recordings, and account data are not included.
 
-![Edytor narracji z przykładowym dialogiem](docs/screenshots/studio.png)
+![Narration editor with a fictional dialogue](docs/screenshots/studio.png)
 
-## Możliwości
+## Features
 
-- Edytor wielu mówców, znaczniki OmniVoice i cofanie zmian.
-- Wybór głosu i silnika TTS, odtwarzanie, przewijanie i eksport wyników.
-- Lokalna biblioteka projektów oraz nagrań.
-- Transkrypcja audio i redakcja rozpoznanego tekstu.
-- Przygotowanie dubbingu, audiobooków i receptur automatyzacji.
-- Zarządzanie środowiskiem CPU/CUDA, wagami, warunkami modeli i wyglądem.
+- A multi-speaker editor with OmniVoice tags and undo.
+- Voice and TTS engine selection, playback, seeking, and export.
+- A local library of projects and recordings.
+- Audio transcription and transcript editing.
+- Workflows for dubbing, audiobooks, and automation recipes.
+- CPU/CUDA environment setup, model weights and terms, and appearance settings.
 
-Synteza i rozpoznawanie wymagają przygotowanego silnika i odpowiednich wag. Pełny dubbing, długie audiobooki, wszystkie kombinacje modeli i instalacja na czystym Windows wymagają dalszego odbioru. [PRD](docs/PRD.md) opisuje zakres oraz kryteria, a [weryfikacja](docs/weryfikacja.md) podaje kontrole publicznego wydania.
+Synthesis and recognition require a configured engine and the appropriate weights. Full dubbing, long audiobooks, every model combination, and installation on a clean Windows machine still need further acceptance testing. The [PRD](docs/PRD.md) defines scope and criteria; the [verification record](docs/weryfikacja.md) documents checks performed on the public release.
 
-## Podgląd bez modeli
+## Preview without models
 
-Wymagania: Node.js **22.12 lub nowszy** z npm oraz Git. Python ani GPU nie są potrzebne.
+Requirements: Node.js **22.12 or newer**, npm, and Git. Python and a GPU are not required.
 
 ```powershell
 npm ci
 npm run dev
 ```
 
-Otwórz **http://127.0.0.1:4310/?demo=tts**. Podgląd ma fikcyjne głosy, dialogi i historię. Przykłady audio odtwarzają jeden proceduralny ton bez ludzkiego głosu. To demonstracja interfejsu; nie są to wyniki wymienionych modeli. Dane demo pozostają w pamięci.
+Open **http://127.0.0.1:4310/?demo=tts**. This preview uses fictional voices, dialogues, and history. Every audio example plays the same procedural tone without human speech. It demonstrates the interface, not the output of the listed models. Demo data stays in memory.
 
-Katalog komponentów: **http://127.0.0.1:4310/inputy.html**. [Opis demo](docs/tts-demo.md).
+Component gallery: **http://127.0.0.1:4310/inputy.html**. [Demo details](docs/tts-demo.md).
 
-![Biblioteka fikcyjnych głosów](docs/screenshots/voices.png)
+![Library of fictional voices](docs/screenshots/voices.png)
 
-## Aplikacja desktopowa
+## Desktop application
 
-Windows wymaga także Rust stable, narzędzi C++ z Visual Studio Build Tools i WebView2. Zobacz [wymagania Tauri](https://v2.tauri.app/start/prerequisites/).
+Windows also requires stable Rust, the C++ tools from Visual Studio Build Tools, and WebView2. See the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ```powershell
 npm run desktop:dev
 npm run desktop:build
 ```
 
-Build tworzy EXE bez instalatora: `src-tauri/target/release/seventy-seven-labs.exe`.
+The build produces an EXE without an installer: `src-tauri/target/release/seventy-seven-labs.exe`.
 
-Okno otwiera się bez ładowania modeli. W **Ustawienia → Modele i silnik** przygotuj środowisko CPU albo NVIDIA CUDA i osobno pobierz model. Przed użyciem przeczytaj i zaakceptuj jego warunki. EXE zawiera kod backendu, ale nie wielogigabajtowe biblioteki i wagi. [Instalacja środowiska](docs/instalacja-runtime.md), [działanie silnika](docs/runtime.md).
+The window opens without loading models. Under **Ustawienia → Modele i silnik** (Settings → Models and engine), set up a CPU or NVIDIA CUDA environment and download a model separately. Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/instalacja-runtime.md) and [engine operation](docs/runtime.md).
 
-Przeglądarka pokazuje UI, lecz nie uruchamia nadzorcy Tauri. Aktywna synteza w trybie web wymaga osobno uruchomionego backendu na `127.0.0.1:4312`.
+The browser displays the UI but does not start the Tauri supervisor. Synthesis in web development mode requires a separately running backend at `127.0.0.1:4312`.
 
-## Dane i prywatność
+## Data and privacy
 
-Projekty web są zapisywane w localStorage/IndexedDB danego profilu przeglądarki. Dane silnika desktopowego trafiają domyślnie do `%LOCALAPPDATA%/VoiceStudioNext`, poza repozytorium. Starsze identyfikatory katalogów, pamięci i Tauri zachowano dla zgodności istniejących danych.
+Web projects are stored in the browser profile's localStorage/IndexedDB. Desktop engine data defaults to `%LOCALAPPDATA%/VoiceStudioNext`, outside the repository. Older directory names, storage keys, and Tauri identifiers are retained for compatibility with existing data.
 
-Publiczna historia zaczyna się od nowa z neutralnym autorem. Nie zawiera prywatnej historii rozwoju, checkpointów, baz, próbek głosu ani zapisanych decyzji licencyjnych. [Zasady publikacji](docs/publikacja.md).
+The public history starts fresh with a neutral author identity. It excludes private development history, checkpoints, databases, voice samples, and recorded model-term decisions. See the [publication guide](docs/publikacja.md).
 
-Integracje sieciowe są opcjonalne. Pobieranie modeli i wybrana usługa językowa mogą wymagać internetu. Klonuj wyłącznie głos, do którego użycia masz zgodę. [Bezpieczeństwo](SECURITY.md).
+Network integrations are optional. Downloading models and using a selected language service may require internet access. Only clone a voice you have permission to use. See [security](SECURITY.md).
 
-![Ustawienia wyglądu](docs/screenshots/appearance.png)
+![Appearance settings in the Polish application interface](docs/screenshots/appearance.png)
 
-## Rozwój
+## Development
 
 ```powershell
 npm run check
@@ -69,27 +69,27 @@ python scripts/publication_check.py
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
-Kontrola publikacji sprawdza pliki, zagnieżdżone archiwum silnika, dozwolone audio oraz osiągalne rewizje Git. Raporty lokalnych harnessów trafiają do ignorowanego `.tmp/qa`. Testy mowy wymagają własnej, jawnie wskazanej referencji; ton demo służy do odtwarzacza i UI.
+The publication check examines files, the nested engine archive, approved audio, and all Git objects, including unreachable objects. Local QA reports go into the ignored `.tmp/qa` directory. Speech tests require your own explicitly selected reference; the demo tone is for player and UI testing.
 
-Zasady zmian: [CONTRIBUTING.md](CONTRIBUTING.md), [kontekst techniczny](docs/kontekst-projektu.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/kontekst-projektu.md).
 
-### Gdzie zmienić X?
+### Where do I change something?
 
-| Obszar | Plik |
+| Area | File |
 | --- | --- |
-| Nawigacja i składanie aplikacji | `src/App.svelte` |
-| Edytor i znaczniki | `src/lib/SpeechEditor.svelte`, `src/lib/tags.ts` |
-| Wybór głosu/modelu | `src/lib/VoicePicker.svelte`, `src/lib/ModelPicker.svelte` |
-| Trwałe nagrania | `src/lib/library.ts` |
-| Odtwarzacz/wizualizacja | `src/lib/Player.svelte`, `src/lib/VoiceOrb.svelte` |
-| Kontrolki i motywy | `src/lib/ui/`, `src/lib/appearance.ts`, `src/styles.css` |
-| Dane przykładowe | `src/lib/tts-demo.ts`, `public/demo/` |
-| API i nadzór | `src/lib/api.ts`, `src-tauri/src/runtime.rs` |
-| Uruchamianie i instalacja Pythona | `scripts/runtime/launcher.py`, `scripts/runtime/bootstrap.py` |
-| Specyfikacja produktu | `docs/PRD.md` |
+| Navigation and application composition | `src/App.svelte` |
+| Editor and tags | `src/lib/SpeechEditor.svelte`, `src/lib/tags.ts` |
+| Voice/model selection | `src/lib/VoicePicker.svelte`, `src/lib/ModelPicker.svelte` |
+| Persistent recordings | `src/lib/library.ts` |
+| Player and visualization | `src/lib/Player.svelte`, `src/lib/VoiceOrb.svelte` |
+| Controls and themes | `src/lib/ui/`, `src/lib/appearance.ts`, `src/styles.css` |
+| Demo data | `src/lib/tts-demo.ts`, `public/demo/` |
+| API and supervision | `src/lib/api.ts`, `src-tauri/src/runtime.rs` |
+| Python startup and installation | `scripts/runtime/launcher.py`, `scripts/runtime/bootstrap.py` |
+| Product requirements | `docs/PRD.md` |
 
-## Licencja i pochodzenie
+## License and provenance
 
-Kod Seventy Seven Labs: **AGPL-3.0-only** — [LICENSE](LICENSE). Dołączony VoiceStudio używa AGPL-3.0-only; jego pakiet `omnivoice/` ma odrębne warunki Apache-2.0. Motywy T3 Code i flagi zachowują swoje licencje oraz atrybucje. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) opisuje te granice.
+Seventy Seven Labs code is licensed under **AGPL-3.0-only** — see [LICENSE](LICENSE). The bundled VoiceStudio engine uses AGPL-3.0-only; its `omnivoice/` package has separate Apache-2.0 terms. T3 Code themes and flags retain their own licenses and attributions. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) explains these boundaries.
 
-Wagi mają własne warunki; licencja aplikacji nie udziela praw do wszystkich modeli. Źródło i SHA-256 backendu: `scripts/runtime/engine-provenance.json`. Projekt nie jest oficjalnym wydaniem T3 Code ani dostawców modeli.
+Model weights have separate terms; the application license does not grant rights to every model. Backend source and SHA-256 information are in `scripts/runtime/engine-provenance.json`. This project is not an official release of T3 Code or any model provider.

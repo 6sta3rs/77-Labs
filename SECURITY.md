@@ -1,74 +1,76 @@
-# Bezpieczeństwo i prywatność
+# Security and privacy
 
-Seventy Seven Labs jest rozwijanym lokalnym studiem głosu. Nie deklarujemy
-audytu bezpieczeństwa, gwarantowanego czasu odpowiedzi ani wsparcia wszystkich
-starszych wersji. Zgłoszenie powinno dotyczyć możliwie aktualnego publicznego
-commita i wskazywać wersję Windows oraz używanego silnika.
+Seventy Seven Labs is a local voice studio under active development. We do not
+claim a security audit, a guaranteed response time, or support for every older
+version. Reports should target a recent public commit where possible and
+identify the Windows version and engine in use.
 
-## Zgłaszanie podatności
+## Reporting vulnerabilities
 
-Jeżeli publiczne repozytorium udostępnia **Security → Report a vulnerability**,
-użyj prywatnego zgłoszenia. Jeżeli ta opcja jest wyłączona, załóż zgłoszenie
-z prośbą o prywatny kanał kontaktu, bez opisu umożliwiającego wykorzystanie
-podatności i bez wrażliwych załączników. Projekt nie publikuje obecnie
-dedykowanego adresu e-mail do zgłoszeń.
+If the public repository offers **Security > Report a vulnerability**, use
+private reporting. If that option is disabled, open an issue requesting
+a private contact channel, without exploit details or sensitive attachments.
+The project does not currently publish a dedicated reporting email address.
 
-Po uzyskaniu prywatnego kanału przekaż:
+Once a private channel is available, provide:
 
-- commit i wersję aplikacji, silnika oraz środowiska;
-- minimalny scenariusz odtworzenia na fikcyjnych danych;
-- oczekiwane zachowanie, rzeczywisty skutek i oceniany zakres dostępu;
-- zanonimizowany log albo minimalny plik potrzebny do odtworzenia.
+- the commit and versions of the application, engine, and environment;
+- a minimal reproduction using fictional data;
+- expected behavior, actual impact, and the assessed scope of access;
+- a sanitized log or the smallest file needed to reproduce the issue.
 
-Nie przesyłaj tokenów, plików logowania, prywatnych nagrań, całej bazy ani
-pełnego profilu użytkownika. Zwykłe błędy interfejsu można zgłaszać publicznie
-po usunięciu danych z treści i zrzutów.
+Do not send tokens, login files, private recordings, an entire database,
+or a full user profile. Ordinary interface bugs can be reported publicly
+after removing personal data from the text and screenshots.
 
-## Gdzie są dane
+## Where data is stored
 
-Domyślne runtime, baza, profile, referencje, wyniki i część ustawień znajdują się
-poza repozytorium w `%LOCALAPPDATA%\VoiceStudioNext`. Lokalizacje danych i modeli
-można zmienić. Interfejs używa też localStorage i IndexedDB konkretnego profilu
-przeglądarki lub WebView. Kopie bezpieczeństwa i eksporty mogą zawierać pełne
-nagrania oraz tekst projektów. Nie są publicznymi materiałami testowymi.
+The default runtime, database, profiles, references, outputs, and some settings
+are stored outside the repository in `%LOCALAPPDATA%\VoiceStudioNext`.
+Data and model locations can be changed. The interface also uses localStorage
+and IndexedDB belonging to the specific browser or WebView profile.
+Backups and exports may contain complete recordings and project text.
+They are not public test materials.
 
-Nie należy zakładać szyfrowania bazy, nagrań ani wszystkich zapisanych
-poświadczeń. Chroń konto Windows, uprawnienia do katalogów, nośniki i kopie.
-Usunięcie wpisu z interfejsu nie jest obietnicą bezpiecznego wymazania pliku,
-cache, kopii ani danych z wcześniejszego eksportu.
+Do not assume that the database, recordings, or all saved credentials are
+encrypted. Protect the Windows account, directory permissions, storage media,
+and backups. Deleting an entry in the interface does not promise secure erasure
+of a file, cache, backup, or data in an earlier export.
 
-## Granice sieci i procesów
+## Network and process boundaries
 
-Lokalny nadzorowany silnik używa `127.0.0.1:4312`. Marker własności procesu
-pomaga odróżnić właściwy backend; nie zastępuje zabezpieczeń konta systemowego.
-Portu nie należy wystawiać do Internetu. Zdalny transport, MCP i integracje
-wymagają osobnej konfiguracji oraz przeglądu uprawnień.
+The supervised local engine uses `127.0.0.1:4312`. A process ownership marker
+helps identify the intended backend; it does not replace operating-system
+account security. Do not expose the port to the Internet. Remote transport,
+MCP, and integrations require separate configuration and a permissions review.
 
-Synteza na wcześniej pobranych modelach może działać lokalnie. Instalacja
-zależności i wag wymaga pobierania. Wybrany LLM, tłumacz, zdalny backend albo
-usługa TTS może otrzymywać tekst, referencje lub media. Przed uruchomieniem
-sprawdź dostawcę i ustawienia; lokalny charakter aplikacji nie oznacza, że
-każda opcjonalna integracja pozostaje offline.
+Synthesis with models downloaded in advance can run locally. Installing
+dependencies and weights requires downloads. A selected LLM, translator,
+remote backend, or TTS service may receive text, references, or media.
+Check the provider and settings before starting an operation; a local
+application does not mean every optional integration stays offline.
 
-Pliki audio/wideo, dokumenty, pakiety głosów i modele są wejściami zewnętrznymi.
-Importuj je ze znanych źródeł. Zależności i modele mogą wymagać wykonywania
-kodu; samo przypięcie SHA-256 potwierdza tożsamość pliku, nie jego bezpieczeństwo.
+Audio/video files, documents, voice packages, and models are external inputs.
+Import them from known sources. Dependencies and models may require executing
+code; pinning SHA-256 establishes file identity, not safety.
 
-## Zgoda na głos i nagranie
+## Voice and recording consent
 
-Klonuj własny głos albo głos osoby, która udzieliła odpowiedniej zgody,
-z nagrania, do którego masz prawa. Nie publikuj cudzej referencji w repozytorium,
-zgłoszeniu lub paczce demo. Potwierdzenie w aplikacji nie weryfikuje tożsamości,
-nie udziela praw do materiału i nie zastępuje warunków modelu.
+Clone your own voice or the voice of a person who has given appropriate consent,
+using a recording you have the right to use. Do not publish someone else's
+reference in the repository, an issue, or a demo package. An acknowledgment
+in the application does not verify identity, grant rights to the material,
+or replace model terms.
 
-Nie używaj wygenerowanej mowy do podszywania się w celu oszustwa. Watermark
-i metadane pochodzenia, gdy są dostępne, nie stanowią gwarancji wykrycia
-syntetycznej mowy ani dowodu zgody.
+Do not use generated speech to impersonate someone for fraud. Watermarks
+and provenance metadata, where available, do not guarantee detection
+of synthetic speech or prove consent.
 
-## Ujawnienie danych w repozytorium
+## Data disclosed in the repository
 
-W razie ujawnienia sekretu unieważnij go u dostawcy. Usunięcie go z bieżącego
-pliku nie unieważnia wcześniejszych kopii. Ogranicz dalszą publikację,
-powiadom opiekuna prywatnym kanałem i wskaż commit oraz rodzaj ujawnionych danych
-bez ponownego ich wklejania. Czyszczenie historii i opublikowanych artefaktów
-wymaga oddzielnej kontroli; nie zapewnia usunięcia kopii pobranych przez innych.
+If a secret is exposed, revoke it with the provider. Removing it from the
+current file does not invalidate earlier copies. Limit further publication,
+notify the maintainer through a private channel, and identify the commit
+and type of exposed data without pasting it again. Cleaning history and
+published artifacts requires a separate review; it cannot ensure deletion
+of copies already downloaded by others.
