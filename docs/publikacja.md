@@ -36,4 +36,4 @@ Initial public commits have a neutral identity. Before another commit, check loc
 
 CI checks the frontend and source. It does not run models, accept terms, or prove GPU, installer, or complete dubbing behavior.
 
-No remote is configured. Publication requires creating a remote repository and sending **this public history**. A source archive is created from the public commit using `git archive`; it excludes dependencies, build output, and `.git`.
+The `origin` remote points to the public GitHub repository. Verify its destination with `git remote get-url origin` before publishing, then push only the reviewed `main` branch. Send **this public history**; do not push the private development checkout or checkpoint refs. A source archive is created from the public commit using `git archive`; it excludes dependencies, build output, and `.git`.
