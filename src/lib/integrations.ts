@@ -39,7 +39,7 @@ export function parseWatermarkResult(raw: unknown): WatermarkResult {
 
 export function watermarkTitle(result: WatermarkResult) {
   if (!result.is_watermarked) return 'Nie wykryto znaku wodnego AudioSeal'
-  return result.is_omnivoice ? 'Wykryto znak i zgodną sygnaturę VoiceStudio' : 'Wykryto znak AudioSeal; źródło niepotwierdzone'
+  return result.is_omnivoice ? 'Wykryto znak AudioSeal i zgodną sygnaturę silnika' : 'Wykryto znak AudioSeal; źródło niepotwierdzone'
 }
 
 export function watermarkSettingsPath(settings: WatermarkSettings) {

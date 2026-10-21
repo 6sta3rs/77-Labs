@@ -66,7 +66,7 @@
 
 <section class="variant-card wide" id="control-9">
   <div class="variant-heading"><span>09</span><h2>Przyciski</h2><code>Button</code></div>
-  <p>Warianty z oryginalnego systemu T3 Code, dopasowane do bieżącej palety.</p>
+  <p>Warianty kontrolek Seventy Seven Labs, dopasowane do bieżącej palety.</p>
   <div class="button-samples">{#each variants as variant}<div><small>{variant}</small><Button {variant} onclick={()=>feedback=`Kliknięto wariant: ${variant}.`}><Plus/>Dodaj element</Button></div>{/each}</div>
   <div class="button-samples">{#each sizes as size}<div><small>{size}</small><Button variant="outline" {size} onclick={()=>feedback=`Kliknięto rozmiar: ${size}.`}>Przycisk</Button></div>{/each}<div><small>icon / tooltip</small><Tooltip content="Przywróć przykładowy komunikat"><Button variant="ghost" size="icon" aria-label="Przywróć komunikat" onclick={()=>feedback='Przywrócono przykładowy komunikat.'}><RotateCcw/></Button></Tooltip></div><div><small>icon-xs</small><Button variant="outline" size="icon-xs" aria-label="Przykładowe pobieranie" onclick={()=>feedback='Przycisk pobierania jest aktywny.'}><Download/></Button></div></div>
   <div class="button-samples"><Button disabled>Wyłączony</Button><Button variant="outline" disabled aria-busy="true"><LoaderCircle class="spin"/>Wczytywanie…</Button></div>

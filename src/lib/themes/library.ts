@@ -3,8 +3,9 @@ import { T3_CODE_LIGHT_THEME_COLORS, T3_CODE_DARK_THEME_COLORS, T3_CHAT_THEME, G
 export const THEME_LIBRARY_KEY = 'voicestudio.themes.v1'
 export const MAX_THEME_BYTES = 256 * 1024
 export const builtInThemes: ThemeDefinition[] = [
-  { id: 'studio', label: 'T3 Code', appearance: 'light', colors: T3_CODE_LIGHT_THEME_COLORS, variants: { dark: T3_CODE_DARK_THEME_COLORS } },
-  { ...T3_CHAT_THEME, id: 'rose' }, GROVE_THEME, OCEAN_THEME, EMBER_THEME, IRIS_THEME,
+  // Public display names; the imported palette definitions retain upstream attribution.
+  { id: 'studio', label: 'Labs', appearance: 'light', colors: T3_CODE_LIGHT_THEME_COLORS, variants: { dark: T3_CODE_DARK_THEME_COLORS } },
+  { ...T3_CHAT_THEME, id: 'rose', label: 'Róża' }, GROVE_THEME, OCEAN_THEME, EMBER_THEME, IRIS_THEME,
 ]
 const reserved = new Set([...RESERVED_THEME_IDS, ...builtInThemes.map(theme => theme.id), 't3-code'])
 let customThemes: ThemeDefinition[] = []
@@ -30,7 +31,7 @@ export function parseThemeFile(text: string): ThemeDefinition {
   if (new TextEncoder().encode(text).length > MAX_THEME_BYTES) throw new Error('Motyw może mieć najwyżej 256 KB.')
   let data: unknown
   try { data = JSON.parse(text) } catch { throw new Error('Nieprawidłowy JSON. Sprawdź przecinki i cudzysłowy.') }
-  if (!isRecord(data) || data.version !== 1) throw new Error('Wymagany format motywu T3 Code: version: 1.')
+  if (!isRecord(data) || data.version !== 1) throw new Error('Wymagany format motywu JSON: version: 1.')
   if (typeof data.name !== 'string' || !data.name.trim() || data.name.trim().length > 48) throw new Error('Nazwa musi mieć od 1 do 48 znaków.')
   if (!isMode(data.appearance)) throw new Error('Pole appearance musi mieć wartość light lub dark.')
   const id = data.id ?? `custom-${crypto.randomUUID()}`

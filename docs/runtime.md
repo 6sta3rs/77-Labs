@@ -1,6 +1,6 @@
 # Local engine
 
-Seventy Seven Labs supervises its own Python/FastAPI process at `127.0.0.1:4312`. The EXE includes VoiceStudio 0.5.7 code; Python/GPU libraries and weights are installed separately. The repository does not supply ready-made voice profiles, a private database, or accepted model terms.
+The Seventy Seven Labs engine runs as a supervised Python/FastAPI process at `127.0.0.1:4312`. The EXE includes its pinned backend code and local adapters; Python/GPU libraries and weights are installed separately. The repository does not supply ready-made voice profiles, a private database, or accepted model terms. [Third-party notices](../THIRD_PARTY_NOTICES.md) record imported source identities, versions, authors, and licenses.
 
 ## First launch
 

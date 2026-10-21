@@ -1,9 +1,10 @@
 # Shared controls
 
-The basic dimensions and states of inputs, selects, and switches adapt styles from
-[T3 Code](https://github.com/pingdotgg/t3code/tree/89424d9fa01c6bd24664315c7ccda8d6cb1eab61/apps/web/src/components/ui).
-Copyright (c) 2026 T3 Tools Inc.; [MIT license](../src/lib/themes/LICENSE-T3).
-Interaction behavior is adapted to Svelte and the voice studio.
+Seventy Seven Labs uses a shared set of inputs, selects, switches, buttons, and
+overlays. Interaction behavior is implemented for Svelte and the voice studio.
+Imported style origins, revisions, copyright, and licenses are recorded in
+[third-party notices](../THIRD_PARTY_NOTICES.md); the original license text
+remains in [LICENSE-T3](../src/lib/themes/LICENSE-T3).
 
 ## Component contract
 

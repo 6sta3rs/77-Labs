@@ -14,7 +14,7 @@
   },
   "screenshots": {
     "docs/screenshots/appearance.png": {
-      "sha256": "8306fe1556da56b584e0929fe43cbd7e5cc5341284d418e64e823069d291a7ee",
+      "sha256": "5e840dd0ae69e13c6f52c4d3f66e81c628a5d5529d18923c50a4334b31e54764",
       "source": "scripts/capture_screenshots.py",
       "content": "Fictional demo data, isolated browser profile"
     },
@@ -24,7 +24,7 @@
       "content": "Fictional demo data, isolated browser profile"
     },
     "docs/screenshots/voices.png": {
-      "sha256": "2d9a6e95e37c73a2017807800eb99feaedaffcc02918d85ba0a5625be0d47289",
+      "sha256": "19ef185899773fecf10a2c9404877170f78ac941ca41eb7198dbef19826b0e37",
       "source": "scripts/capture_screenshots.py",
       "content": "Fictional demo data, isolated browser profile"
     }

@@ -71,12 +71,12 @@
 </script>
 
 <div class="ai-settings" class:embedded>
-  <header><Sparkles size={embedded ? 20 : 24}/><div>{#if embedded}<h2>OpenAi — konto Codex/ChatGPT używane również w T3 Code</h2>{:else}<h1>AI i subskrypcja</h1>{/if}<p>Automatyczne tagowanie w edytorze korzysta z modelu zapisanego poniżej.</p></div></header>
+  <header><Sparkles size={embedded ? 20 : 24}/><div>{#if embedded}<h2>OpenAI — połączenie przez Codex/ChatGPT</h2>{:else}<h1>AI i subskrypcja</h1>{/if}<p>Automatyczne tagowanie w edytorze korzysta z modelu zapisanego poniżej.</p></div></header>
   <section class="connection-card" aria-label="Połączenie OpenAi przez Codex">
     <div class="connection-heading"><strong>OpenAi · ChatGPT przez Codex</strong><span class:connected={connection?.connected}>{loading ? 'Sprawdzanie…' : connection?.connected ? 'Połączono' : 'Brak połączenia'}</span></div>
     {#if connection}<p>{connection.message}{#if connection.connected && connection.plan}{' '}Plan konta: <strong>{connection.plan}</strong>.{/if}</p>{#if connection.connected}<p>Modele językowe w bieżącym katalogu Codex: <strong>{connection.models.length}</strong>. Lista pochodzi z aktualnego odczytu połączenia.</p>{/if}{/if}
     <p>Korzysta z istniejącego logowania Codex i limitów Twojej subskrypcji. Tekst narracji jest wysyłany do OpenAI.</p>
-    <p>Powiązanie z T3 Code dotyczy profilu OpenAi przy wspólnym logowaniu Codex na tym komputerze.</p>
+    <p>Połączenie korzysta z profilu Codex zalogowanego na tym komputerze.</p>
     {#if connection && !connection.connected}<p>Zaloguj Codex na tym komputerze poleceniem <code>codex login</code>, a następnie odśwież połączenie.</p>{/if}
     <Button variant="outline" disabled={loading || busy} onclick={refresh}><RefreshCw size={14}/>Odśwież połączenie</Button>
   </section>

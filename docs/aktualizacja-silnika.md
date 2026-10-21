@@ -1,8 +1,11 @@
 # Updating the engine source
 
-The backend is pinned in `scripts/runtime/engine.zip`. The adjacent
-`engine-provenance.json` records its source, version, upstream commit and
-individual file hashes. A version number alone does not identify the contents.
+The Seventy Seven Labs engine combines pinned third-party sources with local
+adapters. Imported backend code is stored in `scripts/runtime/engine.zip`.
+The adjacent `engine-provenance.json` records its source, version, upstream
+commit and individual file hashes. [Third-party notices](../THIRD_PARTY_NOTICES.md)
+identify the source project, authors, and licenses. A version number alone does
+not identify the contents.
 
 ## Preparing the source
 

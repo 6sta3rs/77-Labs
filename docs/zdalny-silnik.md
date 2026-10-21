@@ -1,7 +1,7 @@
 # Connecting to your own server
 
 **Ustawienia → Udostępnianie** (Settings → Sharing) can connect the studio to
-the VoiceStudio API on your own server. Text, references and media used by a
+the engine API on your own compatible server. Text, references and media used by a
 remote operation are sent to that server. GPU availability, models and applicable
 terms depend on the server. The transport test does not perform synthesis.
 

@@ -85,9 +85,10 @@ Demonstration data is illustrative.
 - **Svelte 5, TypeScript, and Vite** provide the interface and browser preview.
 - **Tauri 2 and Rust** handle the Windows window, native commands, process
   isolation, files, installation, and runtime supervision.
-- **Python/FastAPI** runs the pinned VoiceStudio 0.5.7 backend and local
-  extensions. `scripts/runtime/engine-provenance.json` records its source
-  and SHA-256.
+- **Python/FastAPI** runs the Seventy Seven Labs engine with pinned sources
+  and local extensions. `scripts/runtime/engine-provenance.json` records its
+  source and SHA-256; [third-party notices](../THIRD_PARTY_NOTICES.md) identify
+  the imported components and their authors.
 - The supervised backend uses `127.0.0.1:4312`; the Vite preview uses port 4310
   and the `/backend` proxy. The browser preview does not replace the Tauri
   supervisor.

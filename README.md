@@ -4,7 +4,7 @@ A local voice studio for Windows. Write narration, assign voices to speakers, wo
 
 **Svelte 5 · TypeScript · Tauri 2 · Python/FastAPI · AGPL-3.0-only**
 
-Development version **0.2.0**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned VoiceStudio 0.5.7 engine sources. Model weights, the Python environment, private recordings, and account data are not included.
+Development version **0.2.0**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned sources for the Seventy Seven Labs engine. Model weights, the Python environment, private recordings, and account data are not included.
 
 ![Narration editor with a fictional dialogue](docs/screenshots/studio.png)
 
@@ -90,6 +90,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/kontekst
 
 ## License and provenance
 
-Seventy Seven Labs code is licensed under **AGPL-3.0-only** — see [LICENSE](LICENSE). The bundled VoiceStudio engine uses AGPL-3.0-only; its `omnivoice/` package has separate Apache-2.0 terms. T3 Code themes and flags retain their own licenses and attributions. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) explains these boundaries.
+Seventy Seven Labs code is licensed under **AGPL-3.0-only** — see [LICENSE](LICENSE). Imported engine code, palettes, control styles, and language flags retain their applicable licenses and attribution. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) records their origins, authors, versions, and license boundaries.
 
-Model weights have separate terms; the application license does not grant rights to every model. Backend source and SHA-256 information are in `scripts/runtime/engine-provenance.json`. This project is not an official release of T3 Code or any model provider.
+Model weights have separate terms; the application license does not grant rights to every model. Backend source and SHA-256 information are in `scripts/runtime/engine-provenance.json`.

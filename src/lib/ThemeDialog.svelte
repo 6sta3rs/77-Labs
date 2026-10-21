@@ -55,13 +55,13 @@
 
 <dialog use:mount aria-labelledby="theme-dialog-title" onkeydown={(event) => { if (event.key === 'Escape') event.stopPropagation() }} oncancel={(event) => { event.preventDefault(); onclose() }}>
   <form onsubmit={submit}>
-    <header><div><h2 id="theme-dialog-title">{titles[kind]}</h2><p>{kind === 'import' ? 'Wczytaj plik T3 Code lub wklej jego zawartość.' : 'Zmieniaj kolory osobno dla jasnego i ciemnego wariantu.'}</p></div><Tooltip content="Zamknij edytor motywu"><Button variant="ghost" size="icon" aria-label="Zamknij edytor motywu" onclick={onclose}><X/></Button></Tooltip></header>
+    <header><div><h2 id="theme-dialog-title">{titles[kind]}</h2><p>{kind === 'import' ? 'Wczytaj plik JSON motywu lub wklej jego zawartość.' : 'Zmieniaj kolory osobno dla jasnego i ciemnego wariantu.'}</p></div><Tooltip content="Zamknij edytor motywu"><Button variant="ghost" size="icon" aria-label="Zamknij edytor motywu" onclick={onclose}><X/></Button></Tooltip></header>
     <div class="dialog-content">
       {#if kind === 'import'}
         <label class="upload-theme"><Upload size={16}/><span>{importedName || 'Wybierz plik JSON'}</span><input type="file" accept=".json,application/json" onchange={readFile}/></label>
         <label class="field-label" for="theme-json">JSON motywu</label>
         <textarea id="theme-json" class="text-input json-input" bind:value={json} spellcheck="false" placeholder={'{\n  "version": 1,\n  "name": "Mój motyw",\n  "appearance": "dark",\n  "colors": { "accent": "#346bf1" }\n}'}></textarea>
-        <p class="hint">Format T3 Code v1, maks. 256 KB. Brakujące kolory uzupełnimy paletą T3 Code dla danego trybu.</p>
+        <p class="hint">Format JSON v1, maks. 256 KB. Brakujące kolory uzupełnimy paletą Labs dla danego trybu.</p>
       {:else}
         <label class="field-label" for="theme-name">Nazwa motywu</label><input id="theme-name" class="text-input" bind:value={draft.label} maxlength="48" required/>
         <div class="variant-tabs" aria-label="Wariant motywu"><button type="button" class:chosen={mode === 'light'} aria-pressed={mode === 'light'} onclick={() => mode = 'light'}><Sun size={14}/>Jasny</button><button type="button" class:chosen={mode === 'dark'} aria-pressed={mode === 'dark'} onclick={() => mode = 'dark'}><Moon size={14}/>Ciemny</button></div>

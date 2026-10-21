@@ -8,7 +8,7 @@ The application interface is Polish. Public documentation is English; filenames 
 
 - Svelte 5 / TypeScript / Vite: interface, editor, library, and transport.
 - Tauri 2 / Rust: window, native files, process supervision, and installation.
-- Python / FastAPI: pinned VoiceStudio 0.5.7 with adapters in `scripts/runtime/`.
+- Python / FastAPI: the Seventy Seven Labs engine, combining a pinned upstream backend with adapters in `scripts/runtime/`. Exact upstream identity, version, authors, and license are documented in [third-party notices](../THIRD_PARTY_NOTICES.md) and the engine provenance manifest.
 - `engine.zip` and `engine-provenance.json`: immutable upstream sources, licenses, and provenance.
 - Data defaults to `%LOCALAPPDATA%/VoiceStudioNext`, outside the repository.
 
@@ -28,6 +28,6 @@ A build and a health response do not prove synthesis or a complete dubbing/audio
 
 Do not add recordings, databases, accounts, tokens, or private paths. Write QA output under `.tmp/qa`. The project's demo audio is only a procedural tone; upstream retains its documented assets in the pinned archive.
 
-Do not edit hardlinked models or libraries in place. The public version uses neutral icons and original visualizations. The legacy `elevenlabs` orb variant is a compatibility identifier; it does not mean that company's code or textures are bundled.
+Do not edit hardlinked models or libraries in place. The public version uses neutral icons and original visualizations. Product-facing themes are **Labs** and **Róża**, and the procedural orb variant is **Przepływ**. Older identifiers remain compatibility details, not product labels. Renaming a presentation label does not change ownership or licensing of imported sources; preserve source copyright, licenses, and factual model names.
 
 Commit each logical change with a progress update, following [AGENTS.md](../AGENTS.md). Run the [publication check](publikacja.md) before publishing.

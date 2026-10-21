@@ -1,5 +1,15 @@
 # Public release verification
 
+## Product-facing naming update
+
+The user approved **Labs**, **Róża**, and **silnik Seventy Seven Labs** for the visible themes and engine. General product descriptions use these names. Exact source identity, versions, copyright, and licenses remain in dedicated provenance details and third-party notices; model names and terms are unchanged.
+
+Current checks: `npm run check` passed with 0 errors and 0 warnings; `npm run build` and the complete `npm run test:ui` passed. The suite now includes 7 theme-compatibility checks for existing IDs, stored assignments, unchanged light/dark colors, and JSON v1 import/export. The build retains its existing warning for the main chunk, now approximately 729 kB before gzip.
+
+The real browser theme workflow passed 24 interaction checks, covering assignments, duplication, editing, import/export, deletion, validation, and storage failure. Additional UI checks confirmed the new visible names and the retained backend copyright/provenance section. There were no page errors or private-backend requests. The existing demo capture workflow passed its five playback/navigation checks, and three 1440×960 screenshots were refreshed and visually reviewed; their hashes are updated in `public-assets.json`.
+
+The T3 snapshot endpoint again returned `Preview automation snapshot timed out after 15000ms.` twice. Browser acceptance and capture used the repository's isolated Chromium workflow. No Rust code, backend archive, license text, model weights, or private runtime data changed. No new EXE build, inference, model installation, or complete dubbing/audiobook acceptance is claimed.
+
 ## English documentation update
 
 The English translation is a documentation change. Its checks cover content, local links and heading anchors, UTF-8, whitespace, and publication privacy. Application builds, UI/runtime tests, and inference from the earlier release preparation were not rerun for this translation.

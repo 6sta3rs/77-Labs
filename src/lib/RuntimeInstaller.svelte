@@ -37,7 +37,7 @@
 
 <section class="runtime-install" aria-label="Instalacja samodzielnego środowiska">
   <h2><Cpu size={18}/> Samodzielne środowisko Python</h2>
-  <p>Przygotuj nowe środowisko bez wcześniejszej instalacji VoiceStudio. Istniejący silnik pozostaje zachowany. Wagi modeli pobiera się osobno w katalogu modeli.</p>
+  <p>Przygotuj osobne środowisko silnika Seventy Seven Labs bez wcześniejszej instalacji. Istniejący silnik pozostaje zachowany. Wagi modeli pobiera się osobno w katalogu modeli.</p>
   {#if !available}<p class="runtime-install-note">Instalator jest dostępny w aplikacji Windows x64.</p>{:else}
     <Select ariaLabel="Wariant środowiska" bind:value={profile} options={[{ value: 'cpu', label: 'CPU — bez karty NVIDIA' }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]} disabled={active || acting}/>
     <p class="runtime-install-note">{profile === 'cpu' ? 'CPU: kilka GB pobierania, wymagane co najmniej 20 GB wolnego miejsca. Generowanie będzie wolniejsze.' : 'CUDA: kilka–kilkanaście GB pobierania i co najmniej 35 GB wolnego miejsca. Wymaga zgodnej karty NVIDIA i sterownika obsługującego CUDA 12.8.'} To szacunek dla bibliotek, bez wag modeli.</p>

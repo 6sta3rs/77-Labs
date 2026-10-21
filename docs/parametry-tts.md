@@ -26,7 +26,7 @@ OmniVoice instructions have their own taxonomy, separate from the free-form
 descriptions used by other engines.
 
 WAV settings, built-in voices, and the voice design draft require discovery of the
-actual source contract: [0.5.7 parameters](parametry-wav-0.5.7.md).
+actual source contract: [WAV, preset, and design parameters](parametry-wav-0.5.7.md).
 For multiple speakers, engine metadata and settings are frozen at the start of the
 job so UI changes cannot alter later blocks of an ongoing generation.
 

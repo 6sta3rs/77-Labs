@@ -1,14 +1,17 @@
-# T3 Code themes and palettes
+<a id="t3-code-themes-and-palettes"></a>
 
-The palettes come from `pingdotgg/t3code`,
-[themePalettes.ts at the pinned revision](https://github.com/pingdotgg/t3code/blob/86534db4d3525a070589a234d660a3e0373a42ea/packages/shared/src/themePalettes.ts).
-Copyright (c) 2026 T3 Tools Inc.; MIT license, with the complete text in
-[LICENSE-T3](../src/lib/themes/LICENSE-T3).
+# Labs themes and palettes
+
+Seventy Seven Labs provides light and dark palettes, separate assignments for
+each appearance mode, and a local custom theme library. Imported palette
+origins, revisions, copyright, and licenses are recorded in
+[third-party notices](../THIRD_PARTY_NOTICES.md). The complete original license
+remains in [LICENSE-T3](../src/lib/themes/LICENSE-T3).
 
 ## Behavior
 
-Studio offers T3 Code, Ocean, Grove, Ember, Iris, and T3 Chat in light and dark
-variants. `src/lib/themes/t3-palettes.ts` preserves the source values, while
+Studio offers Labs, Ocean, Grove, Ember, Iris, and **Róża** (Rose) in light and dark
+variants. `src/lib/themes/t3-palettes.ts` preserves the bundled palette values, while
 `appearance.ts` maps them to interface roles. Contrast settings can change the
 resulting borders. Thumbnails use the actual palettes.
 
@@ -18,10 +21,10 @@ corresponding mode; clicking the card name assigns the available variants.
 The older `studio` and `rose` identifiers preserve settings compatibility.
 
 Custom themes can be created, duplicated, edited, exported, and imported as
-T3 Code v1 JSON. Imports have a 256 KB limit and validate color roles. Deletion
+theme JSON v1. Imports have a 256 KB limit and validate color roles. Deletion
 requires confirmation; deleting the active theme restores the appropriate default
 palette. A corrupt local library blocks writes to preserve data that may still be
-recoverable. There is no synchronization with T3 Code or online gallery.
+recoverable. There is no online synchronization or gallery.
 
 ## Where to make changes
 

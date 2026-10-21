@@ -16,11 +16,13 @@ components and the scope of their licenses. It does not modify their terms.
   The [pinned upstream notice](https://github.com/debpalash/VoiceStudio/blob/7a6c8980bb9c04db145357a8190a37a0e9f462da/LICENSE-NOTICE.md)
   distinguishes application code, the OmniVoice package, and downloaded models.
 
-Seventy Seven Labs provides a separate Svelte/Tauri interface and extensions
-in `scripts/runtime`. The launcher prepares its own copy of the backend
-and applies documented adapters. The [runtime](docs/runtime.md) document
-explains startup behavior. This is not an official VoiceStudio release
-or a product of its authors.
+The Seventy Seven Labs engine incorporates the imported backend sources above
+and local extensions in `scripts/runtime`. The application provides a separate
+Svelte/Tauri interface. The launcher prepares its own copy of the backend and
+applies documented adapters. The [runtime](docs/runtime.md) document explains
+startup behavior. The product name does not change the imported source's
+authorship or license. This is not an official VoiceStudio release or a product
+of its authors.
 
 ## OmniVoice - Python package
 
@@ -38,17 +40,23 @@ for each component actually distributed.
 
 ## T3 Code - palettes and selected control styles
 
-Adapted palettes and styles come from
+The project imports palettes and selected control styles from
 [pingdotgg/t3code](https://github.com/pingdotgg/t3code).
 Copyright (c) 2026 T3 Tools Inc. License: **MIT**; the full text remains in
 [src/lib/themes/LICENSE-T3](src/lib/themes/LICENSE-T3).
 
 - Palettes: revision `86534db4d3525a070589a234d660a3e0373a42ea`,
-  `packages/shared/src/themePalettes.ts`.
+  [packages/shared/src/themePalettes.ts](https://github.com/pingdotgg/t3code/blob/86534db4d3525a070589a234d660a3e0373a42ea/packages/shared/src/themePalettes.ts).
 - Control style reference:
-  `89424d9fa01c6bd24664315c7ccda8d6cb1eab61`.
+  `89424d9fa01c6bd24664315c7ccda8d6cb1eab61`,
+  [apps/web/src/components/ui](https://github.com/pingdotgg/t3code/tree/89424d9fa01c6bd24664315c7ccda8d6cb1eab61/apps/web/src/components/ui).
 - Components and behavior are adapted to Svelte and the local studio.
   Details: [themes](docs/motywy-t3-code.md), [controls](docs/t3-controls.md).
+
+The application displays two of these palette families as **Labs** and
+**Róża** (Rose). These product labels do not change source attribution or
+the MIT license. Legacy source filenames, theme identifiers, and the existing
+theme JSON v1 format remain for compatibility.
 
 ## Circle Flags - language markers
 
@@ -69,9 +77,8 @@ inside the engine archive. Assess versions and licenses for the actual
 package; this document is not a complete transitive dependency inventory
 or set of notices for the EXE.
 
-The public release does not include the recovered shader, fluid simulation,
-or textures from the ElevenLabs website. It also excludes copied avatars
-and logos of model publishers. Model names identify models; they do not
+The public release uses original procedural visualizations and neutral model
+icons. Model names identify models; they do not
 imply endorsement or affiliation with their authors. Legacy internal
 identifiers may remain for settings compatibility and do not grant rights
 to third-party materials.

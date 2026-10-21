@@ -42,7 +42,7 @@ export async function checkThemes() {
     fill('#color-canvas', '#654321'); await submit()
     assert('Editing updates the same custom theme', library.getThemes().length === initialCount + 1 && library.getTheme(copy.id).colors.canvas === '#654321')
     exported = library.serializeTheme(library.getTheme(copy.id))
-    assert('Export round-trips through the T3 Code v1 parser', library.parseThemeFile(exported).colors.canvas === '#654321')
+    assert('Export round-trips through the compatible theme JSON v1 parser', library.parseThemeFile(exported).colors.canvas === '#654321')
     await click(document.querySelector('[aria-label="Eksportuj motyw Motyw testowy"]'))
     assert('Export reports a prepared JSON download', document.querySelector('.theme-message')?.textContent.includes('eksport'))
 

@@ -52,7 +52,7 @@ try{
   assert('Light Ocean applies to the whole application',document.documentElement.dataset.colormode==='light'&&document.documentElement.dataset.theme==='ocean');
   assert('Theme uses the upstream T3 Ocean canvas',getComputedStyle(document.querySelector('.app-shell')).backgroundColor==='oklch(0.974199 0.002856 241.597)');
   button('Przywróć').click();await delay(20);
-  assert('Appearance reset restores dark Studio',document.documentElement.dataset.colormode==='dark'&&document.documentElement.dataset.theme==='studio');
+  assert('Appearance reset restores the dark Labs palette',document.documentElement.dataset.colormode==='dark'&&document.documentElement.dataset.theme==='studio');
   button('Tekst na mowę').click();await delay(20);
   button('Dubbing').click();await delay(20);
   assert('Dubbing workspace renders its real staged workflow',document.querySelector('.production-workspace')?.textContent.includes('Dubbing'));

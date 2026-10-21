@@ -117,7 +117,7 @@
           onremove={isCustomTheme(theme.id) ? () => { deleteTarget = theme; failure = '' } : undefined}/>
       {/each}
     </div>
-    <p class="theme-current">Jasny: {getTheme(owner('light'))?.label || 'T3 Code'} · Ciemny: {getTheme(owner('dark'))?.label || 'T3 Code'}</p>
+    <p class="theme-current">Jasny: {getTheme(owner('light'))?.label || 'Labs'} · Ciemny: {getTheme(owner('dark'))?.label || 'Labs'}</p>
     {#if message}<p class="theme-message" role="status">{message}</p>{/if}
     {#if failure && !deleteTarget}<p class="theme-error" role="alert">{failure}</p>{/if}
     {#if libraryWarning}<p class="theme-error" role="alert">{libraryWarning}</p>{/if}
@@ -149,7 +149,7 @@
 
 {#if editor}<ThemeDialog kind={editor.kind} seed={editor.seed} onsubmit={saved} onclose={() => editor = undefined}/>{/if}
 {#if deleteTarget}
-  <dialog class="remove-dialog" use:mountDialog aria-labelledby="remove-theme-title" oncancel={(event) => { event.preventDefault(); deleteTarget = undefined }}><h2 id="remove-theme-title">Usunąć motyw „{deleteTarget.label}”?</h2><p>Usuniesz jeden własny motyw. Jeśli jest używany, zastąpi go T3 Code.</p>{#if failure}<p class="theme-error" role="alert">{failure}</p>{/if}<div><Button variant="outline" onclick={() => deleteTarget = undefined}>Anuluj</Button><Button variant="destructive" onclick={remove}>Usuń motyw</Button></div></dialog>
+  <dialog class="remove-dialog" use:mountDialog aria-labelledby="remove-theme-title" oncancel={(event) => { event.preventDefault(); deleteTarget = undefined }}><h2 id="remove-theme-title">Usunąć motyw „{deleteTarget.label}”?</h2><p>Usuniesz jeden własny motyw. Jeśli jest używany, zastąpi go Labs.</p>{#if failure}<p class="theme-error" role="alert">{failure}</p>{/if}<div><Button variant="outline" onclick={() => deleteTarget = undefined}>Anuluj</Button><Button variant="destructive" onclick={remove}>Usuń motyw</Button></div></dialog>
 {/if}
 
 <style>

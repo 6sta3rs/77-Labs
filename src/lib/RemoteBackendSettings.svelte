@@ -42,7 +42,7 @@
 </script>
 
 <section class="remote-backend-settings tool-card" aria-labelledby="remote-backend-title">
-  <div class="remote-heading"><h2 id="remote-backend-title"><Network size={18}/> Zdalny silnik VoiceStudio</h2><Button variant="ghost" size="sm" disabled={disabled} onclick={refresh}><RefreshCw size={14}/>Odśwież połączenie</Button></div>
+  <div class="remote-heading"><h2 id="remote-backend-title"><Network size={18}/> Zdalny silnik Seventy Seven Labs</h2><Button variant="ghost" size="sm" disabled={disabled} onclick={refresh}><RefreshCw size={14}/>Odśwież połączenie</Button></div>
   <p>Użyj silnika na własnym serwerze lub drugim komputerze. Po wybraniu połączenia tekst, nagrania i pliki operacji studia będą przesyłane pod wskazany adres.</p>
   {#if !ready}<p class="tool-notice">Uruchom prywatny silnik aplikacji, aby połączyć bezpieczny lokalny transport.</p>{/if}
   {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
@@ -56,7 +56,7 @@
   <p class="page-footnote">Klucz jest używany jednorazowo i nie jest zapisywany. Krótka sesja jest szyfrowana w prywatnej bazie; nie trafia do pamięci przeglądarki ani adresów połączeń. Po ponownym uruchomieniu aplikacja zaczyna od lokalnego silnika.</p>
   {#if $remoteBackendState.session_expires_at}<p class="page-footnote">Sesja ważna do {new Date($remoteBackendState.session_expires_at * 1000).toLocaleString('pl')}. Restart serwera lub zmiana klucza mogą ją unieważnić wcześniej.</p>{/if}
   <div class="tool-actions"><Button variant="outline" disabled={disabled || !url.trim()} onclick={() => run('test')}>{busy ? 'Sprawdzanie…' : 'Testuj połączenie'}</Button><Button disabled={disabled || !url.trim()} onclick={() => run('connect')}>Połącz i używaj zdalnego silnika</Button><Button variant="outline" disabled={disabled} onclick={() => run('local')}><Computer size={15}/>Użyj lokalnego silnika</Button></div>
-  <p class="page-footnote">Zdalny serwer musi udostępniać API VoiceStudio, nie sam panel WWW. Zmiana połączenia nie kopiuje profili, historii ani projektów do lokalnej bazy. Po błędzie operacja nie przełącza się automatycznie na inny silnik.</p>
+  <p class="page-footnote">Zdalny serwer musi udostępniać zgodne API silnika, nie sam panel WWW. Zmiana połączenia nie kopiuje profili, historii ani projektów do lokalnej bazy. Po błędzie operacja nie przełącza się automatycznie na inny silnik.</p>
 </section>
 
 <style>
