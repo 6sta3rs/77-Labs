@@ -1,0 +1,7 @@
+/* A usable hit area for seeking; the visible track stays 3px high. */
+.player-progress input[type=range]{height:24px;background:transparent;border:0;outline-offset:1px}
+.player-progress input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:5px;background:linear-gradient(to right,var(--foreground) var(--progress,0%),var(--input-border) var(--progress,0%))}
+.player-progress input[type=range]::-moz-range-track{height:3px;border-radius:5px;background:linear-gradient(to right,var(--foreground) var(--progress,0%),var(--input-border) var(--progress,0%))}
+.player-progress input[type=range]::-webkit-slider-thumb{margin-top:-3px;width:9px;height:9px}
+.player-progress input[type=range]::-moz-range-thumb{width:9px;height:9px;border:0;border-radius:50%;background:var(--foreground)}
+@media(pointer:coarse){.player-progress input[type=range]{height:32px}.player-progress input[type=range]::-webkit-slider-thumb{opacity:1}}

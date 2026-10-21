@@ -1,0 +1,28 @@
+/* UI scale: preserve the existing hierarchy at 13px and follow the user's setting. */
+:root {
+  --ui-text-8: calc(var(--ui-font-size, 13px) * 8 / 13);
+  --ui-text-9: calc(var(--ui-font-size, 13px) * 9 / 13);
+  --ui-text-10: calc(var(--ui-font-size, 13px) * 10 / 13);
+  --ui-text-11: calc(var(--ui-font-size, 13px) * 11 / 13);
+  --ui-text-12: calc(var(--ui-font-size, 13px) * 12 / 13);
+  --ui-text-13: var(--ui-font-size, 13px);
+  --ui-text-14: calc(var(--ui-font-size, 13px) * 14 / 13);
+  --ui-text-15: calc(var(--ui-font-size, 13px) * 15 / 13);
+  --ui-text-16: calc(var(--ui-font-size, 13px) * 16 / 13);
+  --ui-text-17: calc(var(--ui-font-size, 13px) * 17 / 13);
+  --ui-text-18: calc(var(--ui-font-size, 13px) * 18 / 13);
+  --ui-text-19: calc(var(--ui-font-size, 13px) * 19 / 13);
+  --ui-text-20: calc(var(--ui-font-size, 13px) * 20 / 13);
+  --ui-text-21: calc(var(--ui-font-size, 13px) * 21 / 13);
+  --ui-text-22: calc(var(--ui-font-size, 13px) * 22 / 13);
+  --ui-text-23: calc(var(--ui-font-size, 13px) * 23 / 13);
+  --ui-text-24: calc(var(--ui-font-size, 13px) * 24 / 13);
+  --ui-text-25: calc(var(--ui-font-size, 13px) * 25 / 13);
+  --ui-text-26: calc(var(--ui-font-size, 13px) * 26 / 13);
+  --ui-text-27: calc(var(--ui-font-size, 13px) * 27 / 13);
+  --ui-text-28: calc(var(--ui-font-size, 13px) * 28 / 13);
+  --ui-text-29: calc(var(--ui-font-size, 13px) * 29 / 13);
+  --ui-text-30: calc(var(--ui-font-size, 13px) * 30 / 13);
+  --ui-text-31: calc(var(--ui-font-size, 13px) * 31 / 13);
+  --ui-text-32: calc(var(--ui-font-size, 13px) * 32 / 13);
+}

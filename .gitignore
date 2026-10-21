@@ -1,0 +1,34 @@
+node_modules/
+dist/
+# Lokalne środowiska QA, profile WebView i pośrednie wyniki testów.
+.tmp/
+.env*
+!.env.example
+*.log
+.DS_Store
+src-tauri/target/
+__pycache__/
+*.py[cod]
+.venv/
+src-tauri/gen/
+# Dane lokalne i materiały użytkownika nie należą do źródeł publicznych.
+/data/
+/runtime/
+/models/
+/recordings/
+/outputs/
+/backups/
+*.db
+*.db-*
+*.sqlite*
+*.wav
+*.mp3
+*.m4a
+*.m4b
+*.flac
+*.ogg
+*.opus
+*.mp4
+*.mov
+*.webm
+!public/demo/interface-tone.wav

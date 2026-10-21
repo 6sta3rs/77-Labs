@@ -1,0 +1,70 @@
+// Browser checks on /inputy. Uses only local fixtures and existing audio.
+// Start from a fresh page. First use the real Play button once, then pause:
+// browser autoplay policy requires an actual user gesture for Web Audio.
+export async function checkAdditionalUi() {
+  const checks=[]
+  const wait=(ms=50)=>new Promise(resolve=>setTimeout(resolve,ms))
+  const assert=(name,value)=>{checks.push({name,passed:!!value});if(!value)throw new Error(name)}
+  const exact=(root,text)=>[...root.querySelectorAll('button')].find(button=>button.textContent.trim()===text)
+  const fill=(input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}))}
+  const pick=async(trigger,text)=>{trigger.click();await wait();const option=[...document.querySelectorAll('[role=option]')].find(node=>node.textContent.trim()===text);if(!option)throw new Error(`Brak opcji ${text}`);option.click();await wait()}
+  const signal=()=>Number(document.querySelector('.audio-signal')?.textContent.match(/(\d+)%/)?.[1]||0)
+  const g=document.querySelector('#control-15'),m=document.querySelector('#control-16'),a=document.querySelector('#control-14')
+  try {
+    assert('Katalog obejmuje 16 grup',document.querySelectorAll('section[id^=control-]').length===16)
+    const split=document.querySelector('.studio-action-split').getBoundingClientRect(),cta=document.querySelector('.studio-action-generate').getBoundingClientRect()
+    assert('Obie akcje mają równą wysokość 36px',split.height===36&&cta.height===36)
+    const sw=document.querySelector('#control-6 .vs-switch').getBoundingClientRect()
+    assert('Domyślny Switch jest większy: 42x24',sw.width===42&&sw.height===24)
+    exact(g,'Siatka').click();await wait()
+    assert('Grupa pojedyncza zmienia widok',g.querySelector('.results.grid')&&exact(g,'Siatka').getAttribute('aria-pressed')==='true')
+    exact(g,'Lista').click();await wait()
+    assert('Powrót do listy działa',!g.querySelector('.results.grid'))
+    assert('Początkowy chip statusu filtruje wyniki',g.querySelectorAll('.results article').length===3)
+    await pick(g.querySelector('[aria-label="Utworzone przez: dodaj filtr"]'),'Anna')
+    assert('Chip autora faktycznie filtruje',g.querySelectorAll('.results article').length===2)
+    g.querySelector('[aria-label="Usuń filtr: Utworzone przez"]').click();await wait()
+    assert('Usunięcie chipa przywraca wyniki i focus',g.querySelectorAll('.results article').length===3&&document.activeElement.getAttribute('aria-label').startsWith('Utworzone przez'))
+    await pick(g.querySelector('[aria-label="Język: dodaj filtr"]'),'Angielski')
+    assert('Filtry łączą się ze statusem',g.querySelectorAll('.results article').length===1)
+    exact(g,'Wyczyść filtry').click();await wait()
+    assert('Reset filtrów pokazuje wszystkie rekordy',g.querySelectorAll('.results article').length===5)
+    const multi=g.querySelector('[aria-label="Statusy wyników"]')
+    exact(multi,'Gotowe').click();await wait()
+    assert('Wybór wielokrotny wpływa na wyniki',g.querySelectorAll('.results article').length===2)
+    exact(g,'Wyczyść filtry').click();await wait()
+    m.querySelector('.model-trigger').click();await wait()
+    assert('Trigger otwiera panel modeli',!!m.querySelector('.model-picker-panel'))
+    const choices=[...m.querySelectorAll('.model-picker-choice')]
+    assert('Panel pokazuje gotowe modele bez ponownej akcji wybranego',m.querySelectorAll('.model-picker-card').length===2&&choices.length===1&&!m.querySelector('.model-picker-selected .model-picker-choice'))
+    choices.find(node=>node.textContent.includes('Model lokalny')).click();await wait()
+    assert('Wybór modelu zmienia trigger i zamyka panel',!m.querySelector('.model-picker-panel')&&m.querySelector('.model-trigger').textContent.includes('Model lokalny'))
+    m.querySelector('.model-trigger[aria-haspopup=dialog]').click();await wait()
+    const dialog=document.querySelector('dialog.model-picker')
+    assert('Pełny picker jest natywnym modalem',dialog?.matches(':modal'))
+    assert('Backdrop ma blur',getComputedStyle(dialog,'::backdrop').backdropFilter.includes('blur'))
+    await pick(dialog.querySelector('[aria-label="Dostępność modelu"]'),'Gotowe do użycia')
+    assert('Filtr gotowości usuwa niedostępne',dialog.querySelectorAll('.model-picker-card').length===2)
+    const search=dialog.querySelector('input[type=search]');fill(search,'nieistniejący');await wait()
+    assert('Brak wyników ma jawny stan',dialog.querySelectorAll('.model-picker-choice').length===0&&dialog.textContent.includes('Brak modeli'))
+    fill(search,'');await wait();dialog.querySelector('[aria-label="Widok listy"]').click();await wait()
+    assert('ModelPicker zmienia karty na listę',!dialog.querySelector('.model-picker-grid'))
+    dialog.querySelector('[aria-label="Zamknij wybór modelu"]').click();await wait()
+    assert('Zamknięcie modala działa',!document.querySelector('dialog.model-picker'))
+    for(let i=0;i<50&&!a.querySelector('audio')?.duration;i++)await wait()
+    assert('Próbka mowy ma rzeczywiste metadane',Math.abs(a.querySelector('audio').duration-3.43)<.05)
+    assert('Fale audio mają próbki z pliku',a.querySelectorAll('.mini-wave i').length===96)
+    const toneButton=Array.from(a.querySelectorAll('.audio-sample-heading button')).find(node=>node.textContent.includes('Ton testowy'));toneButton.click();await wait(100)
+    const audio=a.querySelector('audio')
+    assert('Wybór próbki nie uruchamia autoplay',audio.paused&&Math.abs(audio.duration-5)<.05)
+    a.querySelector('.play-button').click();await wait(300)
+    assert('Odtwarzanie przesuwa czas i mierzy sygnał',!audio.paused&&audio.currentTime>0&&signal()>0)
+    a.querySelector('.play-button').click();await wait()
+    assert('Pauza zeruje pomiar',audio.paused&&signal()===0)
+    const seek=a.querySelector('[aria-label="Pozycja nagrania"]');fill(seek,'1.45');await wait();a.querySelector('.play-button').click();await wait(220)
+    assert('Cisza w pliku nie generuje sztucznego poziomu',!audio.paused&&signal()<=1)
+    a.querySelector('.play-button').click();await wait()
+    assert('Pobranie audio jest lokalnym Blobem',a.querySelector('.player a[download]')?.href.startsWith('blob:'))
+    return{passed:checks.length,total:checks.length,checks}
+  }catch(error){a.querySelector('audio')?.pause();return{passed:checks.filter(c=>c.passed).length,total:checks.length,error:String(error),checks}}
+}

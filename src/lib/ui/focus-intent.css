@@ -1,0 +1,8 @@
+/* Automatic focus is retained for typing/assistive technology. Paint follows intent. */
+:root[data-focus-policy] [data-focus-passive]:focus-visible{outline:none}
+:root[data-focus-policy] :is(.text-input,.vs-select-trigger)[data-focus-passive]:not([aria-invalid=true]),
+:root[data-focus-policy] .search-field:has(input[data-focus-passive]):not(:has(input[aria-invalid=true])){border-color:var(--input-border,var(--border));box-shadow:var(--control-shadow);outline:none}
+:root[data-focus-policy] :is(.vs-input,.vs-textarea)[data-unstyled][data-focus-passive]{border-color:transparent;box-shadow:none}
+/* A compound search has one outer border, including its automatic-focus state. */
+:root[data-focus-policy] .search-field :is(.vs-input,.text-input)[data-focus-passive]{border-color:transparent;box-shadow:none;outline:none}
+:root[data-focus-policy] .tools-search:has(input[data-focus-passive]){outline:none}

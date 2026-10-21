@@ -1,0 +1,25 @@
+@import './neutral-selection.css';
+.vs-button-group{display:inline-flex;max-width:100%;align-items:stretch;isolation:isolate;vertical-align:middle}
+.vs-button-group>.vs-group-button{border-radius:0;margin:0;box-shadow:none}
+.vs-button-group>.vs-group-button:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
+.vs-button-group>.vs-group-button:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
+.vs-button-group>.vs-group-button+.vs-group-button{margin-left:-1px}
+/* Selection uses neutral emphasis; keyboard focus retains its independent ring. */
+.vs-button-group>.vs-group-button[aria-pressed=true]{--control-icon-color:currentColor;border-color:var(--neutral-selected-border);background:var(--neutral-selected-background);color:var(--neutral-selected-foreground);font-weight:600;z-index:1}
+.vs-button-group>.vs-group-button[aria-pressed=true]:hover{background:var(--neutral-selected-hover)}
+.vs-button-group>.vs-group-button:hover,.vs-button-group>.vs-group-button:focus-visible{z-index:2}
+.vs-button-group>.vs-group-button:active{scale:1}
+.vs-filter-chip{display:inline-flex;align-items:center;min-width:0;max-width:100%;border:1px solid var(--input-border,var(--border));border-radius:7px;background:var(--control-background,var(--surface));color:var(--foreground);box-shadow:0 1px 2px #0000000d;font-family:var(--font-ui);vertical-align:middle}
+.vs-filter-chip>.vs-select{width:auto;max-width:100%;min-width:0}
+.vs-filter-chip .vs-select-trigger.vs-chip-select{gap:6px;min-height:28px;height:auto;padding:0 8px;border:0;background:transparent;box-shadow:none;white-space:nowrap;font-size:var(--ui-text-12);border-radius:6px}
+.vs-filter-chip .vs-select-trigger.vs-chip-select>svg{width:14px;height:14px;margin:0;flex-shrink:0;color:var(--icon-muted,var(--muted))}
+.vs-filter-chip .vs-select-trigger.vs-chip-select:hover,.vs-filter-clear:hover:not(:disabled){background:var(--neutral-selected-hover);color:var(--neutral-selected-foreground)}
+.vs-filter-chip .vs-select-trigger:focus-visible,.vs-filter-clear:focus-visible{outline:2px solid var(--focus);outline-offset:1px;z-index:1}
+.vs-filter-chip .vs-select-trigger>span{flex:none}
+.vs-filter-value{max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--foreground)}
+.vs-filter-separator{height:14px;width:1px;background:var(--border);margin:0 1px;flex:none}
+.vs-filter-clear{align-self:stretch;display:grid;place-items:center;min-width:28px;flex-shrink:0;padding:0;border:0;border-radius:6px 0 0 6px;background:transparent;color:var(--icon-muted,var(--muted));cursor:pointer;outline:none}
+.vs-filter-clear:disabled{cursor:not-allowed}
+.vs-filter-chip-disabled{opacity:.64}.vs-filter-chip-disabled .vs-select-trigger:disabled{opacity:1}
+.vs-filter-chip-active .vs-select-trigger.vs-chip-select{border-radius:0 6px 6px 0;padding-left:3px}
+@media(pointer:coarse){.vs-filter-chip .vs-select-trigger.vs-chip-select{min-height:44px}.vs-filter-clear{min-width:44px}}

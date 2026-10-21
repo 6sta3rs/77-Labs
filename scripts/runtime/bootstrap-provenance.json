@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "platform": "windows-x86_64",
+  "uv": {
+    "version": "0.10.6",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.10.6/uv-x86_64-pc-windows-msvc.zip",
+    "sha256": "b27eb789f281e398a82197477de727fc8faf08605152115686da2c3cba0d25f7",
+    "checksumSource": "https://github.com/astral-sh/uv/releases/download/0.10.6/uv-x86_64-pc-windows-msvc.zip.sha256"
+  },
+  "python": {
+    "key": "cpython-3.11.14-windows-x86_64-none",
+    "version": "3.11.14",
+    "build": "20260211",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.11.14%2B20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+    "sha256": "db4a7b6389961f194ef5c1cb21a46c023dbc13703ac51f7bd7eaa1088740ca72",
+    "distribution": "Astral python-build-standalone CPython; not the PSF Windows installer",
+    "checksumSource": "https://raw.githubusercontent.com/astral-sh/uv/0.10.6/crates/uv-python/download-metadata.json",
+    "verification": "The hash-pinned uv release verifies its built-in, pinned Python download metadata. No global Python install or PATH update."
+  },
+  "engine": {
+    "archiveSha256": "2b511d70698a79ff015e8b566f1879b00b55219089cd433d1d9220f56691aac6",
+    "lockSha256": "b7b4fea1723183e5601e238af3ba6209bf9d27dacfce3284077d3c4c9c686b70",
+    "pyprojectSha256": "8e8a518130b9201bc4b7a46af1834751232cae8d1d752e3a6b0af9ffdebbe8ea"
+  },
+  "cpuWheels": {
+    "torch": {
+      "version": "2.8.0+cpu",
+      "url": "https://download.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp311-cp311-win_amd64.whl",
+      "sha256": "7631ef49fbd38d382909525b83696dc12a55d68492ade4ace3883c62b9fc140f"
+    },
+    "torchaudio": {
+      "version": "2.8.0+cpu",
+      "url": "https://download.pytorch.org/whl/cpu/torchaudio-2.8.0%2Bcpu-cp311-cp311-win_amd64.whl",
+      "sha256": "db37df7eee906f8fe0a639fdc673f3541cb2e173169b16d4133447eb922d1938"
+    },
+    "torchvision": {
+      "version": "0.23.0+cpu",
+      "url": "https://download.pytorch.org/whl/cpu/torchvision-0.23.0%2Bcpu-cp311-cp311-win_amd64.whl",
+      "sha256": "51603eb071d0681abc4db98b10ff394ace31f425852e8de249b91c09c60eb19a"
+    }
+  },
+  "cpuWheelSources": [
+    "https://download.pytorch.org/whl/cpu/torch/",
+    "https://download.pytorch.org/whl/cpu/torchaudio/",
+    "https://download.pytorch.org/whl/cpu/torchvision/"
+  ],
+  "dependencyPolicy": "uv export --offline --frozen, hashed exact runtime requirements, uv pip sync --require-hashes --link-mode copy, isolated cache and venv. CPU changes only the three torch build variants to the same upstream versions. Source builds may use separately resolved isolated build tools; runtime package archives remain hash-pinned."
+}

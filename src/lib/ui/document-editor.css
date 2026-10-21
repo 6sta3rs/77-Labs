@@ -1,0 +1,5 @@
+/* One keyboard-focus treatment for borderless document editors. */
+textarea.vs-document-editor:focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 5px;
+}

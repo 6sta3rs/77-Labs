@@ -1,0 +1,3 @@
+.voice-orb-preview{position:relative;display:grid;place-items:center;width:144px;height:144px;margin:0 auto 16px}
+.voice-orb-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#080c15ce;color:#fff;box-shadow:0 1px 8px #0002}
+.voice-orb-play:hover:not(:disabled){background:#080c15ed;color:#fff}.voice-orb-play:disabled{opacity:.5}

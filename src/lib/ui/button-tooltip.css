@@ -1,0 +1,28 @@
+/* Port of T3 Code button.tsx / tooltip.tsx at 89424d9fa01c6bd24664315c7ccda8d6cb1eab61.
+   Pixel sizes retain T3's 16px-root dimensions in this app's 13px-root layout. */
+.vs-button{--control-icon-color:currentColor;position:relative;display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;gap:8px;white-space:nowrap;border:1px solid transparent;border-radius:8px;font-family:var(--font-ui);font-size:var(--ui-text-14);font-weight:500;line-height:20px;color:var(--foreground);cursor:pointer;outline:none;transition:box-shadow var(--motion-duration,140ms),scale var(--motion-duration,140ms);box-sizing:border-box}
+.vs-button::before{content:'';pointer-events:none;position:absolute;inset:0;border-radius:inherit}
+.vs-button:not([aria-haspopup]):active:not(:disabled):not([aria-disabled=true]){scale:.97}
+.vs-button:focus-visible,.vs-button:has(input:focus-visible){outline:2px solid var(--focus,var(--accent));outline-offset:1px}
+.vs-button:disabled,.vs-button[aria-disabled=true]{opacity:.64;cursor:not-allowed}.vs-button:disabled{pointer-events:none}
+.vs-button svg{pointer-events:none;flex-shrink:0;width:16px;height:16px;margin-inline:-2px;color:var(--control-icon-color)}
+.vs-button-default{border-color:var(--primary);background:var(--primary);color:var(--primary-foreground);box-shadow:inset 0 1px #ffffff29,0 1px 2px color-mix(in srgb,var(--primary) 24%,transparent)}
+.vs-button-default:hover{background:var(--primary-hover);color:var(--primary-foreground)}
+.vs-button-secondary{background:var(--secondary,var(--surface-raised));color:var(--secondary-foreground,var(--foreground))}.vs-button-secondary:hover{background:var(--surface-hover)}
+.vs-button-outline{--control-icon-color:var(--icon-muted,var(--muted));border-color:var(--input-border,var(--border));background:var(--control-background,var(--surface-overlay));color:var(--foreground);box-shadow:0 1px 2px #0000000d}
+.vs-button-outline::before{box-shadow:0 -1px #ffffff0f}.vs-button-outline:hover{background:var(--surface-hover)}
+.vs-button-ghost{--control-icon-color:var(--icon-muted,var(--muted));background:transparent;color:var(--foreground)}.vs-button-ghost:hover{background:var(--surface-hover)}
+.vs-button-destructive{border-color:var(--destructive-button-background,#dc2626);background:var(--destructive-button-background,#dc2626);color:var(--destructive-button-foreground,#ffffff);box-shadow:inset 0 1px #ffffff29,0 1px 2px color-mix(in srgb,var(--destructive-button-background,#dc2626) 24%,transparent)}.vs-button-destructive:hover{background:var(--destructive-button-hover,#b91c1c);color:var(--destructive-button-foreground,#ffffff)}
+.vs-button[data-selection][aria-pressed=true]{--control-icon-color:currentColor;border-color:var(--neutral-selected-border);background:var(--neutral-selected-background);color:var(--neutral-selected-foreground);font-weight:600}
+.vs-button[data-selection][aria-pressed=true]:hover{background:var(--neutral-selected-hover);color:var(--neutral-selected-foreground)}
+.vs-button:active,.vs-button:disabled{box-shadow:none}
+.vs-button-size-default{height:32px;padding:0 11px}.vs-button-size-sm{height:28px;padding:0 9px;gap:6px}
+.vs-button-size-compact{height:28px;border-radius:6px;padding:0 7px;gap:4px;font-size:var(--ui-text-12);line-height:16px}
+.vs-button-size-xs{height:24px;padding:0 7px;gap:4px;font-size:var(--ui-text-12);line-height:16px}
+.vs-button-size-compact svg,.vs-button-size-xs svg{width:14px;height:14px}
+.vs-button-size-icon{width:32px;height:32px;padding:0}.vs-button-size-icon-xs{width:24px;height:24px;padding:0}.vs-button-size-icon-xs svg{width:14px;height:14px}
+.vs-tooltip-trigger{display:inline-flex;vertical-align:middle;max-width:100%;flex-shrink:0}
+.vs-tooltip{position:fixed;inset:auto;margin:0;z-index:140;pointer-events:auto;max-width:min(320px,calc(100vw - 10px));width:max-content;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--popover,var(--surface-overlay,var(--surface)));color:var(--popover-foreground,var(--foreground));font-family:var(--font-ui);font-size:var(--ui-text-12);font-weight:400;line-height:1.375;overflow-wrap:anywhere;white-space:normal;text-wrap:balance;box-shadow:0 4px 6px #0000000d, inset 0 -1px #ffffff0f}
+@media(max-width:639px){.vs-button-size-default{height:36px;font-size:var(--ui-text-16)}.vs-button-size-sm{height:32px;font-size:var(--ui-text-16)}.vs-button-size-xs{height:28px;font-size:var(--ui-text-14)}.vs-button-size-icon{width:36px;height:36px}.vs-button-size-icon-xs{width:28px;height:28px}}
+@media(pointer:coarse){.vs-button::after{content:'';position:absolute;min-width:44px;min-height:44px;inset:50% auto auto 50%;transform:translate(-50%,-50%)}}
+@media(prefers-reduced-motion:reduce){.vs-button{transition:none}}

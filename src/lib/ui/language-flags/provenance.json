@@ -1,0 +1,449 @@
+{
+  "repository": "https://github.com/HatScripts/circle-flags",
+  "revision": "379588b5da95482d6bbf10bd45644a35b0609ea6",
+  "license": "MIT",
+  "sourceDirectory": "flags/language",
+  "files": [
+    {
+      "file": "af.svg",
+      "source": "flags/language/af.svg",
+      "resolvedSource": "flags/za.svg",
+      "bytes": 542,
+      "sha256": "895a8a071362e15239351e492bcfd369620cded26ce2f75e5b607c850fdc269d"
+    },
+    {
+      "file": "ar.svg",
+      "source": "flags/language/ar.svg",
+      "resolvedSource": "flags/language/ar.svg",
+      "bytes": 879,
+      "sha256": "63dca3d107c6beaf76fa06164b09927a24e96b124a5fb4fd08590820be756051"
+    },
+    {
+      "file": "as.svg",
+      "source": "flags/language/as.svg",
+      "resolvedSource": "flags/in-as.svg",
+      "bytes": 652,
+      "sha256": "bb610cc11e23727a9ac123771ebdc2ef4ea8ee8942ca7d8291a80b1b837cd80d"
+    },
+    {
+      "file": "az.svg",
+      "source": "flags/language/az.svg",
+      "resolvedSource": "flags/az.svg",
+      "bytes": 534,
+      "sha256": "3d1a779574cab86f4b0fab453954009a08a9d40726271aff6eca15a52b69c2f2"
+    },
+    {
+      "file": "bg.svg",
+      "source": "flags/language/bg.svg",
+      "resolvedSource": "flags/bg.svg",
+      "bytes": 347,
+      "sha256": "edd7977244a276509b29e47d6f375d43c593e129d13ce2a8fa2688315d15f818"
+    },
+    {
+      "file": "bn.svg",
+      "source": "flags/language/bn.svg",
+      "resolvedSource": "flags/bd.svg",
+      "bytes": 278,
+      "sha256": "10a9a22007107755509020f476e5625d4a7d8d806f1fde30f2753bfc13a0035f"
+    },
+    {
+      "file": "ca.svg",
+      "source": "flags/language/ca.svg",
+      "resolvedSource": "flags/es-ct.svg",
+      "bytes": 443,
+      "sha256": "fa1a53b7353ffef90565cece8a5549be92b379aa9babfc291a915e091494d3d2"
+    },
+    {
+      "file": "cs.svg",
+      "source": "flags/language/cs.svg",
+      "resolvedSource": "flags/cz.svg",
+      "bytes": 323,
+      "sha256": "8f6b3a1cf096220f68c203c9affc381d17bee266abc643cd65b8ad3ca30f0be5"
+    },
+    {
+      "file": "cy.svg",
+      "source": "flags/language/cy.svg",
+      "resolvedSource": "flags/gb-wls.svg",
+      "bytes": 828,
+      "sha256": "644dff517b49eb65e4b957bb6e6ed5fe699324d366c1a996e5c4dde011f2ad3d"
+    },
+    {
+      "file": "da.svg",
+      "source": "flags/language/da.svg",
+      "resolvedSource": "flags/dk.svg",
+      "bytes": 412,
+      "sha256": "a046fb2c8845158ff43c0e648cd948f7e03acea9baf17e72bf4c0b5ab86a1f10"
+    },
+    {
+      "file": "de.svg",
+      "source": "flags/language/de.svg",
+      "resolvedSource": "flags/de.svg",
+      "bytes": 334,
+      "sha256": "3f6dc3fa445f3225e6ed2a1b4bcdb6b74684b5804e6bb2cb6b50aa0325b8d81a"
+    },
+    {
+      "file": "el.svg",
+      "source": "flags/language/el.svg",
+      "resolvedSource": "flags/gr.svg",
+      "bytes": 485,
+      "sha256": "518be37b017287a3d6247b50968191fd08a764696c9a67e272e142b45b97db2d"
+    },
+    {
+      "file": "en.svg",
+      "source": "flags/language/en.svg",
+      "resolvedSource": "flags/gb.svg",
+      "bytes": 817,
+      "sha256": "88169c656c516ac6374fe2a7988e103f6eb99db165ce6478aa68ce1b74e67ba9"
+    },
+    {
+      "file": "es.svg",
+      "source": "flags/language/es.svg",
+      "resolvedSource": "flags/es.svg",
+      "bytes": 2000,
+      "sha256": "a1bb2d6b70b35386101376e01a18a56172cfdaa8bcf58691c1dd633e27161593"
+    },
+    {
+      "file": "et.svg",
+      "source": "flags/language/et.svg",
+      "resolvedSource": "flags/ee.svg",
+      "bytes": 345,
+      "sha256": "08acf561fbdd3415e3ee783b20a2b717a623faae5c3e78c16edf56c47387f47d"
+    },
+    {
+      "file": "eu.svg",
+      "source": "flags/language/eu.svg",
+      "resolvedSource": "flags/es-pv.svg",
+      "bytes": 590,
+      "sha256": "90cbd8b6832cdb27e286f4d2e951a9acc624cb56c4a281c02cc87b7501d55c10"
+    },
+    {
+      "file": "fa.svg",
+      "source": "flags/language/fa.svg",
+      "resolvedSource": "flags/ir.svg",
+      "bytes": 824,
+      "sha256": "232c14645189cea4994735ea1e0f1fecd7ecda702986542086e935e765da979e"
+    },
+    {
+      "file": "fi.svg",
+      "source": "flags/language/fi.svg",
+      "resolvedSource": "flags/fi.svg",
+      "bytes": 415,
+      "sha256": "eab30db0f20c7b9d92afa80701904fc18c186a7155895332de7672a236544d97"
+    },
+    {
+      "file": "fil.svg",
+      "source": "flags/language/fil.svg",
+      "resolvedSource": "flags/ph.svg",
+      "bytes": 788,
+      "sha256": "25e6ebd84fb3ced1be5d6ef6c31dfbda19ab156eb85e31b3384491e06194160f"
+    },
+    {
+      "file": "fr.svg",
+      "source": "flags/language/fr.svg",
+      "resolvedSource": "flags/fr.svg",
+      "bytes": 340,
+      "sha256": "1d0c12a2157fc4a25fb7eb4e989b7555289c118fcb20c5eacebbfe0dafcbe30c"
+    },
+    {
+      "file": "gl.svg",
+      "source": "flags/language/gl.svg",
+      "resolvedSource": "flags/es-ga.svg",
+      "bytes": 432,
+      "sha256": "4dd9aa72a7770fcde06ec9c38fc5f714c7385b40b08847917dc4ba54fc7605e6"
+    },
+    {
+      "file": "gu.svg",
+      "source": "flags/language/gu.svg",
+      "resolvedSource": "flags/in-gj.svg",
+      "bytes": 341,
+      "sha256": "d263a95a01d5fb68a563004e8e85f7c975eafe4abd5aa2f60ec746fc88af5e77"
+    },
+    {
+      "file": "he.svg",
+      "source": "flags/language/he.svg",
+      "resolvedSource": "flags/il.svg",
+      "bytes": 708,
+      "sha256": "97c68cd0605b7e6bf20fcda99ade7d31002caf45a75e984cf0d00200e78d6200"
+    },
+    {
+      "file": "hi.svg",
+      "source": "flags/language/hi.svg",
+      "resolvedSource": "flags/in.svg",
+      "bytes": 475,
+      "sha256": "2ca4c5390345dec3c0c86d73c1f40e798027600ffbb5a96653f7799a7f71896c"
+    },
+    {
+      "file": "hr.svg",
+      "source": "flags/language/hr.svg",
+      "resolvedSource": "flags/hr.svg",
+      "bytes": 1182,
+      "sha256": "a7ab4df78bf6b6bd4573cc039b30656564d0bd5959077989c64cb463e01210a4"
+    },
+    {
+      "file": "hu.svg",
+      "source": "flags/language/hu.svg",
+      "resolvedSource": "flags/hu.svg",
+      "bytes": 340,
+      "sha256": "7025d130427751ba411352e9af9ffbd248ff1468f3df2a6bc37b3215a4a646c5"
+    },
+    {
+      "file": "id.svg",
+      "source": "flags/language/id.svg",
+      "resolvedSource": "flags/id.svg",
+      "bytes": 280,
+      "sha256": "c8d7eddb5b3f676f0c674219029c7b683405b012fd07a4a25f9a7786ba8e7214"
+    },
+    {
+      "file": "is.svg",
+      "source": "flags/language/is.svg",
+      "resolvedSource": "flags/is.svg",
+      "bytes": 592,
+      "sha256": "13187e2f748309e4f9d95b44dbbc1fc3fd509f0bfeca03e9e20d89c770b3292c"
+    },
+    {
+      "file": "it.svg",
+      "source": "flags/language/it.svg",
+      "resolvedSource": "flags/it.svg",
+      "bytes": 340,
+      "sha256": "8f3ce99568a7c2e2560aa69cb825ac34a68dd483ffcb5c71a1204d52f882f45e"
+    },
+    {
+      "file": "ja.svg",
+      "source": "flags/language/ja.svg",
+      "resolvedSource": "flags/jp.svg",
+      "bytes": 273,
+      "sha256": "17cea0bab5029d578ee10727a9d9b93ab89720e394241ff6d59b5744d44f3d9c"
+    },
+    {
+      "file": "kk.svg",
+      "source": "flags/language/kk.svg",
+      "resolvedSource": "flags/kz.svg",
+      "bytes": 712,
+      "sha256": "059b6bb1003455efc94c13c2b9bb6f2593f1c5cd8a26ac59da5345a7f99e643d"
+    },
+    {
+      "file": "kn.svg",
+      "source": "flags/language/kn.svg",
+      "resolvedSource": "flags/in-ka.svg",
+      "bytes": 283,
+      "sha256": "0735c5e113599943e8ddfcdb462ed650de1653a72d1bfa7649da2e612e42d10b"
+    },
+    {
+      "file": "ko.svg",
+      "source": "flags/language/ko.svg",
+      "resolvedSource": "flags/kr.svg",
+      "bytes": 933,
+      "sha256": "a0176d1f7b6aefb13f9233976b017ba8a8da82634b03e8150ccf5f78f4db9494"
+    },
+    {
+      "file": "LICENSE.md",
+      "source": "LICENSE.md",
+      "resolvedSource": "LICENSE.md",
+      "bytes": 1069,
+      "sha256": "9ef248a32ebbb1587b7c4caa3203a33065de29aa6098a6933bad67de2057e72f"
+    },
+    {
+      "file": "lt.svg",
+      "source": "flags/language/lt.svg",
+      "resolvedSource": "flags/lt.svg",
+      "bytes": 343,
+      "sha256": "2d943c53008ffe259b114a5fd3fea23d0db45cc78f5a1d92a38258ea5fa4ceb7"
+    },
+    {
+      "file": "lv.svg",
+      "source": "flags/language/lv.svg",
+      "resolvedSource": "flags/lv.svg",
+      "bytes": 316,
+      "sha256": "0cebfa5477065b0ae7c949f52075857c1007421cfaf54c972074a81d16836cc5"
+    },
+    {
+      "file": "mk.svg",
+      "source": "flags/language/mk.svg",
+      "resolvedSource": "flags/mk.svg",
+      "bytes": 733,
+      "sha256": "c92d0dd7b2193fdec323e076ea98bc52ee61f419c4bc935a8b1297c99ae8c354"
+    },
+    {
+      "file": "ml.svg",
+      "source": "flags/language/ml.svg",
+      "resolvedSource": "flags/malayali.svg",
+      "bytes": 343,
+      "sha256": "4e63f325af7ec04f8a5b66da08126274cc9f7ffac12f09e04fedf544135cf86f"
+    },
+    {
+      "file": "mr.svg",
+      "source": "flags/language/mr.svg",
+      "resolvedSource": "flags/language/mr.svg",
+      "bytes": 354,
+      "sha256": "aab8a3330c34fb8b3c86ee1b5fab44beee0e675b53691aa32e72936b9339e3c7"
+    },
+    {
+      "file": "ms.svg",
+      "source": "flags/language/ms.svg",
+      "resolvedSource": "flags/my.svg",
+      "bytes": 623,
+      "sha256": "11ca22cda5e07ab24eb126f19868436c1dc9bd553c6db02a1c275a5d3ee71749"
+    },
+    {
+      "file": "ne.svg",
+      "source": "flags/language/ne.svg",
+      "resolvedSource": "flags/np.svg",
+      "bytes": 735,
+      "sha256": "1eacf478bc28d332e7b271ba35309be2b008d7930db735780f3c8b6865d6ea53"
+    },
+    {
+      "file": "nl.svg",
+      "source": "flags/language/nl.svg",
+      "resolvedSource": "flags/nl.svg",
+      "bytes": 340,
+      "sha256": "0f226a654db8f6150da746d09fea6f738d4cbd7cef54c1ded5da0f1fa9b07a92"
+    },
+    {
+      "file": "no.svg",
+      "source": "flags/language/no.svg",
+      "resolvedSource": "flags/no.svg",
+      "bytes": 592,
+      "sha256": "b79bb6ffa81e949a1e005f3188c259631d7655e1bf3a6b1226d59086c9cacaa8"
+    },
+    {
+      "file": "pa.svg",
+      "source": "flags/language/pa.svg",
+      "resolvedSource": "flags/in.svg",
+      "bytes": 475,
+      "sha256": "2ca4c5390345dec3c0c86d73c1f40e798027600ffbb5a96653f7799a7f71896c"
+    },
+    {
+      "file": "pl.svg",
+      "source": "flags/language/pl.svg",
+      "resolvedSource": "flags/pl.svg",
+      "bytes": 280,
+      "sha256": "ce234b41d725be3ea502dae7cf23e9c34d18b6e14f9e1f2de0fa7231171eb61c"
+    },
+    {
+      "file": "pt.svg",
+      "source": "flags/language/pt.svg",
+      "resolvedSource": "flags/pt.svg",
+      "bytes": 506,
+      "sha256": "94f8cd284ba5e9e8e386396e116a607780e8d330f74aae1f4940d6b0aecbd265"
+    },
+    {
+      "file": "ro.svg",
+      "source": "flags/language/ro.svg",
+      "resolvedSource": "flags/ro.svg",
+      "bytes": 343,
+      "sha256": "376910899aa5224336c13fa606a836f091de8d021feaacb73e64ee8237af190b"
+    },
+    {
+      "file": "ru.svg",
+      "source": "flags/language/ru.svg",
+      "resolvedSource": "flags/ru.svg",
+      "bytes": 332,
+      "sha256": "cd36b52bccfccafb97f3b40692e9c1f02560ec63b19ae4ce2128831b9687472f"
+    },
+    {
+      "file": "si.svg",
+      "source": "flags/language/si.svg",
+      "resolvedSource": "flags/lk.svg",
+      "bytes": 834,
+      "sha256": "0199463eeafae43277b1f0915bd6559e0557f3560e4ba0be11338530485edfb5"
+    },
+    {
+      "file": "sk.svg",
+      "source": "flags/language/sk.svg",
+      "resolvedSource": "flags/sk.svg",
+      "bytes": 773,
+      "sha256": "b5c06dc8282fab6642e952662ed1ebe5af137d83be6fcdee30a3b46173214870"
+    },
+    {
+      "file": "sl.svg",
+      "source": "flags/language/sl.svg",
+      "resolvedSource": "flags/si.svg",
+      "bytes": 518,
+      "sha256": "efce6698d4de9dbe210728c899c40b4f1a79a8c2d0cd2677f0bf5bafb3276bd6"
+    },
+    {
+      "file": "sr.svg",
+      "source": "flags/language/sr.svg",
+      "resolvedSource": "flags/rs.svg",
+      "bytes": 941,
+      "sha256": "8f77bd8d324095595fae98066f3980a1a6a45136c8ed7ef467f5c1c390d962f1"
+    },
+    {
+      "file": "sv.svg",
+      "source": "flags/language/sv.svg",
+      "resolvedSource": "flags/se.svg",
+      "bytes": 412,
+      "sha256": "aa99b810a0fa665541f0c59bb1d2006bf91169a4b37e13ac3f0eba99a77e13b4"
+    },
+    {
+      "file": "sw.svg",
+      "source": "flags/language/sw.svg",
+      "resolvedSource": "flags/ke.svg",
+      "bytes": 1073,
+      "sha256": "a7c07574a435ae1a64fea57b0186833f3bae9a0854c3f84700e6b55bcc826f74"
+    },
+    {
+      "file": "ta.svg",
+      "source": "flags/language/ta.svg",
+      "resolvedSource": "flags/in-tn.svg",
+      "bytes": 1407,
+      "sha256": "87f06d8cd7fb694edbf95cf92cd6d2e47336694478399f144cd0c466983a2f8a"
+    },
+    {
+      "file": "te.svg",
+      "source": "flags/language/te.svg",
+      "resolvedSource": "flags/in-tg.svg",
+      "bytes": 389,
+      "sha256": "4d505e852f01878f09600670557cdfcb4fb25bfa6b1fe54fe95b04e543073a5d"
+    },
+    {
+      "file": "th.svg",
+      "source": "flags/language/th.svg",
+      "resolvedSource": "flags/th.svg",
+      "bytes": 389,
+      "sha256": "ef842ff877873b4438f24d06d618c0e567832eb538c2b6d2f83c5052e94db237"
+    },
+    {
+      "file": "tr.svg",
+      "source": "flags/language/tr.svg",
+      "resolvedSource": "flags/tr.svg",
+      "bytes": 390,
+      "sha256": "eb77f68bb3e22001f7ed4b1c844d6cd6cecd36469bf88380a56427778e3d2a26"
+    },
+    {
+      "file": "uk.svg",
+      "source": "flags/language/uk.svg",
+      "resolvedSource": "flags/ua.svg",
+      "bytes": 281,
+      "sha256": "e6dc4d24003ec8f207d345280f8e3be96d749b88227afd61bae75a7b2be10205"
+    },
+    {
+      "file": "ur.svg",
+      "source": "flags/language/ur.svg",
+      "resolvedSource": "flags/pk.svg",
+      "bytes": 488,
+      "sha256": "3fb630a0aa9c79b1841bc5195a80c305e56ee6c3f24c49e1019a17f1e8d6943f"
+    },
+    {
+      "file": "uz.svg",
+      "source": "flags/language/uz.svg",
+      "resolvedSource": "flags/uz.svg",
+      "bytes": 1372,
+      "sha256": "d058391ed4f7c197c8ab92192fa4d5f764cd951f88eeb340bf588f65644a7930"
+    },
+    {
+      "file": "vi.svg",
+      "source": "flags/language/vi.svg",
+      "resolvedSource": "flags/vn.svg",
+      "bytes": 287,
+      "sha256": "a560ad179886f3909c7248372466c6769011bf7d521e86af3ebefa2106cb70dd"
+    },
+    {
+      "file": "zh.svg",
+      "source": "flags/language/zh.svg",
+      "resolvedSource": "flags/cn.svg",
+      "bytes": 705,
+      "sha256": "73d72f59389845361b0d59623fc60b0e47ebd6c9623df706e8d8b079baa3af64"
+    }
+  ]
+}

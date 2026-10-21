@@ -1,0 +1,4 @@
+.app-shell .sidebar > nav[aria-label="Narzędzia"] { min-height: 0; overflow-y: auto; flex-shrink: 1; }
+.sidebar > nav[aria-label="Narzędzia"] > button { flex-shrink: 0; }
+.composer-submit { position: relative; }
+.ai-result-actions { position: absolute; right: 0; bottom: calc(100% + 9px); display: flex; gap: 5px; padding: 5px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 5px 20px #0002; }
