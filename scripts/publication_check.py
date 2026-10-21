@@ -28,9 +28,70 @@ EXAMPLE_USERS = {"Alice", "Bob", "Public", "Default", "User", "Example", "privat
 PRIVATE_KEYS = tuple("-----BEGIN " + kind + " PRIVATE KEY-----" for kind in ("RSA", "EC", "OPENSSH")) + ("-----BEGIN " + "PRIVATE KEY-----",)
 
 
-def git(*arguments: str) -> bytes:
+def git(*arguments: str, input_data: bytes | None = None) -> bytes:
     # Replacement refs must not substitute a harmless object for a private one.
-    return subprocess.check_output(["git", "--no-replace-objects", *arguments], cwd=ROOT, stderr=subprocess.PIPE)
+    return subprocess.check_output(["git", "--no-replace-objects", *arguments], cwd=ROOT, input=input_data, stderr=subprocess.PIPE)
+
+
+def parse_git_batch(data: bytes, expected: dict[str, tuple[str, int]]) -> dict[str, tuple[str, bytes]]:
+    """Read exact cat-file frames; missing, truncated or extra bytes fail closed."""
+    objects = {}
+    position = 0
+    for oid, (kind, size) in expected.items():
+        newline = data.find(b"\n", position)
+        if newline < 0 or newline - position > 256:
+            raise ValueError("Missing or invalid Git batch header")
+        header = data[position:newline].split(b" ")
+        if header != [oid.encode("ascii"), kind.encode("ascii"), str(size).encode("ascii")]:
+            raise ValueError("Git batch object identity/type/size mismatch")
+        start = newline + 1
+        end = start + size
+        if size < 0 or end >= len(data) or data[end:end + 1] != b"\n":
+            raise ValueError("Truncated or invalid Git batch payload")
+        objects[oid] = (kind, data[start:end])
+        position = end + 1
+    if position != len(data):
+        raise ValueError("Unexpected trailing Git batch data")
+    return objects
+
+
+def read_git_objects() -> dict[str, tuple[str, bytes]]:
+    """Two Git processes cover every loose/packed object, including orphans."""
+    inventory = git("cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype) %(objectsize)")
+    expected = {}
+    for row in inventory.splitlines():
+        fields = row.split(b" ")
+        if (len(fields) != 3 or not re.fullmatch(rb"(?:[0-9a-f]{40}|[0-9a-f]{64})", fields[0])
+                or fields[1] not in {b"blob", b"commit", b"tag", b"tree"}
+                or not re.fullmatch(rb"[0-9]{1,20}", fields[2])):
+            raise ValueError("Invalid Git object inventory")
+        oid, kind, size = fields[0].decode("ascii"), fields[1].decode("ascii"), int(fields[2])
+        if oid in expected:
+            raise ValueError("Duplicate Git object inventory entry")
+        expected[oid] = (kind, size)
+    if not expected:
+        return {}
+    request = ("\n".join(expected) + "\n").encode("ascii")
+    # check_output/communicate drains stdout while feeding stdin, avoiding the
+    # two-pipe deadlock from manually writing a large batch before reading it.
+    return parse_git_batch(git("cat-file", "--batch", input_data=request), expected)
+
+
+def tree_entries(data: bytes, hash_bytes: int):
+    """Parse raw tree names/OIDs without spawning ls-tree for every tree."""
+    position = 0
+    while position < len(data):
+        space = data.find(b" ", position)
+        nul = data.find(b"\0", space + 1) if space >= 0 else -1
+        if space < 0 or nul < 0 or nul + 1 + hash_bytes > len(data):
+            raise ValueError("Truncated Git tree entry")
+        mode, filename = data[position:space], data[space + 1:nul]
+        if (mode not in {b"40000", b"040000", b"100644", b"100755", b"120000", b"160000"}
+                or not filename or filename in {b".", b".."} or b"/" in filename):
+            raise ValueError("Invalid Git tree entry")
+        child_oid = data[nul + 1:nul + 1 + hash_bytes].hex()
+        yield mode, filename.decode("utf-8", errors="replace"), child_oid
+        position = nul + 1 + hash_bytes
 
 
 def binary_kind(data: bytes) -> str | None:
@@ -83,7 +144,8 @@ class Audit:
         self.checked.add(key)
         name = PurePosixPath(path)
         # These checks precede all archive, binary and text decoding returns.
-        if any(value in data.lower() for value in self.deny_bytes) or any(value in path.casefold() for value in self.deny):
+        lowered_data = data.lower() if self.deny_bytes else b""
+        if any(value in lowered_data for value in self.deny_bytes) or any(value in path.casefold() for value in self.deny):
             self.error(label, "private deny string detected")
         approved_media = any(item.get("sha256") == digest for item in self.media.values())
         kind = binary_kind(data)
@@ -178,29 +240,45 @@ class Audit:
             oid, _, path = row.partition(" ")
             if path:
                 paths.setdefault(oid, set()).add(path)
+        # Index OIDs refer to the same all-object batch: do not start a process
+        # per staged filename. Preserve all conflict stages instead of selecting
+        # an arbitrary stage with git show :path.
+        indexed = []
+        for row in git("ls-files", "--stage", "-z").split(b"\0"):
+            if not row:
+                continue
+            metadata, separator, filename = row.partition(b"\t")
+            fields = metadata.split(b" ")
+            if not separator or len(fields) != 3 or fields[2] not in {b"0", b"1", b"2", b"3"}:
+                raise ValueError("Invalid Git index entry")
+            mode, oid, stage = fields
+            if not re.fullmatch(rb"(?:[0-9a-f]{40}|[0-9a-f]{64})", oid):
+                raise ValueError("Invalid Git index object identity")
+            path = filename.decode("utf-8", errors="replace")
+            object_id = oid.decode("ascii")
+            if mode in {b"120000", b"160000"}:
+                self.error("Index " + path, "symlink/submodule requires manual review")
+            indexed.append((path, object_id, mode))
+            paths.setdefault(object_id, set()).add(path)
         # Includes unreachable objects; a forgotten private blob must not hide
         # behind a clean branch tip or reflog-only commit.
-        objects = git("cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype)").decode().splitlines()
+        objects = read_git_objects()
         # rev-list names only reachable objects, often under one of several
         # names. Read every tree, including orphaned trees, to retain filename
         # protection for forgotten .db/.env files and private directories.
-        for row in objects:
-            oid, kind = row.split()
+        for oid, (kind, data) in objects.items():
             if kind == "tree":
-                for entry in git("ls-tree", "-z", oid).split(b"\0"):
-                    if not entry:
-                        continue
-                    metadata, filename = entry.split(b"\t", 1)
-                    mode, _, child = metadata.split()
-                    child_oid = child.decode("ascii")
+                for mode, filename, child_oid in tree_entries(data, len(oid) // 2):
                     if mode in {b"120000", b"160000"}:
                         self.error("Git " + child_oid[:10], "symlink/submodule requires manual review")
-                    paths.setdefault(child_oid, set()).add(filename.decode("utf-8", errors="replace"))
-        for row in objects:
-            oid, kind = row.split()
-            if kind not in {"blob", "commit", "tag", "tree"}:
-                continue
-            data = git("cat-file", kind, oid)
+                    if mode != b"160000" and child_oid not in objects:
+                        raise ValueError("Git tree references a missing object")
+                    known = paths.setdefault(child_oid, set())
+                    # A known full path already exercises this basename. Keep
+                    # other aliases (.env/.db/etc.) and all orphan tree names.
+                    if not any(PurePosixPath(path).name == filename for path in known):
+                        known.add(filename)
+        for oid, (kind, data) in objects.items():
             for path in paths.get(oid, {""}):
                 self.content("Git " + oid[:10] + (" " + path if path else ""), data, path)
             if require_anonymous and kind in {"commit", "tag"}:
@@ -209,9 +287,12 @@ class Audit:
                     expected = (ANONYMOUS[0] + " <" + ANONYMOUS[1] + ">").encode()
                     if not line[len(field):].startswith(expected + b" "):
                         self.error("Git " + oid[:10], "author/committer/tagger is not the public anonymous identity")
-        for path in git("ls-files", "-z").decode("utf-8").split("\0"):
-            if path:
-                self.content("Index " + path, git("show", ":" + path), path)
+        for path, oid, mode in indexed:
+            if mode == b"160000":
+                continue  # Reported above; a submodule's store is external.
+            if oid not in objects or objects[oid][0] != "blob":
+                raise ValueError("Git index references a missing or non-blob object")
+            self.content("Index " + path, objects[oid][1], path)
         return len(objects)
 
 

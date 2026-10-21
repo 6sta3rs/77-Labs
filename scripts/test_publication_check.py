@@ -152,6 +152,64 @@ class PublicationCheckTests(unittest.TestCase):
         indexed.history(True)
         self.assertTrue(indexed.errors)
 
+    def test_orphan_tree_preserves_private_filename_without_container_magic(self):
+        self.initialize_git()
+        blob = self.git("hash-object", "-w", "--stdin", data=b"Generic synthetic text").decode().strip()
+        self.git("mktree", data=("100644 blob " + blob + "\tprivate.db\n").encode())
+        result = subject.Audit([])
+        result.history(True)
+        self.assertTrue(any("database/credentials" in error for error in result.errors))
+
+    def test_all_conflict_stages_are_scanned_from_the_index(self):
+        self.initialize_git()
+        safe = self.git("hash-object", "-w", "--stdin", data=b"Generic synthetic text").decode().strip()
+        denied = "PrivateFixtureUser"
+        private = self.git("hash-object", "-w", "--stdin", data=denied.encode()).decode().strip()
+        entries = "100644 " + safe + " 2\tconflict.txt\n100644 " + private + " 3\tconflict.txt\n"
+        self.git("update-index", "--index-info", data=entries.encode())
+        result = subject.Audit([denied])
+        result.history(True)
+        self.assertTrue(any("private deny string" in error for error in result.errors))
+
+    def test_batch_binary_framing_preserves_nuls_newlines_and_empty_objects(self):
+        first, second = "1" * 40, "2" * 40
+        body = b"binary\0body\nwith\nnewlines"
+        expected = {first: ("blob", len(body)), second: ("blob", 0)}
+        response = (first + " blob " + str(len(body)) + "\n").encode() + body + b"\n" + (second + " blob 0\n\n").encode()
+        self.assertEqual(subject.parse_git_batch(response, expected), {first: ("blob", body), second: ("blob", b"")})
+
+    def test_batch_missing_truncated_mismatched_and_extra_frames_fail_closed(self):
+        oid = "1" * 40
+        header = (oid + " blob 4\n").encode()
+        expected = {oid: ("blob", 4)}
+        cases = [b"", (oid + " missing\n").encode(), header[:-1], header + b"abc",
+                 header + b"abcd", header + b"abcdX", header + b"abcd\nextra",
+                 ("2" * 40 + " blob 4\nabcd\n").encode(),
+                 (oid + " tree 4\nabcd\n").encode(), (oid + " blob 5\nabcde\n").encode()]
+        for index, response in enumerate(cases):
+            with self.subTest(case=index), self.assertRaises(ValueError):
+                subject.parse_git_batch(response, expected)
+
+    def test_batch_object_reader_uses_two_git_processes_for_many_objects(self):
+        inventory = []
+        frames = []
+        for index in range(64):
+            oid = format(index, "040x")
+            inventory.append(oid + " blob 1\n")
+            frames.append((oid + " blob 1\nx\n").encode())
+        with patch.object(subject, "git", side_effect=["".join(inventory).encode(), b"".join(frames)]) as calls:
+            self.assertEqual(len(subject.read_git_objects()), 64)
+        self.assertEqual(calls.call_count, 2)
+        self.assertEqual(calls.call_args_list[1].args, ("cat-file", "--batch"))
+
+    def test_raw_tree_parser_rejects_truncated_and_malformed_entries(self):
+        valid = b"100644 name.txt\0" + b"\x01" * 20
+        self.assertEqual(list(subject.tree_entries(valid, 20)), [(b"100644", "name.txt", "01" * 20)])
+        for data in (valid[:-1], b"100644 missing-nul", b"invalid name\0" + b"\x01" * 20,
+                     b"100644 ../name\0" + b"\x01" * 20):
+            with self.subTest(size=len(data)), self.assertRaises(ValueError):
+                list(subject.tree_entries(data, 20))
+
     def test_neutral_identity_checks_commits_and_annotated_tags(self):
         self.initialize_git()
         self.git("-c", "user.name=PrivateFixtureUser", "-c", "user.email=fixture@example.invalid", "-c", "core.hooksPath=", "tag", "-am", "Synthetic tag", "v-fixture")

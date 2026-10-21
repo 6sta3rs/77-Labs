@@ -1,5 +1,11 @@
 # Postęp publicznego projektu
 
+## 21.10.2026 — szybki audyt całej historii
+
+Pierwszy publiczny punkt startowy zapisano z neutralnym autorem i committerem. Skaner czyta teraz wszystkie obiekty zbiorczo, zamiast uruchamiać osobny proces Git dla każdego pliku. Zachowuje kontrolę nieosiągalnych obiektów i nazw w drzewach, wszystkich etapów indeksu, taggerów oraz prób zastępowania obiektów. Sprawdza identyfikator, typ, rozmiar i kompletność odpowiedzi; błąd nie daje wyniku PASS.
+
+Kontrole: 23 testy PASS, 1 SKIP dotyczący uprawnień Windows do symlinków. Rzeczywisty skan z prywatnymi wzorcami poza repo: 549 plików, 578 obiektów Git, przypięty ZIP, zero ustaleń, około 9 s. Diff-check obu plików i dokumentacji PASS. Zmiana obejmuje wyłącznie skaner, jego testy i zapis odbioru; nie powtarzano builda UI ani inferencji. Kontrolę historii powtarzamy po commicie. Nie wykonano publikacji zdalnej.
+
 ## 21.10.2026 — pierwsze przygotowanie open source
 
 Powstało osobne repozytorium z nową historią i neutralnym autorem. Prywatny checkout miał niezapisane zmiany oraz checkpointy z danymi; pozostawiono go nietkniętego, a eksport oparto na ostatnim lokalnym commicie.
