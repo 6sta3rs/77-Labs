@@ -111,7 +111,12 @@ export async function request(path: string, options?: RequestInit): Promise<Resp
   }
   const monitor = isRuntimeMonitor(path, method);
   const release = await acquireRuntime(options?.signal ?? undefined, !monitor);
-  try { return await desktopFetch(`http://127.0.0.1:4312${path}`, options); }
+  try {
+    const response = await desktopFetch(`http://127.0.0.1:4312${path}`, options);
+    // plugin-http 2.8 builds its Response without headers (they are attached afterwards), so
+    // Blob.type stays empty and audio checks fail. Rebuild it with the real headers.
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers: response.headers });
+  }
   finally { await release(); }
 }
 async function json<T>(path:string, options?:RequestInit):Promise<T> {

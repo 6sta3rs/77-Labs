@@ -67,6 +67,19 @@ await test('A failed request releases its lease; monitoring does not request a s
   assert.deepEqual(keepWarm, [true, false]); assert.equal(active, 0);
 });
 
+await test('Desktop responses keep their Content-Type on the body (plugin-http attaches headers late)', async () => {
+  const api = await module('api', { ...apiDeps, isTauri: () => true, acquireRuntime: async () => async () => {},
+    desktopFetch: async () => {
+      // Same shape as @tauri-apps/plugin-http 2.8: constructed without headers, headers defined afterwards.
+      const response = new Response(new Blob([new Uint8Array([82, 73, 70, 70])]), { status: 200 });
+      Object.defineProperty(response, 'headers', { value: new Headers({ 'content-type': 'audio/wav', 'x-audio-id': 'a1' }) });
+      return response;
+    } });
+  const response = await api.request('/generate', { method: 'POST' });
+  assert.equal((await response.blob()).type, 'audio/wav');
+  assert.equal(response.headers.get('x-audio-id'), 'a1');
+});
+
 await test('Metadata/monitor preflight stays cold; task preflight waits for readiness', async () => {
   let starts = 0;
   const api = await module('api', { ...apiDeps, isTauri: () => true, isDesktop: () => true, ensureRuntime: async () => { starts++; } });
