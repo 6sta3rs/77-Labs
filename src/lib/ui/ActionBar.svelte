@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { Tags, ChevronDown, LoaderCircle, Square, Settings2, History } from '@lucide/svelte'
   import Button from './Button.svelte'
   let { tagging = false, running = false, tagDisabled = false, generateDisabled = false,
@@ -11,16 +14,16 @@
     onsettings?: () => void; onhistory?: () => void
   } = $props()
 </script>
-<div class="studio-actions" aria-label="Akcje narracji">
-  <div class="studio-action-split" role="group" aria-label="Tagowanie tekstu">
-    <Button variant="ghost" class="studio-action-tag" aria-label={tagLabel} aria-busy={tagging || undefined} disabled={tagDisabled || running || tagging} onclick={()=>void ontag()}>
-      {#if tagging}<LoaderCircle class="spin"/>{:else}<Tags/>{/if}<span>{tagging ? 'Tagowanie…' : tagLabel}</span>
+<div class="studio-actions" aria-label={tr("Akcje narracji")}>
+  <div class="studio-action-split" role="group" aria-label={tr("Tagowanie tekstu")}>
+    <Button variant="ghost" class="studio-action-tag" aria-label={tr(tagLabel)} aria-busy={tagging || undefined} disabled={tagDisabled || running || tagging} onclick={()=>void ontag()}>
+      {#if tagging}<LoaderCircle class="spin"/>{:else}<Tags/>{/if}<span>{tagging ? tr('Tagowanie…') : tr(tagLabel)}</span>
     </Button>
-    <Button variant="ghost" class="studio-action-menu" aria-label="Wybierz tag audio" data-speech-tag-trigger disabled={running || tagging} onclick={ontags}><ChevronDown/></Button>
+    <Button variant="ghost" class="studio-action-menu" aria-label={tr("Wybierz tag audio")} data-speech-tag-trigger disabled={running || tagging} onclick={ontags}><ChevronDown/></Button>
   </div>
-  {#if onsettings || onhistory}<div class="studio-panel-buttons">{#if onsettings}<Button variant="outline" size="icon" aria-label="Ustawienia generowania" onclick={onsettings}><Settings2/></Button>{/if}{#if onhistory}<Button variant="outline" size="icon" aria-label="Historia generowania" onclick={onhistory}><History/></Button>{/if}</div>{/if}
+  {#if onsettings || onhistory}<div class="studio-panel-buttons">{#if onsettings}<Button variant="outline" size="icon" aria-label={tr("Ustawienia generowania")} onclick={onsettings}><Settings2/></Button>{/if}{#if onhistory}<Button variant="outline" size="icon" aria-label={tr("Historia generowania")} onclick={onhistory}><History/></Button>{/if}</div>{/if}
   <Button class="studio-action-generate" disabled={!running && (generateDisabled || tagging)} onclick={()=>running ? oncancel?.() : void ongenerate()}>
-    {#if running}<Square size={12} fill="currentColor"/>{/if}{running ? progressLabel : generateLabel}
+    {#if running}<Square size={12} fill="currentColor"/>{/if}{tr(running ? progressLabel : generateLabel)}
   </Button>
 </div>
 <style>

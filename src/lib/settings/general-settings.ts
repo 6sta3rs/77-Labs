@@ -31,8 +31,8 @@ export const skillLabels: Record<string, string> = {
   slot_fitting: 'Dopasowanie tekstu do czasu', glossary_extract: 'Wydobywanie słownika terminów',
   direction_parse: 'Rozpoznawanie wskazówek wykonania', dictation_refinement: 'Redakcja transkrypcji i dyktowania',
 }
-export function connectionMessage(result: ConnectionResult): string {
-  if (result.ok) return `Połączenie potwierdzone${result.model ? ` · ${result.model}` : ''}${typeof result.latency_ms === 'number' ? ` · ${Math.round(result.latency_ms)} ms` : ''}.`
+export function connectionMessage(result: ConnectionResult, tr: (source: string, args?: Record<string, string | number>) => string = source => source): string {
+  if (result.ok) return `${tr('Połączenie potwierdzone')}${result.model ? ` · ${result.model}` : ''}${typeof result.latency_ms === 'number' ? ` · ${Math.round(result.latency_ms)} ms` : ''}.`
   const labels: Record<string, string> = { config: 'Uzupełnij konfigurację dostawcy.', auth: 'Serwer odrzucił uwierzytelnienie.', not_found: 'Nie znaleziono modelu lub endpointu.', rate_limit: 'Dostawca odrzucił żądanie z powodu limitu.', network: 'Nie można połączyć się z serwerem.' }
-  return labels[result.kind || ''] || result.detail || 'Test nie potwierdził połączenia.'
+  return tr(labels[result.kind || ''] || result.detail || 'Test nie potwierdził połączenia.')
 }

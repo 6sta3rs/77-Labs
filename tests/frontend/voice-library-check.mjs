@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -11,7 +12,7 @@ async function load(filename, dependencies = {}, exposure = '') {
   if (exposure) source += `\nreturn { ${exposure} };`;
   const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
   const exported = {};
-  return new Function('exports', ...Object.keys(dependencies), code)(exported, ...Object.values(dependencies)) ?? exported;
+  return new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(exported, ...Object.values({...i18nDeps,...dependencies})) ?? exported;
 }
 
 const calls = [];

@@ -1,4 +1,5 @@
 import { mount } from 'svelte';
+import { initUiLanguage } from './lib/i18n';
 import ControlGallery from './lib/gallery/ControlGallery.svelte';
 import './styles.css';
 import './lib/styles/ui.css';
@@ -9,4 +10,5 @@ import { installFocusIntent } from './lib/styles/focus-intent';
 const disposeFocusIntent = installFocusIntent(document);
 import.meta.hot?.dispose(disposeFocusIntent);
 document.documentElement.dataset.page = 'controls';
+initUiLanguage();
 mount(ControlGallery, { target: document.getElementById('app')! });

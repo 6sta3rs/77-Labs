@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { onDestroy } from 'svelte'
   import ModelTrigger from '../ui/ModelTrigger.svelte'
@@ -50,14 +53,14 @@
 </script>
 
 <div class="tool-workspace-section">
-  <h2>{label}</h2>
-  <ModelTrigger label="" name={selected?.name || (ready ? 'Wybierz model' : 'Silnik wyłączony')} modelId={catalog?.active} active={!!catalog?.active} expanded={open} popup="dialog" {busy} disabled={!ready || disabled} onclick={() => { open = true; void load() }}/>
-  {#if catalog?.active_model}<p class="tool-workspace-note repository" title={catalog.active_model}>{catalog.active_model}</p>{/if}
+  <h2>{tr(String(label))}</h2>
+  <ModelTrigger label="" name={selected?.name || (ready ? tr("Wybierz model") : tr("Silnik wyłączony"))} modelId={catalog?.active} active={!!catalog?.active} expanded={open} popup="dialog" {busy} disabled={!ready || disabled} onclick={() => { open = true; void load() }}/>
+  {#if catalog?.active_model}<p class="tool-workspace-note repository" title={tr(String(catalog.active_model))}>{catalog.active_model}</p>{/if}
   {#if selected?.readinessLabel}<p class="tool-workspace-note">{selected.readinessLabel}</p>{/if}
-  {#if error}<p class="model-error" role="alert">{error}</p><Button variant="ghost" disabled={!ready || busy} onclick={load}>Ponów odczyt modeli</Button>{/if}
-  <p class="tool-workspace-note">Aktywny model jest wspólny dla narzędzi studia.</p>
+  {#if error}<p class="model-error" role="alert">{tr(String(error))}</p><Button variant="ghost" disabled={!ready || busy} onclick={load}>{tr("Ponów odczyt modeli")}</Button>{/if}
+  <p class="tool-workspace-note">{tr("Aktywny model jest wspólny dla narzędzi studia.")}</p>
 </div>
-{#if open}<ModelPicker mode="dialog" title={label} description={pickerDescription} models={items} selectedId={catalog?.active || ''} loading={busy} {error} onselect={choose} onrefresh={load} onclose={() => open = false}/>{/if}
+{#if open}<ModelPicker mode="dialog" title={tr(String(label))} description={tr(String(pickerDescription))} models={items} selectedId={catalog?.active || ''} loading={busy} {error} onselect={choose} onrefresh={load} onclose={() => open = false}/>{/if}
 
 <style>
   .repository{overflow-wrap:anywhere}.model-error{color:var(--danger);font-size:var(--ui-text-12);line-height:1.7;overflow-wrap:anywhere}

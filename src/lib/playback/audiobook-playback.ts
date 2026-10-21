@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 /** One logical recording backed by completed WAV portions, with bounded blobs. */
 export type BookAudioChunk = { sequence: number; output: string; duration_s: number; title: string; chapter_index: number; text?: string }
 export type BookPlaybackState = { count: number; current: number; duration: number; time: number; playing: boolean; waiting: boolean; loading: boolean; finished: boolean; error: string }
@@ -37,7 +38,7 @@ export class AudiobookPlayback {
   append(chunk: BookAudioChunk) {
     if (!Number.isInteger(chunk.sequence) || chunk.sequence < 0 || !Number.isFinite(chunk.duration_s) || chunk.duration_s <= 0 || !chunk.output || chunk.output.includes('..') || chunk.output.startsWith('/') || chunk.output.includes('\\')) return
     if (chunk.sequence < this.chunks.length) return // SSE duplicate
-    if (chunk.sequence !== this.chunks.length) { this.error = 'Brakuje fragmentu nagrania. Zatrzymaj odsłuch i pobierz pełny audiobook po zakończeniu.'; this.pause(); return }
+    if (chunk.sequence !== this.chunks.length) { this.error = translateUi("Brakuje fragmentu nagrania. Zatrzymaj odsłuch i pobierz pełny audiobook po zakończeniu."); this.pause(); return }
     this.chunks.push(chunk)
     if (this.atBoundary && this.wantsPlayback) void this.advance()
     else if (this.chunks.length === 1 && this.wantsPlayback) void this.select(0, 0)
@@ -94,13 +95,13 @@ export class AudiobookPlayback {
       this.audio.src = url; this.audio.currentTime = time; this.active = true
       this.prune(); this.prefetch()
       if (this.wantsPlayback) await this.start(operation)
-    } catch (cause) { if (operation === this.operation && (cause as Error).name !== 'AbortError') this.setError('Nie można wczytać fragmentu. Kliknij odtwarzanie, aby ponowić.') }
+    } catch (cause) { if (operation === this.operation && (cause as Error).name !== 'AbortError') this.setError(translateUi("Nie można wczytać fragmentu. Kliknij odtwarzanie, aby ponowić.")) }
     this.publish()
   }
 
   private async start(operation: number) {
     try { await this.audio.play(); if (operation !== this.operation && !this.wantsPlayback) this.audio.pause() }
-    catch (cause) { if (operation === this.operation) this.setError((cause as Error).name === 'NotAllowedError' ? 'Kliknij odtwarzanie, aby rozpocząć odsłuch.' : 'Nie można odtworzyć fragmentu. Kliknij odtwarzanie, aby ponowić.') }
+    catch (cause) { if (operation === this.operation) this.setError((cause as Error).name === 'NotAllowedError' ? translateUi("Kliknij odtwarzanie, aby rozpocząć odsłuch.") : translateUi("Nie można odtworzyć fragmentu. Kliknij odtwarzanie, aby ponowić.")) }
   }
 
   private prefetch() {
@@ -111,7 +112,7 @@ export class AudiobookPlayback {
     for (const [index, url] of this.urls) if (index !== this.index && index !== this.index + 1) { URL.revokeObjectURL(url); this.urls.delete(index) }
   }
   private setError(message: string) { this.error = message; this.wantsPlayback = false; this.audio.pause(); this.publish() }
-  private failed = () => { if (this.active && this.audio.error) this.setError('Nie można odtworzyć tego fragmentu. Spróbuj ponownie lub pobierz pełny audiobook.') }
+  private failed = () => { if (this.active && this.audio.error) this.setError(translateUi("Nie można odtworzyć tego fragmentu. Spróbuj ponownie lub pobierz pełny audiobook.")) }
   private ended = () => {
     if (!this.active || !this.audio.ended) return
     this.atBoundary = true

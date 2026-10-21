@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from '../i18n'
+  const tr = $derived(createUiTranslator($uiLanguage))
   import { Plus } from '@lucide/svelte'
   import Select from './Select.svelte'
   import LanguageFlag from './LanguageFlag.svelte'
@@ -22,8 +24,8 @@
 </script>
 
 <div bind:this={container} class="vs-filter-chip" class:vs-filter-chip-active={!!value} class:vs-filter-chip-disabled={disabled}>
-  <button type="button" class="vs-filter-clear" {disabled} aria-label={value ? `Usuń filtr: ${label}` : undefined} aria-hidden={value ? undefined : 'true'} tabindex={value ? undefined : -1} onclick={value ? reset : open}><Plus size={14}/></button>
-  <Select {value} onchange={update} {options} {disabled} language={isLanguage} ariaLabel={`${label}${value ? `: ${selectedLabel}` : ': dodaj filtr'}`}
+  <button type="button" class="vs-filter-clear" {disabled} aria-label={value ? tr('Usuń filtr: {label}', { label }) : undefined} aria-hidden={value ? undefined : 'true'} tabindex={value ? undefined : -1} onclick={value ? reset : open}><Plus size={14}/></button>
+  <Select {value} onchange={update} {options} {disabled} language={isLanguage} ariaLabel={`${label}${value ? `: ${selectedLabel}` : tr(': dodaj filtr')}`}
     variant="ghost" class="vs-chip-select" placeholder={label} alignItemWithTrigger={false}>
     {#snippet triggerContent()}<span class="vs-filter-label">{label}</span>{#if value}<span class="vs-filter-value-group">{#if isLanguage}<LanguageFlag language={value}/>{/if}<span class="vs-filter-value">{selectedLabel}</span></span>{/if}{/snippet}
   </Select>

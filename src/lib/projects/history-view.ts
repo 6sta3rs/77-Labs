@@ -10,8 +10,8 @@ export type HistoryFilters = {
 type RecordingGroup = { key: string; label: string; rows: Render[] };
 const millisecondsPerDay = 86400000;
 
-let relativeTimeFormatter: Intl.RelativeTimeFormat | undefined;
-let dateFormatter: Intl.DateTimeFormat | undefined;
+const relativeTimeFormatters = new Map<string, Intl.RelativeTimeFormat>();
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
 export function filterRecordings(rows: Render[], filter: HistoryFilters, now = Date.now()) {
   const startOfToday = new Date(now);
@@ -43,7 +43,7 @@ export function filterRecordings(rows: Render[], filter: HistoryFilters, now = D
   });
 }
 
-export function historyDateLabel(created: string, now = Date.now()) {
+export function historyDateLabel(created: string, now = Date.now(), locale = 'pl-PL') {
   const value = new Date(created);
   if (!Number.isFinite(value.getTime())) return 'Bez daty';
   const today = new Date(now);
@@ -51,24 +51,26 @@ export function historyDateLabel(created: string, now = Date.now()) {
   yesterday.setDate(today.getDate() - 1);
   if (value.toDateString() === today.toDateString()) return 'Dzisiaj';
   if (value.toDateString() === yesterday.toDateString()) return 'Wczoraj';
-  const formatter = dateFormatter ??= new Intl.DateTimeFormat('pl-PL', {
+  const formatter = dateFormatters.get(locale) ?? new Intl.DateTimeFormat(locale, {
     day: 'numeric', month: 'long', year: 'numeric',
   });
+  dateFormatters.set(locale, formatter);
   return formatter.format(value);
 }
 
-export function relativeRecordingTime(created: string, now = Date.now()) {
+export function relativeRecordingTime(created: string, now = Date.now(), locale = 'pl-PL') {
   const time = new Date(created).getTime();
   if (!Number.isFinite(time)) return 'Brak daty';
   const minutes = Math.round((time - now) / 60000);
-  const formatter = relativeTimeFormatter ??= new Intl.RelativeTimeFormat('pl', { numeric: 'auto' });
+  const formatter = relativeTimeFormatters.get(locale) ?? new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  relativeTimeFormatters.set(locale, formatter);
   if (Math.abs(minutes) < 1) return 'przed chwilą';
   if (Math.abs(minutes) < 60) return formatter.format(minutes, 'minute');
   if (Math.abs(minutes) < 1440) return formatter.format(Math.round(minutes / 60), 'hour');
   return formatter.format(Math.round(minutes / 1440), 'day');
 }
 
-export function groupRecordings(rows: Render[], now = Date.now(), oldestFirst = false) {
+export function groupRecordings(rows: Render[], now = Date.now(), oldestFirst = false, locale = 'pl-PL') {
   const sorted = [...rows].sort((a, b) => {
     const left = new Date(a.created).getTime();
     const right = new Date(b.created).getTime();
@@ -85,7 +87,7 @@ export function groupRecordings(rows: Render[], now = Date.now(), oldestFirst = 
       : 'unknown';
     let group = byDate.get(key);
     if (!group) {
-      group = { key, label: historyDateLabel(row.created, now), rows: [] };
+      group = { key, label: historyDateLabel(row.created, now, locale), rows: [] };
       byDate.set(key, group);
       groups.push(group);
     }

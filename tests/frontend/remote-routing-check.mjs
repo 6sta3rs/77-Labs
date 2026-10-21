@@ -1,8 +1,9 @@
+import { rewriteI18nImports } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import vm from 'node:vm';
-const transpile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+const transpile = source => rewriteI18nImports(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText);
 const routing = await import('data:text/javascript;base64,' + Buffer.from(transpile(await readFile(new URL('../../src/lib/platform/remote-routing.ts', import.meta.url), 'utf8'))).toString('base64'));
 let source = await readFile(new URL('../../src/lib/platform/api.ts', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('api.ts', source, ts.ScriptTarget.Latest, true);

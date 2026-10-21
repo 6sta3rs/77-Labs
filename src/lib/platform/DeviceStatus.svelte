@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { dismissiblePopup } from '../ui/overlay';
   import { tick } from 'svelte';
@@ -13,7 +16,7 @@
   const simulated = $derived(simulatedDevice(sample));
   const displayed = $derived(demo ? simulated.stats : stats);
   const percent = (used: number, total: number) => total > 0 ? Math.max(0, Math.min(100, used / total * 100)) : 0;
-  const amount = (value: number) => value.toLocaleString('pl-PL', { maximumFractionDigits: 1 });
+  const amount = (value: number) => value.toLocaleString(tr.locale, { maximumFractionDigits: 1 });
   const label = $derived(demo ? simulated.phase : error ? 'Brak połączenia z silnikiem' : runtimeState === 'ready' ? 'Silnik gotowy' : runtimeState === 'starting' ? 'Uruchamianie silnika' : runtimeState === 'error' ? 'Silnik wymaga uwagi' : 'Silnik zatrzymany');
   async function toggle() {
     open = !open;
@@ -43,17 +46,17 @@
   });
 </script>
 
-<button class="device-trigger" bind:this={anchor} aria-label="Parametry urządzenia" title="Parametry urządzenia" aria-expanded={open} onclick={toggle}><ChartNoAxesColumnIncreasing size={16}/></button>
-{#if open}<div class="device-popover" use:dismissiblePopup={{ trigger: () => anchor, close: () => { open = false } }} role="dialog" tabindex="-1" aria-label="Urządzenie lokalne" style={`left:${position.left}px;bottom:${position.bottom}px`}>
-  <header><span class="device-dot" class:ready={!demo && runtimeState === 'ready' && !error}></span><div><strong>Urządzenie lokalne</strong><span>{label}</span></div><Button variant="ghost" size="icon" class="close-device " aria-label="Zamknij parametry urządzenia" onclick={close}><X size={15}/></Button></header>
-  <div class="device-source" aria-label="Źródło parametrów"><button aria-pressed={!demo} onclick={() => demo = false}>Rzeczywiste</button><button aria-pressed={demo} onclick={() => demo = true}>Dane testowe</button></div>
-  {#if demo}<p class="simulation-note" role="status"><strong>SYMULACJA</strong><span>Przykładowe dane zmieniają się co 2 s.</span></p>{/if}
+<button class="device-trigger" bind:this={anchor} aria-label={tr("Parametry urządzenia")} title={tr("Parametry urządzenia")} aria-expanded={open} onclick={toggle}><ChartNoAxesColumnIncreasing size={16}/></button>
+{#if open}<div class="device-popover" use:dismissiblePopup={{ trigger: () => anchor, close: () => { open = false } }} role="dialog" tabindex="-1" aria-label={tr("Urządzenie lokalne")} style={`left:${position.left}px;bottom:${position.bottom}px`}>
+  <header><span class="device-dot" class:ready={!demo && runtimeState === 'ready' && !error}></span><div><strong>{tr("Urządzenie lokalne")}</strong><span>{tr(String(label))}</span></div><Button variant="ghost" size="icon" class="close-device " aria-label={tr("Zamknij parametry urządzenia")} onclick={close}><X size={15}/></Button></header>
+  <div class="device-source" aria-label={tr("Źródło parametrów")}><button aria-pressed={!demo} onclick={() => demo = false}>{tr("Rzeczywiste")}</button><button aria-pressed={demo} onclick={() => demo = true}>{tr("Dane testowe")}</button></div>
+  {#if demo}<p class="simulation-note" role="status"><strong>{tr("SYMULACJA")}</strong><span>{tr("Przykładowe dane zmieniają się co 2 s.")}</span></p>{/if}
   {#if displayed}<div class="device-metrics">
-    <div class="metric"><div><Cpu size={16}/><strong>CPU</strong><b>{Math.round(displayed.cpu)}%</b></div><small title={displayed.cpu_model}>{displayed.cpu_model || 'Procesor'} <span>{displayed.cpu_physical_cores}C / {displayed.cpu_logical_cores}T / {amount(displayed.cpu_frequency_ghz)} GHz</span></small><div class="meter" role="meter" aria-label="Użycie CPU" aria-valuenow={displayed.cpu} aria-valuemin="0" aria-valuemax="100"><i style={`width:${Math.min(100, Math.max(0, displayed.cpu))}%`}></i></div></div>
-    <div class="metric"><div><MemoryStick size={16}/><strong>RAM</strong><b>{amount(displayed.ram)} / {amount(displayed.total_ram)} GB</b></div><div class="meter" role="meter" aria-label="Użycie RAM" aria-valuenow={displayed.ram} aria-valuemin="0" aria-valuemax={displayed.total_ram}><i style={`width:${percent(displayed.ram, displayed.total_ram)}%`}></i></div></div>
-    <div class="metric"><div><Monitor size={16}/><strong>GPU</strong><b>{displayed.gpu_utilization === null ? '—' : `${Math.round(displayed.gpu_utilization)}%`}</b></div><small title={displayed.gpu_name}>{displayed.gpu_name || 'Brak dedykowanej karty'}<span>{displayed.total_vram > 0 ? `${amount(displayed.vram)} / ${amount(displayed.total_vram)} GB` : 'Pamięć współdzielona lub brak odczytu'}</span></small><div class="meter" role="meter" aria-label="Użycie pamięci GPU" aria-valuenow={displayed.vram} aria-valuemin="0" aria-valuemax={displayed.total_vram || 1}><i style={`width:${percent(displayed.vram, displayed.total_vram)}%`}></i></div></div>
-  </div>{:else}<p class="device-message" role="status">{error || 'Odczytywanie parametrów…'}</p>{/if}
-  <button class="device-settings" onclick={() => { open = false; onmodels(); }}><Cpu size={15}/><span>Modele i silnik</span><ChevronRight size={15}/></button>
+    <div class="metric"><div><Cpu size={16}/><strong>{tr("CPU")}</strong><b>{Math.round(displayed.cpu)}%</b></div><small title={tr(String(displayed.cpu_model))}>{displayed.cpu_model || tr('Procesor')} <span>{displayed.cpu_physical_cores}{tr("C /")} {displayed.cpu_logical_cores}{tr("T /")} {amount(displayed.cpu_frequency_ghz)} {tr("GHz")}</span></small><div class="meter" role="meter" aria-label={tr("Użycie CPU")} aria-valuenow={displayed.cpu} aria-valuemin="0" aria-valuemax="100"><i style={`width:${Math.min(100, Math.max(0, displayed.cpu))}%`}></i></div></div>
+    <div class="metric"><div><MemoryStick size={16}/><strong>{tr("RAM")}</strong><b>{amount(displayed.ram)} / {amount(displayed.total_ram)} {tr("GB")}</b></div><div class="meter" role="meter" aria-label={tr("Użycie RAM")} aria-valuenow={displayed.ram} aria-valuemin="0" aria-valuemax={displayed.total_ram}><i style={`width:${percent(displayed.ram, displayed.total_ram)}%`}></i></div></div>
+    <div class="metric"><div><Monitor size={16}/><strong>{tr("GPU")}</strong><b>{displayed.gpu_utilization === null ? '—' : `${Math.round(displayed.gpu_utilization)}%`}</b></div><small title={tr(String(displayed.gpu_name))}>{displayed.gpu_name || tr("Brak dedykowanej karty")}<span>{displayed.total_vram > 0 ? `${amount(displayed.vram)} / ${amount(displayed.total_vram)} GB` : tr("Pamięć współdzielona lub brak odczytu")}</span></small><div class="meter" role="meter" aria-label={tr("Użycie pamięci GPU")} aria-valuenow={displayed.vram} aria-valuemin="0" aria-valuemax={displayed.total_vram || 1}><i style={`width:${percent(displayed.vram, displayed.total_vram)}%`}></i></div></div>
+  </div>{:else}<p class="device-message" role="status">{error ? tr(error) : tr("Odczytywanie parametrów…")}</p>{/if}
+  <button class="device-settings" onclick={() => { open = false; onmodels(); }}><Cpu size={15}/><span>{tr("Modele i silnik")}</span><ChevronRight size={15}/></button>
 </div>{/if}
 
 <style>

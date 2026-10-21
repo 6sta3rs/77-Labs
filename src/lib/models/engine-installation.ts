@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { postJson, productionJson } from '../tools/production/production';
 
 export type RuntimeInstallState = 'starting' | 'installing' | 'verifying' | 'cancelling' | 'cancelled' | 'interrupted' | 'complete' | 'failed';
@@ -37,7 +38,7 @@ export const runtimePhaseLabels: Record<string, string> = {
   native_verify: 'Sprawdzanie programu audio.cpp',
 };
 export function runtimeSize(bytes?: number | null) {
-  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return 'nie podano';
+  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return translateUi("nie podano");
   if (!bytes) return '0 B';
   const index = Math.min(3, Math.floor(Math.log(bytes) / Math.log(1024)));
   return `${(bytes / 1024 ** index).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} ${['B', 'KiB', 'MiB', 'GiB'][index]}`;
@@ -49,11 +50,11 @@ export function runtimeTransfer(job: EngineRuntimeJob) {
   const total = measured?.total ?? job.total_bytes;
   if (typeof downloaded !== 'number' || !Number.isFinite(downloaded) || downloaded < 0) return '';
   const knownTotal = typeof total === 'number' && Number.isFinite(total) && total > 0;
-  return `${runtimeSize(downloaded)}${knownTotal ? ` / ${runtimeSize(total)}` : ' · łączny rozmiar nieznany'}`;
+  return `${runtimeSize(downloaded)}${knownTotal ? ` / ${runtimeSize(total)}` : " " + translateUi("· łączny rozmiar nieznany")}`;
 }
 export function validateRuntimeConsent(recipe: EngineRuntimeRecipe, disclosureId: string, accepted: boolean) {
-  if (!recipe.supported) throw new Error(recipe.host_note || 'Ten system nie obsługuje instalacji tego silnika.');
-  if (!accepted || disclosureId !== recipe.disclosure_id) throw new Error('Potwierdź aktualne źródła, warunki i zakres instalacji.');
+  if (!recipe.supported) throw new Error(recipe.host_note || translateUi("Ten system nie obsługuje instalacji tego silnika."));
+  if (!accepted || disclosureId !== recipe.disclosure_id) throw new Error(translateUi("Potwierdź aktualne źródła, warunki i zakres instalacji."));
   if (recipe.license_required && !recipe.license_accepted) throw new Error('Najpierw zaakceptuj warunki tego silnika w katalogu modeli.');
   return { engine_id: recipe.engine_id, disclosure_id: disclosureId, accepted: true };
 }

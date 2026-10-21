@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { onDestroy } from 'svelte';
   import { openLicenseSource, validateLicenseSource } from './license-sources';
@@ -61,44 +64,44 @@
 </script>
 
 <details class="studio-tools engine-runtime-installer" bind:open={opened}>
-  <summary>Środowiska dodatkowych silników</summary>
-  <p class="page-footnote">Niektóre silniki wymagają osobnego Pythona i bibliotek albo programu audio.cpp. Tutaj przygotujesz je w prywatnym katalogu aplikacji. Wagi modeli pobierzesz w katalogu modeli, chyba że receptura poniżej wyraźnie obejmuje ich instalację.</p>
-  {#if !ready}<p class="tool-notice">Uruchom lokalny silnik, aby odczytać dostępne receptury.</p>{/if}
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}{#if message}<p class="tool-notice" role="status">{message}</p>{/if}
-  <div class="tool-actions"><Button variant="outline" disabled={!ready||loading||action} onclick={reload}><RefreshCw size={15}/>{loading?'Odczytywanie…':'Odśwież instalacje'}</Button></div>
-  {#if catalog}<p class="page-footnote runtime-root">Katalog prywatnych środowisk: {catalog.root}. Biblioteki są kopiowane. Istniejące instalacje pozostają dostępne do czasu jawnego udostępnienia nowej.</p>
+  <summary>{tr("Środowiska dodatkowych silników")}</summary>
+  <p class="page-footnote">{tr("Niektóre silniki wymagają osobnego Pythona i bibliotek albo programu audio.cpp. Tutaj przygotujesz je w prywatnym katalogu aplikacji. Wagi modeli pobierzesz w katalogu modeli, chyba że receptura poniżej wyraźnie obejmuje ich instalację.")}</p>
+  {#if !ready}<p class="tool-notice">{tr("Uruchom lokalny silnik, aby odczytać dostępne receptury.")}</p>{/if}
+  {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}{#if message}<p class="tool-notice" role="status">{tr(String(message))}</p>{/if}
+  <div class="tool-actions"><Button variant="outline" disabled={!ready||loading||action} onclick={reload}><RefreshCw size={15}/>{loading?'Odczytywanie…':tr("Odśwież instalacje")}</Button></div>
+  {#if catalog}<p class="page-footnote runtime-root">{tr("Katalog prywatnych środowisk:")} {catalog.root}{tr(". Biblioteki są kopiowane. Istniejące instalacje pozostają dostępne do czasu jawnego udostępnienia nowej.")}</p>
     <div class="runtime-recipes">{#each catalog.engines as recipe (recipe.engine_id)}
       {@const job=jobFor(recipe.engine_id)}
       <article class="tool-card runtime-recipe">
-        <div class="runtime-heading"><div><h3>{recipe.display_name}</h3><p class="page-footnote">{recipe.kind==='native'?'Osobny program natywny':'Osobne środowisko Python'}{recipe.version?` · ${recipe.version}`:''}</p></div>{#if job}<span class="runtime-state">{runtimeInstallLabels[job.state]||job.state}</span>{/if}</div>
-        {#if recipe.host_note}<p class={recipe.supported?'page-footnote':'tool-notice'}>{recipe.host_note}</p>{/if}
-        <p class="page-footnote">{recipe.download_bytes?`Archiwum programu: ${runtimeSize(recipe.download_bytes)}.`:'Dokładny rozmiar transferu zależy od rozwiązanych pakietów i pamięci podręcznej.'} Miejsce na instalację: około {runtimeSize(recipe.required_bytes)} + 5 GiB wolnego zapasu{recipe.size_confidence==='unknown'?' (szacunek niepotwierdzony)':recipe.kind==='sidecar'?' (szacunek receptury)':''}.</p>
-        {#if recipe.weights_repo_id}<p class="page-footnote">Ta receptura obejmuje wagi: {recipe.weights_repo_id}{recipe.weights_bytes?` · około ${runtimeSize(recipe.weights_bytes)}`:''}.</p>{:else}<p class="page-footnote">Ta receptura nie pobiera wag modelu. Przygotuj wymagane wagi oddzielnie przed syntezą.</p>{/if}
+        <div class="runtime-heading"><div><h3>{recipe.display_name}</h3><p class="page-footnote">{recipe.kind==='native'?'Osobny program natywny':tr("Osobne środowisko Python")}{recipe.version?` · ${recipe.version}`:''}</p></div>{#if job}<span class="runtime-state">{runtimeInstallLabels[job.state]||job.state}</span>{/if}</div>
+        {#if recipe.host_note}<p class={recipe.supported?'page-footnote':'tool-notice'}>{tr(recipe.host_note)}</p>{/if}
+        <p class="page-footnote">{recipe.download_bytes?tr('Archiwum programu: {size}.',{size:runtimeSize(recipe.download_bytes)}):tr("Dokładny rozmiar transferu zależy od rozwiązanych pakietów i pamięci podręcznej.")} {tr("Miejsce na instalację: około")} {runtimeSize(recipe.required_bytes)} {tr("+ 5 GiB wolnego zapasu")}{recipe.size_confidence==='unknown'?' '+tr('(szacunek niepotwierdzony)'):recipe.kind==='sidecar'?' '+tr('(szacunek receptury)'):''}.</p>
+        {#if recipe.weights_repo_id}<p class="page-footnote">{tr("Ta receptura obejmuje wagi:")} {recipe.weights_repo_id}{recipe.weights_bytes?" " + tr("· około {arg0}", { arg0: String(runtimeSize(recipe.weights_bytes)) }):''}.</p>{:else}<p class="page-footnote">{tr("Ta receptura nie pobiera wag modelu. Przygotuj wymagane wagi oddzielnie przed syntezą.")}</p>{/if}
         {#if job}
-          {#if runtimeInstallActive(job)}<p class="runtime-phase" role="status">{runtimePhaseLabels[job.phase]||'Przygotowanie instalacji'}{runtimeTransfer(job)?` · ${runtimeTransfer(job)}`:''}</p>{/if}
-          {#if job.steps.length}<ol class="runtime-steps">{#each job.steps as step}<li><span>{runtimePhaseLabels[step.id]||step.id}</span><small>{({pending:'Oczekuje',running:'W toku',done:'Gotowe',skipped:'Pominięto',error:'Błąd'} as Record<string,string>)[step.state]||step.state}</small></li>{/each}</ol>{/if}
-          {#if job.error}<p class="tool-error" role="alert">{job.error}</p>{/if}
-          {#if job.log.length}<details class="runtime-log"><summary>Ostatnie komunikaty instalatora</summary><pre>{job.log.join('\n')}</pre></details>{/if}
-          {#if job.state==='complete'&&job.verified===false}<p class="tool-error" role="alert">Pliki instalacji są niekompletne lub receptura uległa zmianie. Sprawdź źródła i ponów instalację.</p>{:else if job.state==='complete'}<p class="tool-notice">{job.effective?'To środowisko jest wskazane w bieżącej sesji silnika.':job.restart_required?'Środowisko wskazane do użycia. Zapis obowiązuje po ponownym uruchomieniu lokalnego silnika.':'Instalacja sprawdzona. Osobny przycisk poniżej wskaże ją aplikacji po restarcie silnika.'} Test importu nie zastępuje testu syntezy danego modelu.</p>{/if}
-          {#if ['cancelled','interrupted','failed'].includes(job.state)}<p class="page-footnote">Ponowienie wykorzysta prywatną, częściową instalację tej samej receptury. Pobrane dane nie są automatycznie usuwane.</p>{/if}
+          {#if runtimeInstallActive(job)}<p class="runtime-phase" role="status">{tr(runtimePhaseLabels[job.phase]||'Przygotowanie instalacji')}{runtimeTransfer(job)?` · ${runtimeTransfer(job)}`:''}</p>{/if}
+          {#if job.steps.length}<ol class="runtime-steps">{#each job.steps as step}<li><span>{tr(runtimePhaseLabels[step.id]||step.id)}</span><small>{({pending:tr('Oczekuje'),running:tr('W toku'),done:tr("Gotowe"),skipped:tr("Pominięto"),error:tr("Błąd")} as Record<string,string>)[step.state]||step.state}</small></li>{/each}</ol>{/if}
+          {#if job.error}<p class="tool-error" role="alert">{tr(String(job.error))}</p>{/if}
+          {#if job.log.length}<details class="runtime-log"><summary>{tr("Ostatnie komunikaty instalatora")}</summary><pre>{job.log.join('\n')}</pre></details>{/if}
+          {#if job.state==='complete'&&job.verified===false}<p class="tool-error" role="alert">{tr("Pliki instalacji są niekompletne lub receptura uległa zmianie. Sprawdź źródła i ponów instalację.")}</p>{:else if job.state==='complete'}<p class="tool-notice">{job.effective?tr("To środowisko jest wskazane w bieżącej sesji silnika."):job.restart_required?tr("Środowisko wskazane do użycia. Zapis obowiązuje po ponownym uruchomieniu lokalnego silnika."):tr("Instalacja sprawdzona. Osobny przycisk poniżej wskaże ją aplikacji po restarcie silnika.")} {tr("Test importu nie zastępuje testu syntezy danego modelu.")}</p>{/if}
+          {#if ['cancelled','interrupted','failed'].includes(job.state)}<p class="page-footnote">{tr("Ponowienie wykorzysta prywatną, częściową instalację tej samej receptury. Pobrane dane nie są automatycznie usuwane.")}</p>{/if}
         {/if}
         <details class="runtime-sources" open={reviewing===recipe.disclosure_id}>
-          <summary>Źródła, wersje i warunki pobierania</summary>
+          <summary>{tr("Źródła, wersje i warunki pobierania")}</summary>
           <p class="page-footnote">{recipe.dependency_policy}</p><p class="page-footnote">{recipe.license_summary}</p>
-          <ul>{#each recipe.source_urls as url}<li>{#if canOpenSource(url)}<a href={url} target="_blank" rel="noreferrer" onclick={event=>{event.preventDefault();void openSource(url);}}>{url}</a>{:else}<code>{url}</code> <Button variant="ghost" onclick={()=>copySource(url)}>Kopiuj adres źródła</Button>{/if}</li>{/each}</ul>
-          <ul>{#each recipe.license_links as link}<li>{#if canOpenSource(link.url)}<a href={link.url} target="_blank" rel="noreferrer" onclick={event=>{event.preventDefault();void openSource(link.url);}}>{link.title}</a>{:else}<span>{link.title}: </span><code>{link.url}</code> <Button variant="ghost" onclick={()=>copySource(link.url)}>Kopiuj adres warunków</Button>{/if}</li>{/each}</ul>
-          {#if recipe.venv_args?.length}<p class="page-footnote">Python receptury: {recipe.venv_args.join(' ')}.</p>{/if}
-          {#if recipe.install_args?.length}<p class="page-footnote runtime-root">Pakiety/receptura: {recipe.install_args.join(' ')}{recipe.torch_pins?.length?` · ${recipe.torch_pins.join(', ')}`:''}.</p>{/if}
-          {#if recipe.archive_sha256}<p class="page-footnote runtime-root">SHA-256 archiwum: {recipe.archive_sha256}</p>{/if}
-          {#if reviewing===recipe.disclosure_id}<div class="runtime-consent"><label><input type="checkbox" bind:checked={accepted} disabled={action||active}/>Przeczytałem źródła i warunki. Zezwalam na pobranie programów, zależności i wskazanych wag oraz uruchomienie instalacji w osobnym środowisku.</label>
-            {#if recipe.license_required&&!recipe.license_accepted}<p class="tool-notice">Najpierw zaakceptuj szczegółowe warunki tego silnika w katalogu modeli, a następnie odśwież ten panel.</p>{/if}
-            <div class="tool-actions"><Button variant="outline" disabled={!ready||action||loading||active||!accepted||(recipe.license_required&&!recipe.license_accepted)} onclick={()=>install(recipe)}><Download size={15}/>Potwierdź instalację</Button><Button variant="ghost" disabled={action} onclick={()=>{reviewing='';accepted=false;}}>Zamknij potwierdzenie</Button></div>
+          <ul>{#each recipe.source_urls as url}<li>{#if canOpenSource(url)}<a href={url} target="_blank" rel="noreferrer" onclick={event=>{event.preventDefault();void openSource(url);}}>{url}</a>{:else}<code>{url}</code> <Button variant="ghost" onclick={()=>copySource(url)}>{tr("Kopiuj adres źródła")}</Button>{/if}</li>{/each}</ul>
+          <ul>{#each recipe.license_links as link}<li>{#if canOpenSource(link.url)}<a href={link.url} target="_blank" rel="noreferrer" onclick={event=>{event.preventDefault();void openSource(link.url);}}>{link.title}</a>{:else}<span>{link.title}: </span><code>{link.url}</code> <Button variant="ghost" onclick={()=>copySource(link.url)}>{tr("Kopiuj adres warunków")}</Button>{/if}</li>{/each}</ul>
+          {#if recipe.venv_args?.length}<p class="page-footnote">{tr("Python receptury:")} {recipe.venv_args.join(' ')}.</p>{/if}
+          {#if recipe.install_args?.length}<p class="page-footnote runtime-root">{tr("Pakiety/receptura:")} {recipe.install_args.join(' ')}{recipe.torch_pins?.length?` · ${recipe.torch_pins.join(', ')}`:''}.</p>{/if}
+          {#if recipe.archive_sha256}<p class="page-footnote runtime-root">{tr("SHA-256 archiwum:")} {recipe.archive_sha256}</p>{/if}
+          {#if reviewing===recipe.disclosure_id}<div class="runtime-consent"><label><input type="checkbox" bind:checked={accepted} disabled={action||active}/>{tr("Przeczytałem źródła i warunki. Zezwalam na pobranie programów, zależności i wskazanych wag oraz uruchomienie instalacji w osobnym środowisku.")}</label>
+            {#if recipe.license_required&&!recipe.license_accepted}<p class="tool-notice">{tr("Najpierw zaakceptuj szczegółowe warunki tego silnika w katalogu modeli, a następnie odśwież ten panel.")}</p>{/if}
+            <div class="tool-actions"><Button variant="outline" disabled={!ready||action||loading||active||!accepted||(recipe.license_required&&!recipe.license_accepted)} onclick={()=>install(recipe)}><Download size={15}/>{tr("Potwierdź instalację")}</Button><Button variant="ghost" disabled={action} onclick={()=>{reviewing='';accepted=false;}}>{tr("Zamknij potwierdzenie")}</Button></div>
           </div>{/if}
         </details>
         <div class="tool-actions">
-          {#if job&&runtimeInstallActive(job)}<Button variant="outline" disabled={!ready||action||loading||job.state==='cancelling'} onclick={()=>cancel(recipe)}><Square size={14}/>Anuluj instalację</Button>
-          {:else if job?.state==='complete'&&job.disclosure_id===recipe.disclosure_id&&job.verified!==false}<Button variant="outline" disabled={!ready||action||loading||active||job.restart_required||job.effective} onclick={()=>activate(recipe)}><Check size={15}/>{job.effective?'Udostępnione środowisko':'Udostępnij po restarcie'}</Button>{#if job.restart_required&&onrestart}<Button variant="outline" disabled={!ready||action||loading||active} onclick={()=>work(async signal=>{await onrestart!();signal.throwIfAborted();message='Uruchomiono ponownie lokalny silnik. Sprawdź dostępność modelu w katalogu.';await onchange?.();})}>Uruchom ponownie silnik</Button>{/if}
-          {:else}<Button variant="outline" disabled={!ready||action||loading||active||!recipe.supported} onclick={()=>{reviewing=recipe.disclosure_id;accepted=false;message='';error='';}}><Download size={15}/>{job?'Sprawdź i ponów instalację':'Sprawdź instalację'}</Button>{/if}
+          {#if job&&runtimeInstallActive(job)}<Button variant="outline" disabled={!ready||action||loading||job.state==='cancelling'} onclick={()=>cancel(recipe)}><Square size={14}/>{tr("Anuluj instalację")}</Button>
+          {:else if job?.state==='complete'&&job.disclosure_id===recipe.disclosure_id&&job.verified!==false}<Button variant="outline" disabled={!ready||action||loading||active||job.restart_required||job.effective} onclick={()=>activate(recipe)}><Check size={15}/>{job.effective?tr("Udostępnione środowisko"):tr("Udostępnij po restarcie")}</Button>{#if job.restart_required&&onrestart}<Button variant="outline" disabled={!ready||action||loading||active} onclick={()=>work(async signal=>{await onrestart!();signal.throwIfAborted();message=tr("Uruchomiono ponownie lokalny silnik. Sprawdź dostępność modelu w katalogu.");await onchange?.();})}>{tr("Uruchom ponownie silnik")}</Button>{/if}
+          {:else}<Button variant="outline" disabled={!ready||action||loading||active||!recipe.supported} onclick={()=>{reviewing=recipe.disclosure_id;accepted=false;message='';error='';}}><Download size={15}/>{job?tr("Sprawdź i ponów instalację"):tr("Sprawdź instalację")}</Button>{/if}
         </div>
       </article>
     {/each}</div>

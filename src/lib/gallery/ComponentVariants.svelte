@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { Plus, RotateCcw, Paintbrush, Download, LoaderCircle, Info } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
   import Tooltip from '../ui/Tooltip.svelte'
@@ -66,42 +71,42 @@
 </script>
 
 <section class="variant-card wide" id="control-9">
-  <div class="variant-heading"><span>09</span><h2>Przyciski</h2><code>Button</code></div>
-  <p>Warianty kontrolek Seventy Seven Labs, dopasowane do bieżącej palety.</p>
-  <div class="button-samples">{#each variants as variant}<div><small>{variant}</small><Button {variant} onclick={()=>feedback=`Kliknięto wariant: ${variant}.`}><Plus/>Dodaj element</Button></div>{/each}</div>
-  <div class="button-samples">{#each sizes as size}<div><small>{size}</small><Button variant="outline" {size} onclick={()=>feedback=`Kliknięto rozmiar: ${size}.`}>Przycisk</Button></div>{/each}<div><small>icon / tooltip</small><Tooltip content="Przywróć przykładowy komunikat"><Button variant="ghost" size="icon" aria-label="Przywróć komunikat" onclick={()=>feedback='Przywrócono przykładowy komunikat.'}><RotateCcw/></Button></Tooltip></div><div><small>icon-xs</small><Button variant="outline" size="icon-xs" aria-label="Przykładowe pobieranie" onclick={()=>feedback='Przycisk pobierania jest aktywny.'}><Download/></Button></div></div>
-  <div class="button-samples"><Button disabled>Wyłączony</Button><Button variant="outline" disabled aria-busy="true"><LoaderCircle class="spin"/>Wczytywanie…</Button></div>
-  <p class="demo-status" role="status">{feedback}</p>
+  <div class="variant-heading"><span>09</span><h2>{tr("Przyciski")}</h2><code>{tr("Button")}</code></div>
+  <p>{tr("Warianty kontrolek Seventy Seven Labs, dopasowane do bieżącej palety.")}</p>
+  <div class="button-samples">{#each variants as variant}<div><small>{variant}</small><Button {variant} onclick={()=>feedback=tr("Kliknięto wariant: {value0}.", {value0: (variant)})}><Plus/>{tr("Dodaj element")}</Button></div>{/each}</div>
+  <div class="button-samples">{#each sizes as size}<div><small>{size}</small><Button variant="outline" {size} onclick={()=>feedback=tr("Kliknięto rozmiar: {value0}.", {value0: (size)})}>{tr("Przycisk")}</Button></div>{/each}<div><small>{tr("icon / tooltip")}</small><Tooltip content={tr("Przywróć przykładowy komunikat")}><Button variant="ghost" size="icon" aria-label={tr("Przywróć komunikat")} onclick={()=>feedback=tr("Przywrócono przykładowy komunikat.")}><RotateCcw/></Button></Tooltip></div><div><small>{tr("icon-xs")}</small><Button variant="outline" size="icon-xs" aria-label={tr("Przykładowe pobieranie")} onclick={()=>feedback=tr("Przycisk pobierania jest aktywny.")}><Download/></Button></div></div>
+  <div class="button-samples"><Button disabled>{tr("Wyłączony")}</Button><Button variant="outline" disabled aria-busy="true"><LoaderCircle class="spin"/>{tr("Wczytywanie…")}</Button></div>
+  <p class="demo-status" role="status">{tr(feedback)}</p>
 </section>
 
 <section class="variant-card" id="control-10">
-  <div class="variant-heading"><span>10</span><h2>Podpowiedzi</h2><code>Tooltip</code></div>
-  <p>Najedź kursorem lub przejdź Tabem. Escape zamyka dymek. Kliknięcie wykonuje działanie.</p>
-  <div class="tooltip-samples"><Tooltip content="Podpowiedź nad elementem"><Button variant="outline" onclick={()=>feedback='Kliknięto przycisk z podpowiedzią.'}><Info/>Nad elementem</Button></Tooltip><Tooltip content="Podpowiedź pod elementem" side="bottom"><Button variant="outline" onclick={()=>feedback='Kliknięto przycisk z dolną podpowiedzią.'}>Pod elementem</Button></Tooltip></div>
-  <p>Dymek jest częścią interfejsu. Nie jest powiadomieniem ani komunikatem o wykonaniu operacji.</p>
+  <div class="variant-heading"><span>10</span><h2>{tr("Podpowiedzi")}</h2><code>{tr("Tooltip")}</code></div>
+  <p>{tr("Najedź kursorem lub przejdź Tabem. Escape zamyka dymek. Kliknięcie wykonuje działanie.")}</p>
+  <div class="tooltip-samples"><Tooltip content={tr("Podpowiedź nad elementem")}><Button variant="outline" onclick={()=>feedback=tr("Kliknięto przycisk z podpowiedzią.")}><Info/>{tr("Nad elementem")}</Button></Tooltip><Tooltip content={tr("Podpowiedź pod elementem")} side="bottom"><Button variant="outline" onclick={()=>feedback=tr("Kliknięto przycisk z dolną podpowiedzią.")}>{tr("Pod elementem")}</Button></Tooltip></div>
+  <p>{tr("Dymek jest częścią interfejsu. Nie jest powiadomieniem ani komunikatem o wykonaniu operacji.")}</p>
 </section>
 
 <section class="variant-card" id="control-11">
-  <div class="variant-heading"><span>11</span><h2>Formularz</h2><code>name / reset</code></div>
+  <div class="variant-heading"><span>11</span><h2>{tr("Formularz")}</h2><code>{tr("name / reset")}</code></div>
   <form data-demo-form onsubmit={(event)=>{event.preventDefault();formResult=JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)))}}>
-    <label for="demo-project-name">Nazwa projektu</label><Input id="demo-project-name" name="project" required bind:value={formName}/>
-    <Select language label="Język formularza" name="language" required bind:value={formLanguage} options={languages}/>
-    <div class="form-switch"><span>Zapisz ustawienie</span><Switch name="enabled" label="Ustawienie formularza" bind:checked={formConsent}/></div>
-    <div class="button-samples"><Button type="submit">Sprawdź dane</Button><Button variant="outline" type="reset" onclick={()=>formResult='Przywrócono wartości początkowe formularza.'}>Resetuj formularz</Button></div>
+    <label for="demo-project-name">{tr("Nazwa projektu")}</label><Input id="demo-project-name" name="project" required bind:value={formName}/>
+    <Select language label={tr("Język formularza")} name="language" required bind:value={formLanguage} options={uiOptions(languages)}/>
+    <div class="form-switch"><span>{tr("Zapisz ustawienie")}</span><Switch name="enabled" label={tr("Ustawienie formularza")} bind:checked={formConsent}/></div>
+    <div class="button-samples"><Button type="submit">{tr("Sprawdź dane")}</Button><Button variant="outline" type="reset" onclick={()=>formResult=tr("Przywrócono wartości początkowe formularza.")}>{tr("Resetuj formularz")}</Button></div>
     <output class="form-output">{formResult}</output>
   </form>
 </section>
 
 <section class="variant-card wide" id="control-12">
-  <div class="variant-heading"><span>12</span><h2>Karty i edytor motywów</h2><code>ThemeCard / ThemeDialog</code></div>
-  <div class="theme-demo-header"><p>Te same karty i przyciski co w ustawieniach. Najedź na kulkę, by sprawdzić podpowiedź.</p><div class="button-samples"><Button variant="outline" size="xs" onclick={()=>edit('create')}><Paintbrush/>Utwórz motyw</Button><Button variant="outline" size="xs" onclick={()=>edit('import')}><Plus/>Dodaj motyw</Button></div></div>
+  <div class="variant-heading"><span>12</span><h2>{tr("Karty i edytor motywów")}</h2><code>{tr("ThemeCard / ThemeDialog")}</code></div>
+  <div class="theme-demo-header"><p>{tr("Te same karty i przyciski co w ustawieniach. Najedź na kulkę, by sprawdzić podpowiedź.")}</p><div class="button-samples"><Button variant="outline" size="xs" onclick={()=>edit('create')}><Paintbrush/>{tr("Utwórz motyw")}</Button><Button variant="outline" size="xs" onclick={()=>edit('import')}><Plus/>{tr("Dodaj motyw")}</Button></div></div>
   <div class="theme-demo-grid">{#each localThemes as theme (theme.id)}<ThemeCard {theme} lightSelected={lightSelectedId===theme.id} darkSelected={darkSelectedId===theme.id} onselect={mode=>select(theme,mode)} onuse={()=>select(theme)} onduplicate={()=>edit('duplicate',theme)} ondownload={()=>download(theme)} onedit={!builtInThemes.some(item=>item.id===theme.id) ? ()=>edit('edit',theme) : undefined}/>{/each}</div>
-  <p>Motywy utworzone tutaj pozostają w pamięci podglądu. Właściwa biblioteka w Studio zapisuje je lokalnie.</p>
+  <p>{tr("Motywy utworzone tutaj pozostają w pamięci podglądu. Właściwa biblioteka w Studio zapisuje je lokalnie.")}</p>
 </section>
 
 <section class="variant-card wide" id="control-13">
-  <div class="variant-heading"><span>13</span><h2>Wszystkie komponenty projektu</h2><code>inwentarz</code></div>
-  <p>Kontrolki bazowe mają warianty powyżej. Komponenty ekranów łączą je z funkcjami Seventy Seven Labs.</p>
+  <div class="variant-heading"><span>13</span><h2>{tr("Wszystkie komponenty projektu")}</h2><code>{tr("inwentarz")}</code></div>
+  <p>{tr("Kontrolki bazowe mają warianty powyżej. Komponenty ekranów łączą je z funkcjami Seventy Seven Labs.")}</p>
   <div class="inventory">{#each inventory as [name,description]}<div><strong>{name}</strong><span>{description}</span></div>{/each}</div>
 </section>
 

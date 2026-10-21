@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onDestroy } from 'svelte'
   import { ChevronDown } from '@lucide/svelte'
   import VoicePicker from './VoicePicker.svelte'
@@ -82,13 +85,13 @@
 </script>
 
 <div class="tool-workspace-section tool-voice-settings">
-  <h2 id={`${uid}-label`}>{label}</h2>
+  <h2 id={`${uid}-label`}>{tr(String(label))}</h2>
   <Button variant="outline" class="tool-voice-trigger" disabled={disabled || !ready} aria-labelledby={`${uid}-label ${uid}-name`} aria-haspopup="dialog" aria-expanded={open} onclick={openPicker}>
     {#if selected}<VoiceAvatar voiceId={selected.id} name={selected.name} portraitSrc={selected.portraitSrc} size={28}/>{/if}
-    <span id={`${uid}-name`} class="tool-voice-name">{selected?.name || (allowDefault ? defaultLabel : 'Wybierz profil głosu')}</span><ChevronDown size={15}/>
+    <span id={`${uid}-name`} class="tool-voice-name">{selected?.name || (allowDefault ? defaultLabel : tr("Wybierz profil głosu"))}</span><ChevronDown size={15}/>
   </Button>
-  {#if allowDefault && value}<Button variant="ghost" size="xs" class="tool-voice-default" disabled={disabled || !ready} onclick={() => onchange('')}>Użyj domyślnego głosu</Button>{/if}
-  {#if creationHint}<p class="tool-workspace-note" role="status">Nowy profil dodasz w sekcji „Głosy” w nawigacji studia.</p>{/if}
+  {#if allowDefault && value}<Button variant="ghost" size="xs" class="tool-voice-default" disabled={disabled || !ready} onclick={() => onchange('')}>{tr("Użyj domyślnego głosu")}</Button>{/if}
+  {#if creationHint}<p class="tool-workspace-note" role="status">{tr("Nowy profil dodasz w sekcji „Głosy” w nawigacji studia.")}</p>{/if}
 </div>
 {#if open}<VoicePicker {voices} modelLanguages={activeModel?.supported_language_names||[]} modelName={activeModel?.display_name||model?.active||''} onrefresh={refreshLanguages} {languageLoading} {languageNotice} selectedId={value} {ready} {playingId} {busyId} onselect={choose} onpreview={preview} onclose={close} oncreate={() => { close(); if (oncreate) oncreate(); else window.dispatchEvent(new Event('studio:create-voice')) }}/>{/if}
 

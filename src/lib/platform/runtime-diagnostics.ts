@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { productionJson } from '../tools/production/production';
 
 export type RuntimeMemory = { cpu: number; cpu_model?: string; ram: number; total_ram: number; gpu_name?: string; vram: number; total_vram: number; gpu_utilization?: number | null };
@@ -56,21 +57,21 @@ export async function runtimeLogs(signal?:AbortSignal) {
 const jsonPut = (value:unknown,signal?:AbortSignal):RequestInit => ({method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(value),signal});
 export function computeChoices(state:ComputeState):string[] { return state.choices.filter(value => value==='auto'||value==='cpu'||state.available_families.includes(value)); }
 export async function saveComputeDevice(value:string,state:ComputeState,signal?:AbortSignal) {
-  if (state.env_pinned) throw new Error('Urządzenie jest przypięte przez konfigurację uruchomienia silnika.');
-  if (!computeChoices(state).includes(value)) throw new Error('Wybrane urządzenie nie jest dostępne na tym komputerze.');
+  if (state.env_pinned) throw new Error(translateUi("Urządzenie jest przypięte przez konfigurację uruchomienia silnika."));
+  if (!computeChoices(state).includes(value)) throw new Error(translateUi("Wybrane urządzenie nie jest dostępne na tym komputerze."));
   return redactDiagnosticValue(await productionJson<ComputeState>('/api/settings/compute-device',jsonPut({value},signal)));
 }
 export async function savePerformance(tier:string,family:string,state:PerformanceState,signal?:AbortSignal) {
-  if (!state.tiers.includes(tier)||!state.applicable_families.includes(family)) throw new Error('Ten preset nie jest dostępny dla wybranej rodziny silników.');
+  if (!state.tiers.includes(tier)||!state.applicable_families.includes(family)) throw new Error(translateUi("Ten preset nie jest dostępny dla wybranej rodziny silników."));
   return redactDiagnosticValue(await productionJson<PerformanceState>('/api/settings/performance-profile',jsonPut({tier,family},signal)));
 }
 export const saveCompileDisabled = (enabled:boolean,signal?:AbortSignal) => productionJson<{enabled:boolean;platform:string}>('/api/settings/perf/torch-compile-disabled',jsonPut({enabled},signal));
 export async function unloadRuntimeModel(model:LoadedModel,signal?:AbortSignal) {
-  if (!model.unloadable || !/^(?:tts|asr|diarization|capture-asr|translation:nllb|(?:sidecar|engine|active-engine):[a-zA-Z0-9_-]+)$/.test(model.id)) throw new Error('Ten model nie udostępnia bezpiecznej operacji zwolnienia pamięci.');
+  if (!model.unloadable || !/^(?:tts|asr|diarization|capture-asr|translation:nllb|(?:sidecar|engine|active-engine):[a-zA-Z0-9_-]+)$/.test(model.id)) throw new Error(translateUi("Ten model nie udostępnia bezpiecznej operacji zwolnienia pamięci."));
   const current = await safeRead<LoadedModels>('/model/loaded',signal); signal?.throwIfAborted();
-  if (!current.models.some(item => item.id===model.id&&item.unloadable)) throw new Error('Model nie jest już załadowany. Odśwież listę.');
+  if (!current.models.some(item => item.id===model.id&&item.unloadable)) throw new Error(translateUi("Model nie jest już załadowany. Odśwież listę."));
   const result = await productionJson<{success:boolean;reason?:string}>(`/model/unload/${encodeURIComponent(model.id)}`,{method:'POST',signal});
-  if (!result.success) throw new Error(`Nie zwolniono modelu. ${redactDiagnosticText(result.reason || 'Model może być zajęty.')}`);
+  if (!result.success) throw new Error(translateUi("Nie zwolniono modelu. {arg0}", { arg0: String(redactDiagnosticText(result.reason || translateUi('Model może być zajęty.'))) }));
   return result;
 }
 export const diagnosticCheckLabels:Record<string,string> = {python:'Python',device:'Urządzenie obliczeń',ffmpeg:'Narzędzia multimedialne',hf_token:'Dostęp do modeli',disk:'Miejsce na dysku',data_dir:'Katalog danych',ram:'Pamięć RAM',engines:'Silniki TTS',gpu_routing:'Przydział GPU'};

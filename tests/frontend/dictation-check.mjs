@@ -1,3 +1,4 @@
+import { rewriteI18nImports } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
@@ -5,7 +6,7 @@ import ts from 'typescript';
 
 const source = await readFile(new URL('../../src/lib/tools/dictation/dictation.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { dictationSocketUrl, emptyDictation, reduceDictationMessage, floatToPcm16, LiveDictation, DICTATION_END } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
+const { dictationSocketUrl, emptyDictation, reduceDictationMessage, floatToPcm16, LiveDictation, DICTATION_END } = await import('data:text/javascript;base64,' + Buffer.from(rewriteI18nImports(js)).toString('base64'));
 assert.equal(DICTATION_END, 'EOF');
 assert.equal(dictationSocketUrl(true, 'https://irrelevant.invalid', 'whisper-tiny'), 'ws://127.0.0.1:4312/ws/transcribe?pcm=1&sr=16000&model=whisper-tiny');
 assert.equal(dictationSocketUrl(false, 'http://127.0.0.1:4310', 'whisper-tiny', 48000), 'ws://127.0.0.1:4310/backend/ws/transcribe?pcm=1&sr=48000&model=whisper-tiny');

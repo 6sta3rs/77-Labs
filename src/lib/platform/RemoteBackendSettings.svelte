@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { untrack, onDestroy } from 'svelte'
   import { Computer, Network, RefreshCw } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
@@ -42,21 +45,21 @@
 </script>
 
 <section class="remote-backend-settings tool-card" aria-labelledby="remote-backend-title">
-  <div class="remote-heading"><h2 id="remote-backend-title"><Network size={18}/> Zdalny silnik Seventy Seven Labs</h2><Button variant="ghost" size="sm" disabled={disabled} onclick={refresh}><RefreshCw size={14}/>Odśwież połączenie</Button></div>
-  <p>Użyj silnika na własnym serwerze lub drugim komputerze. Po wybraniu połączenia tekst, nagrania i pliki operacji studia będą przesyłane pod wskazany adres.</p>
-  {#if !ready}<p class="tool-notice">Uruchom prywatny silnik aplikacji, aby połączyć bezpieczny lokalny transport.</p>{/if}
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
-  {#if message}<p class="tool-notice" role="status">{message}</p>{/if}
-  {#if $remoteBackendState.error}<p class="tool-error" role="alert">{$remoteBackendState.error}</p>{/if}
-  <p class="remote-status" role="status"><strong>{$remoteBackendState.active ? 'Aktywny zdalny silnik' : 'Aktywny lokalny silnik'}</strong>{#if $remoteBackendState.active}<code>{$remoteBackendState.url}</code><span>{$remoteBackendState.detail}</span>{/if}</p>
-  <label for="remote-backend-url">Adres API zdalnego silnika</label>
-  <Input id="remote-backend-url" type="url" bind:value={url} placeholder="https://twoj-serwer/studio" spellcheck={false} autocomplete="off" disabled={disabled}/>
-  <label for="remote-backend-key">Klucz administratora serwera</label>
-  <Input id="remote-backend-key" type="password" bind:value={key} autocomplete="off" spellcheck={false} disabled={disabled} placeholder={$remoteBackendState.session_available ? 'Puste pole — użyj zapisanej, ważnej sesji' : 'Wymagany, jeśli serwer chroni dostęp kluczem'}/>
-  <p class="page-footnote">Klucz jest używany jednorazowo i nie jest zapisywany. Krótka sesja jest szyfrowana w prywatnej bazie; nie trafia do pamięci przeglądarki ani adresów połączeń. Po ponownym uruchomieniu aplikacja zaczyna od lokalnego silnika.</p>
-  {#if $remoteBackendState.session_expires_at}<p class="page-footnote">Sesja ważna do {new Date($remoteBackendState.session_expires_at * 1000).toLocaleString('pl')}. Restart serwera lub zmiana klucza mogą ją unieważnić wcześniej.</p>{/if}
-  <div class="tool-actions"><Button variant="outline" disabled={disabled || !url.trim()} onclick={() => run('test')}>{busy ? 'Sprawdzanie…' : 'Testuj połączenie'}</Button><Button disabled={disabled || !url.trim()} onclick={() => run('connect')}>Połącz i używaj zdalnego silnika</Button><Button variant="outline" disabled={disabled} onclick={() => run('local')}><Computer size={15}/>Użyj lokalnego silnika</Button></div>
-  <p class="page-footnote">Zdalny serwer musi udostępniać zgodne API silnika, nie sam panel WWW. Zmiana połączenia nie kopiuje profili, historii ani projektów do lokalnej bazy. Po błędzie operacja nie przełącza się automatycznie na inny silnik.</p>
+  <div class="remote-heading"><h2 id="remote-backend-title"><Network size={18}/> {tr("Zdalny silnik Seventy Seven Labs")}</h2><Button variant="ghost" size="sm" disabled={disabled} onclick={refresh}><RefreshCw size={14}/>{tr("Odśwież połączenie")}</Button></div>
+  <p>{tr("Użyj silnika na własnym serwerze lub drugim komputerze. Po wybraniu połączenia tekst, nagrania i pliki operacji studia będą przesyłane pod wskazany adres.")}</p>
+  {#if !ready}<p class="tool-notice">{tr("Uruchom prywatny silnik aplikacji, aby połączyć bezpieczny lokalny transport.")}</p>{/if}
+  {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
+  {#if message}<p class="tool-notice" role="status">{tr(String(message))}</p>{/if}
+  {#if $remoteBackendState.error}<p class="tool-error" role="alert">{tr(String($remoteBackendState.error))}</p>{/if}
+  <p class="remote-status" role="status"><strong>{$remoteBackendState.active ? tr("Aktywny zdalny silnik") : tr("Aktywny lokalny silnik")}</strong>{#if $remoteBackendState.active}<code>{$remoteBackendState.url}</code><span>{tr(String($remoteBackendState.detail))}</span>{/if}</p>
+  <label for="remote-backend-url">{tr("Adres API zdalnego silnika")}</label>
+  <Input id="remote-backend-url" type="url" bind:value={url} placeholder={tr("https://twoj-serwer/studio")} spellcheck={false} autocomplete="off" disabled={disabled}/>
+  <label for="remote-backend-key">{tr("Klucz administratora serwera")}</label>
+  <Input id="remote-backend-key" type="password" bind:value={key} autocomplete="off" spellcheck={false} disabled={disabled} placeholder={$remoteBackendState.session_available ? tr("Puste pole — użyj zapisanej, ważnej sesji") : tr("Wymagany, jeśli serwer chroni dostęp kluczem")}/>
+  <p class="page-footnote">{tr("Klucz jest używany jednorazowo i nie jest zapisywany. Krótka sesja jest szyfrowana w prywatnej bazie; nie trafia do pamięci przeglądarki ani adresów połączeń. Po ponownym uruchomieniu aplikacja zaczyna od lokalnego silnika.")}</p>
+  {#if $remoteBackendState.session_expires_at}<p class="page-footnote">{tr("Sesja ważna do")} {new Date($remoteBackendState.session_expires_at * 1000).toLocaleString(tr.locale)}{tr(". Restart serwera lub zmiana klucza mogą ją unieważnić wcześniej.")}</p>{/if}
+  <div class="tool-actions"><Button variant="outline" disabled={disabled || !url.trim()} onclick={() => run('test')}>{busy ? 'Sprawdzanie…' : tr("Testuj połączenie")}</Button><Button disabled={disabled || !url.trim()} onclick={() => run('connect')}>{tr("Połącz i używaj zdalnego silnika")}</Button><Button variant="outline" disabled={disabled} onclick={() => run('local')}><Computer size={15}/>{tr("Użyj lokalnego silnika")}</Button></div>
+  <p class="page-footnote">{tr("Zdalny serwer musi udostępniać zgodne API silnika, nie sam panel WWW. Zmiana połączenia nie kopiuje profili, historii ani projektów do lokalnej bazy. Po błędzie operacja nie przełącza się automatycznie na inny silnik.")}</p>
 </section>
 
 <style>

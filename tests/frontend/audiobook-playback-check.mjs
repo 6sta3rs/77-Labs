@@ -1,10 +1,11 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
 
 const source = await readFile(new URL('../../src/lib/playback/audiobook-playback.ts', import.meta.url), 'utf8')
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
-const exports = {}; new Function('exports', code)(exports)
+const exports = {}; new Function('exports','require',code)(exports,i18nRequire)
 const { AudiobookPlayback } = exports
 class AudioFixture extends EventTarget {
   paused = true; ended = false; currentTime = 0; src = ''; error = null; playCount = 0

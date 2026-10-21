@@ -1,3 +1,4 @@
+import { translateUi } from '../../i18n';
 import { request } from '../../platform/api';
 import { productionJson } from '../production/production';
 import { inspectReference, referenceFileError } from '../../voices/voice-reference';
@@ -15,11 +16,11 @@ export function measureAudio(pcm: AudioPcm): AudioMeasurements {
 }
 export function audioEditErrors(pcm: AudioPcm, edit: AudioEdit): string[] {
   const duration = (pcm.channels[0]?.length || 0) / pcm.sampleRate, errors: string[] = [];
-  if (!Number.isFinite(pcm.sampleRate) || pcm.sampleRate <= 0 || !pcm.channels.length || pcm.channels.some(channel => channel.length !== pcm.channels[0].length)) errors.push('Nagranie nie zawiera poprawnych, równych kanałów PCM.');
-  if (![edit.start, edit.end].every(Number.isFinite) || edit.start < 0 || edit.end <= edit.start || edit.end > duration + 1 / pcm.sampleRate) errors.push('Wybierz poprawny zakres nagrania: początek przed końcem, w obrębie pliku.');
-  if (!Number.isFinite(edit.gainDb) || edit.gainDb < -60 || edit.gainDb > 24) errors.push('Głośność musi mieścić się w zakresie od −60 do +24 dB.');
-  if (!Number.isFinite(edit.targetDb) || edit.targetDb < -24 || edit.targetDb > 0) errors.push('Szczyt normalizacji musi mieścić się w zakresie od −24 do 0 dBFS.');
-  if (![edit.fadeInMs, edit.fadeOutMs].every(value => Number.isFinite(value) && value >= 0 && value <= Math.max(0, edit.end - edit.start) * 1000)) errors.push('Łagodne wejście i wyjście muszą mieścić się w długości wybranego fragmentu.');
+  if (!Number.isFinite(pcm.sampleRate) || pcm.sampleRate <= 0 || !pcm.channels.length || pcm.channels.some(channel => channel.length !== pcm.channels[0].length)) errors.push(translateUi("Nagranie nie zawiera poprawnych, równych kanałów PCM."));
+  if (![edit.start, edit.end].every(Number.isFinite) || edit.start < 0 || edit.end <= edit.start || edit.end > duration + 1 / pcm.sampleRate) errors.push(translateUi("Wybierz poprawny zakres nagrania: początek przed końcem, w obrębie pliku."));
+  if (!Number.isFinite(edit.gainDb) || edit.gainDb < -60 || edit.gainDb > 24) errors.push(translateUi("Głośność musi mieścić się w zakresie od −60 do +24 dB."));
+  if (!Number.isFinite(edit.targetDb) || edit.targetDb < -24 || edit.targetDb > 0) errors.push(translateUi("Szczyt normalizacji musi mieścić się w zakresie od −24 do 0 dBFS."));
+  if (![edit.fadeInMs, edit.fadeOutMs].every(value => Number.isFinite(value) && value >= 0 && value <= Math.max(0, edit.end - edit.start) * 1000)) errors.push(translateUi("Łagodne wejście i wyjście muszą mieścić się w długości wybranego fragmentu."));
   return errors;
 }
 export function processAudio(pcm: AudioPcm, edit: AudioEdit): { pcm: AudioPcm; measurements: AudioMeasurements; clippedBeforeLimit: number; silentNormalization: boolean } {
@@ -44,7 +45,7 @@ export function processAudio(pcm: AudioPcm, edit: AudioEdit): { pcm: AudioPcm; m
 }
 export function encodeAudioWav(pcm: AudioPcm): Blob {
   const channels = pcm.channels.length, frames = pcm.channels[0]?.length || 0;
-  if (!channels || channels > 8 || !frames || pcm.channels.some(channel => channel.length !== frames) || !Number.isSafeInteger(pcm.sampleRate) || pcm.sampleRate <= 0) throw new Error('Nie można zapisać niepoprawnego nagrania PCM.');
+  if (!channels || channels > 8 || !frames || pcm.channels.some(channel => channel.length !== frames) || !Number.isSafeInteger(pcm.sampleRate) || pcm.sampleRate <= 0) throw new Error(translateUi("Nie można zapisać niepoprawnego nagrania PCM."));
   const bytes = new ArrayBuffer(44 + frames * channels * 2), view = new DataView(bytes);
   const ascii = (offset: number, value: string) => [...value].forEach((letter,i) => view.setUint8(offset+i, letter.charCodeAt(0)));
   ascii(0,'RIFF'); view.setUint32(4,bytes.byteLength-8,true); ascii(8,'WAVE'); ascii(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,channels,true); view.setUint32(24,pcm.sampleRate,true); view.setUint32(28,pcm.sampleRate*channels*2,true); view.setUint16(32,channels*2,true); view.setUint16(34,16,true); ascii(36,'data'); view.setUint32(40,frames*channels*2,true);
@@ -55,7 +56,7 @@ export function encodeAudioWav(pcm: AudioPcm): Blob {
 export async function decodeAudioFile(file: File, signal?: AbortSignal): Promise<AudioPcm> {
   const invalid = referenceFileError(file); if (invalid) throw new Error(invalid);
   const duration = await inspectReference(file, signal); signal?.throwIfAborted();
-  if (duration && duration > 300) throw new Error('Lokalna obróbka obsługuje nagrania do 5 minut. Wybierz krótszy fragment.');
+  if (duration && duration > 300) throw new Error(translateUi("Lokalna obróbka obsługuje nagrania do 5 minut. Wybierz krótszy fragment."));
   const bytes = await file.arrayBuffer(); signal?.throwIfAborted();
   // Preserve PCM WAV's source rate; compressed inputs are decoded to the
   // studio's 24 kHz. The UI labels this as decoded PCM, not container metadata.
@@ -63,18 +64,18 @@ export async function decodeAudioFile(file: File, signal?: AbortSignal): Promise
   const wavRate = isWav ? header.getUint32(24,true) : 0;
   const sampleRate = wavRate >= 8000 && wavRate <= 96000 ? wavRate : 24000;
   const decoded = await new OfflineAudioContext(1,1,sampleRate).decodeAudioData(bytes); signal?.throwIfAborted();
-  if (!decoded.length || decoded.length / decoded.sampleRate > 300 || decoded.length * decoded.numberOfChannels > 16_000_000) throw new Error('Nagranie przekracza limit lokalnej obróbki: 5 minut i 16 milionów próbek kanałów.');
+  if (!decoded.length || decoded.length / decoded.sampleRate > 300 || decoded.length * decoded.numberOfChannels > 16_000_000) throw new Error(translateUi("Nagranie przekracza limit lokalnej obróbki: 5 minut i 16 milionów próbek kanałów."));
   return { sampleRate: decoded.sampleRate, channels: Array.from({length:decoded.numberOfChannels}, (_,i) => decoded.getChannelData(i).slice()) };
 }
 export async function cleanAudio(file: File, signal?: AbortSignal) {
   const invalid = referenceFileError(file); if (invalid) throw new Error(invalid);
   const body = new FormData(); body.append('audio', file);
   const response = await request('/clean-audio', { method:'POST',body,signal }); signal?.throwIfAborted();
-  if (!response.ok) throw new Error(`Nie udało się przygotować nagrania (${response.status}). ${(await response.text()).slice(0,250)}`);
+  if (!response.ok) throw new Error(translateUi("Nie udało się przygotować nagrania ({arg0}). {arg1}", { arg0: String(response.status), arg1: String((await response.text()).slice(0,250)) }));
   const blob = await response.blob(); signal?.throwIfAborted();
-  if (!blob.size || !blob.type.startsWith('audio/')) throw new Error('Silnik nie zwrócił pliku audio.');
+  if (!blob.size || !blob.type.startsWith('audio/')) throw new Error(translateUi("Silnik nie zwrócił pliku audio."));
   const signature = new Uint8Array(await blob.slice(0,12).arrayBuffer()); signal?.throwIfAborted();
-  if (signature.length < 12 || String.fromCharCode(...signature.slice(0,4)) !== 'RIFF' || String.fromCharCode(...signature.slice(8,12)) !== 'WAVE') throw new Error('Silnik nie zwrócił poprawnego kontenera WAV. Plik źródłowy pozostaje dostępny do odsłuchu.');
+  if (signature.length < 12 || String.fromCharCode(...signature.slice(0,4)) !== 'RIFF' || String.fromCharCode(...signature.slice(8,12)) !== 'WAVE') throw new Error(translateUi("Silnik nie zwrócił poprawnego kontenera WAV. Plik źródłowy pozostaje dostępny do odsłuchu."));
   return { blob, filename: /^mic_[a-zA-Z0-9_-]+\.wav$/.test(response.headers.get('X-Clean-Filename') || '') ? response.headers.get('X-Clean-Filename')! : 'mowa-po-przetworzeniu.wav', conversionFallback: response.headers.get('X-Clean-Conversion') === 'fallback' };
 }
 export async function audioCatalog(signal?: AbortSignal): Promise<AudioCatalog> {

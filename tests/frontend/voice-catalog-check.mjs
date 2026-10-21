@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 // Run: node tests/frontend/voice-catalog-check.mjs
 // Execute real catalog state and API functions with an inert, controlled transport.
@@ -17,7 +18,7 @@ async function execute(filename, dependencies = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const exported = {};
-  new Function('exports', ...Object.keys(dependencies), code)(exported, ...Object.values(dependencies));
+  new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(exported, ...Object.values({...i18nDeps,...dependencies}));
   return exported;
 }
 const deferred = () => {

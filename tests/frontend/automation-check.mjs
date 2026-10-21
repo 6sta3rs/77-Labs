@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
@@ -11,7 +12,7 @@ async function load(dependencies = {}) {
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const deps = { generate: async () => { throw Error('Unexpected synthesis'); }, request: async () => { throw Error('Unexpected HTTP'); }, prepareRequest: async () => {}, productionJson: async () => { throw Error('Unexpected backend'); }, postJson: body => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), ...dependencies };
   const exported = {};
-  new Function('exports', ...Object.keys(deps), code)(exported, ...Object.values(deps));
+  new Function('exports', ...Object.keys({...i18nDeps,...deps}), code)(exported, ...Object.values({...i18nDeps,...deps}));
   return exported;
 }
 function memoryStore(initial = {}) {

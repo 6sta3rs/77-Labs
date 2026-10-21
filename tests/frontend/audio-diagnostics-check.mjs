@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { mkdir as ensureQaDirectory } from 'node:fs/promises';
 await ensureQaDirectory(new URL('../../.tmp/qa/', import.meta.url), { recursive: true });
 import { sourceUrl } from '../helpers/source-url.mjs';
@@ -6,7 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import ts from 'typescript';
 let checks=0;
 const assert=new Proxy(strict,{get:(target,key)=>typeof target[key]==='function'?(...args)=>{checks++;return target[key](...args);}:target[key]});
-async function load(filename,deps={}){let source=await readFile(new URL(`../src/lib/${filename}`,import.meta.url),'utf8');const parsed=ts.createSourceFile(filename,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);for(const node of [...parsed.statements].reverse())if(ts.isImportDeclaration(node))source=source.slice(0,node.pos)+source.slice(node.end);const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;const result={};new Function('exports',...Object.keys(deps),code)(result,...Object.values(deps));return result;}
+async function load(filename,deps={}){let source=await readFile(sourceUrl(filename),'utf8');const parsed=ts.createSourceFile(filename,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);for(const node of [...parsed.statements].reverse())if(ts.isImportDeclaration(node))source=source.slice(0,node.pos)+source.slice(node.end);const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;const result={};new Function('exports',...Object.keys({...i18nDeps,...deps}),code)(result,...Object.values({...i18nDeps,...deps}));return result;}
 const wavSource=await readFile(new URL('../../public/demo/interface-tone.wav',import.meta.url));
 const wavView=new DataView(wavSource.buffer,wavSource.byteOffset,wavSource.byteLength);
 assert.equal(wavView.getUint16(20,true),1);assert.equal(wavView.getUint16(34,true),16);

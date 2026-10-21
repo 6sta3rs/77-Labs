@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { mkdir as ensureQaDirectory } from 'node:fs/promises';
 await ensureQaDirectory(new URL('../../.tmp/qa/', import.meta.url), { recursive: true });
 import { sourceUrl } from '../helpers/source-url.mjs';
@@ -16,7 +17,7 @@ async function load(name, dependencies, exposure = '') {
   for (const node of [...parsed.statements].reverse()) if (ts.isImportDeclaration(node)) source = source.slice(0, node.pos) + source.slice(node.end);
   if (exposure) source += `\nreturn { ${exposure} };`;
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  const result = {}; const returned = new Function('exports', ...Object.keys(dependencies), code)(result, ...Object.values(dependencies)); return returned ?? result;
+  const result = {}; const returned = new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(result, ...Object.values({...i18nDeps,...dependencies})); return returned ?? result;
 }
 const hash = data => createHash('sha256').update(data).digest('hex');
 const sourceFile = new URL('../../public/demo/interface-tone.wav', import.meta.url), source = await readFile(sourceFile), sourceHash = hash(source);

@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
@@ -7,7 +8,7 @@ const source=await readFile(new URL('../../src/lib/models/engine-installation.ts
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const calls=[];
 const exports={};
-new Function('exports','require',code)(exports,()=>({
+new Function('exports','require',code)(exports,name=>/\/i18n$/.test(name)?i18nRequire(name):({
   postJson:(body,signal)=>({method:'POST',body:JSON.stringify(body),signal}),
   productionJson:async(path,options)=>{calls.push({path,options});return {};},
 }));

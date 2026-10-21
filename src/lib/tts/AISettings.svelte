@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { onMount } from 'svelte';
   import { Check, LoaderCircle, RefreshCw, Sparkles } from '@lucide/svelte';
@@ -71,27 +74,27 @@
 </script>
 
 <div class="ai-settings" class:embedded>
-  <header><Sparkles size={embedded ? 20 : 24}/><div>{#if embedded}<h2>OpenAI — połączenie przez Codex/ChatGPT</h2>{:else}<h1>AI i subskrypcja</h1>{/if}<p>Automatyczne tagowanie w edytorze korzysta z modelu zapisanego poniżej.</p></div></header>
-  <section class="connection-card" aria-label="Połączenie OpenAi przez Codex">
-    <div class="connection-heading"><strong>OpenAi · ChatGPT przez Codex</strong><span class:connected={connection?.connected}>{loading ? 'Sprawdzanie…' : connection?.connected ? 'Połączono' : 'Brak połączenia'}</span></div>
-    {#if connection}<p>{connection.message}{#if connection.connected && connection.plan}{' '}Plan konta: <strong>{connection.plan}</strong>.{/if}</p>{#if connection.connected}<p>Modele językowe w bieżącym katalogu Codex: <strong>{connection.models.length}</strong>. Lista pochodzi z aktualnego odczytu połączenia.</p>{/if}{/if}
-    <p>Korzysta z istniejącego logowania Codex i limitów Twojej subskrypcji. Tekst narracji jest wysyłany do OpenAI.</p>
-    <p>Połączenie korzysta z profilu Codex zalogowanego na tym komputerze.</p>
-    {#if connection && !connection.connected}<p>Zaloguj Codex na tym komputerze poleceniem <code>codex login</code>, a następnie odśwież połączenie.</p>{/if}
-    <Button variant="outline" disabled={loading || busy} onclick={refresh}><RefreshCw size={14}/>Odśwież połączenie</Button>
+  <header><Sparkles size={embedded ? 20 : 24}/><div>{#if embedded}<h2>{tr("OpenAI — połączenie przez Codex/ChatGPT")}</h2>{:else}<h1>{tr("AI i subskrypcja")}</h1>{/if}<p>{tr("Automatyczne tagowanie w edytorze korzysta z modelu zapisanego poniżej.")}</p></div></header>
+  <section class="connection-card" aria-label={tr("Połączenie OpenAi przez Codex")}>
+    <div class="connection-heading"><strong>{tr("OpenAi · ChatGPT przez Codex")}</strong><span class:connected={connection?.connected}>{loading ? 'Sprawdzanie…' : connection?.connected ? tr("Połączono") : tr("Brak połączenia")}</span></div>
+    {#if connection}<p>{tr(String(connection.message))}{#if connection.connected && connection.plan}{' '}{tr("Plan konta:")} <strong>{connection.plan}</strong>.{/if}</p>{#if connection.connected}<p>{tr("Modele językowe w bieżącym katalogu Codex:")} <strong>{connection.models.length}</strong>{tr(". Lista pochodzi z aktualnego odczytu połączenia.")}</p>{/if}{/if}
+    <p>{tr("Korzysta z istniejącego logowania Codex i limitów Twojej subskrypcji. Tekst narracji jest wysyłany do OpenAI.")}</p>
+    <p>{tr("Połączenie korzysta z profilu Codex zalogowanego na tym komputerze.")}</p>
+    {#if connection && !connection.connected}<p>{tr("Zaloguj Codex na tym komputerze poleceniem")} <code>{tr("codex login")}</code>{tr(", a następnie odśwież połączenie.")}</p>{/if}
+    <Button variant="outline" disabled={loading || busy} onclick={refresh}><RefreshCw size={14}/>{tr("Odśwież połączenie")}</Button>
   </section>
-  <section class="options" aria-label="Ustawienia automatycznego tagowania">
-    <div class="option-row"><div><h2>Automatyczne tagowanie AI</h2><p>Dodawaj pauzy i reakcje dopasowane do treści narracji.</p></div><Switch label="Automatyczne tagowanie AI" checked={settings.enabled} disabled={locked} onchange={(enabled) => changeSettings({ enabled })}/></div>
-    <div class="field"><Select label="Model językowy OpenAi" value={settings.model} disabled={locked || !connection?.connected} onchange={(model) => changeSettings({ model })} options={models}/></div>
-    {#if selectedModelMissing}<p class="note" role="status">Zapisany model {settings.model} nie występuje w bieżącym katalogu. Wybierz dostępny model lub domyślny Codex i zapisz zmianę.</p>{/if}
-    <div class="field"><Select label="Intensywność tagowania" value={settings.intensity} disabled={locked} onchange={(intensity) => changeSettings({ intensity: intensity as AISettings['intensity'] })} options={[{value:'subtle',label:'Subtelna — głównie pauzy'},{value:'natural',label:'Naturalna — oszczędne reakcje'},{value:'expressive',label:'Ekspresyjna — więcej reakcji'}]}/></div>
-    <div class="option-row"><div><h2>Reakcje głosowe</h2><p>Pozwól AI dodać śmiech, westchnienia i krótkie wokalizacje. Po wyłączeniu dodaje tylko pauzy.</p></div><Switch label="Reakcje głosowe AI" checked={settings.reactions} disabled={locked} onchange={(reactions) => changeSettings({ reactions })}/></div>
+  <section class="options" aria-label={tr("Ustawienia automatycznego tagowania")}>
+    <div class="option-row"><div><h2>{tr("Automatyczne tagowanie AI")}</h2><p>{tr("Dodawaj pauzy i reakcje dopasowane do treści narracji.")}</p></div><Switch label={tr("Automatyczne tagowanie AI")} checked={settings.enabled} disabled={locked} onchange={(enabled) => changeSettings({ enabled })}/></div>
+    <div class="field"><Select label={tr("Model językowy OpenAi")} value={settings.model} disabled={locked || !connection?.connected} onchange={(model) => changeSettings({ model })} options={models}/></div>
+    {#if selectedModelMissing}<p class="note" role="status">{tr("Zapisany model")} {settings.model} {tr("nie występuje w bieżącym katalogu. Wybierz dostępny model lub domyślny Codex i zapisz zmianę.")}</p>{/if}
+    <div class="field"><Select label={tr("Intensywność tagowania")} value={settings.intensity} disabled={locked} onchange={(intensity) => changeSettings({ intensity: intensity as AISettings['intensity'] })} options={[{value:'subtle',label:tr("Subtelna — głównie pauzy")},{value:'natural',label:tr("Naturalna — oszczędne reakcje")},{value:'expressive',label:tr("Ekspresyjna — więcej reakcji")}]}/></div>
+    <div class="option-row"><div><h2>{tr("Reakcje głosowe")}</h2><p>{tr("Pozwól AI dodać śmiech, westchnienia i krótkie wokalizacje. Po wyłączeniu dodaje tylko pauzy.")}</p></div><Switch label={tr("Reakcje głosowe AI")} checked={settings.reactions} disabled={locked} onchange={(reactions) => changeSettings({ reactions })}/></div>
   </section>
-  <p class="note">Tagi są dopasowane do OmniVoice. Wynik zachowuje słowa i interpunkcję; nieobsługiwane znaczniki i zmiany treści są odrzucane. Operację w edytorze możesz cofnąć.</p>
-  <div class="actions"><Button variant="default" disabled={locked} onclick={() => save()}><Check size={15}/>Zapisz ustawienia</Button><Button variant="outline" disabled={locked || !connection?.connected || !settings.enabled || selectedModelMissing} onclick={() => save(true)}>{#if busy}<LoaderCircle class="spin" size={15}/>{:else}<Sparkles size={15}/>{/if}{busy ? 'Oczekiwanie na Codex…' : 'Zapisz i przetestuj'}</Button></div>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}
-  {#if message}<p class="message" role="status">{message}</p>{/if}
-  {#if result}<section class="test-result" aria-label="Wynik testu AI"><h2>Test na Twojej subskrypcji</h2><p>Model: {result.model} · {result.seconds.toLocaleString('pl-PL')} s</p><h3>Przed</h3><pre>{result.input.join('\n\n')}</pre><h3>Po tagowaniu</h3><pre>{result.enhanced_blocks.join('\n\n')}</pre></section>{/if}
+  <p class="note">{tr("Tagi są dopasowane do OmniVoice. Wynik zachowuje słowa i interpunkcję; nieobsługiwane znaczniki i zmiany treści są odrzucane. Operację w edytorze możesz cofnąć.")}</p>
+  <div class="actions"><Button variant="default" disabled={locked} onclick={() => save()}><Check size={15}/>{tr("Zapisz ustawienia")}</Button><Button variant="outline" disabled={locked || !connection?.connected || !settings.enabled || selectedModelMissing} onclick={() => save(true)}>{#if busy}<LoaderCircle class="spin" size={15}/>{:else}<Sparkles size={15}/>{/if}{busy ? 'Oczekiwanie na Codex…' : tr("Zapisz i przetestuj")}</Button></div>
+  {#if error}<p class="error" role="alert">{tr(String(error))}</p>{/if}
+  {#if message}<p class="message" role="status">{tr(String(message))}</p>{/if}
+  {#if result}<section class="test-result" aria-label={tr("Wynik testu AI")}><h2>{tr("Test na Twojej subskrypcji")}</h2><p>{tr("Model:")} {result.model} · {result.seconds.toLocaleString(tr.locale)} {tr("s")}</p><h3>{tr("Przed")}</h3><pre>{result.input.join('\n\n')}</pre><h3>{tr("Po tagowaniu")}</h3><pre>{result.enhanced_blocks.join('\n\n')}</pre></section>{/if}
 </div>
 
 <style>

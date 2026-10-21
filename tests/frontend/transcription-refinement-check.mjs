@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 // Real transport/helper contracts with controlled data. No backend, ASR or LLM.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -7,7 +8,7 @@ import { compile } from 'svelte/compiler';
 const root = new URL('../../', import.meta.url);
 const source = await readFile(new URL('src/lib/tools/transcription/transcription.ts', root), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-const helpers = {}; new Function('exports', compiled)(helpers);
+const helpers = {}; new Function('exports','require',compiled)(helpers,i18nRequire);
 const { normalizeTranscription, transcriptionOutputText, exportTranscription, refinementNotice, readTranscriptionHistory, saveTranscriptionHistory, TRANSCRIPTION_HISTORY_KEY } = helpers;
 const checks = [];
 const test = async (name, run) => { await run(); checks.push(name); };

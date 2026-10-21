@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -14,13 +15,13 @@ async function load(filename, dependencies = {}, exposure = '') {
   if (exposure) source += `\nreturn {${exposure}};`;
   const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
   const exported = {};
-  return new Function('exports', ...Object.keys(dependencies), code)(exported, ...Object.values(dependencies)) ?? exported;
+  return new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(exported, ...Object.values({...i18nDeps,...dependencies})) ?? exported;
 }
 
 const sent = [];
 const audio = await load('voice-reference.ts');
 const api = await load('api.ts', {
-  isTauri: () => false,
+  isTauri: () => false, routeBackendPath: path => path, synchronizeRemoteRouting: async () => {}, publishRemoteState: () => {}, setRemoteRouting() {}, getRuntimeStatus: async () => ({ state: 'ready' }),
   referenceFileError: audio.referenceFileError,
   fetch: async (path, options) => { sent.push({ path, options }); return Response.json({ id: 'qa-voice', name: 'QA English' }); },
 });
@@ -49,7 +50,7 @@ assert.match(audio.referenceDurationWarning(90), /dług/i);
 let creations = 0, callbacks = 0;
 const props = Object.assign(() => ({ ready: true, oncancel() {}, oncreated: async () => { if (++callbacks === 1) throw new Error('QA library temporarily unavailable'); } }), { id: () => 'qa-clone' });
 const form = await load('VoiceCloneForm.svelte', {
-  $props: props, $state: value => value, onDestroy() {},
+  $props: props, $state: value => value, $effect() {}, $derived: Object.assign(value => value, { by: callback => callback() }), onDestroy() {},
   createVoice: async () => { creations++; return { id: 'qa-created' }; },
 }, 'save, setInput(value) { file = value; name = "QA retry" }, get error() { return error }');
 form.setInput(file);

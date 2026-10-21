@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { ArrowLeft, AudioLines, Mic, WandSparkles } from '@lucide/svelte';
   import type { Profile } from '../platform/api';
   import Button from '../ui/Button.svelte';
@@ -13,10 +18,10 @@
 </script>
 
 <section class="voice-create-page" aria-labelledby="voice-create-title">
-  <header class="voice-create-heading"><Button variant="ghost" size="sm" onclick={oncancel}><ArrowLeft size={16}/>Wróć</Button><div class="voice-create-title"><div class="voice-create-icon"><AudioLines size={24}/></div><div><h1 id="voice-create-title">Dodaj głos</h1><p>Wybierz sposób tworzenia i przygotuj głos do swojej biblioteki.</p></div></div></header>
+  <header class="voice-create-heading"><Button variant="ghost" size="sm" onclick={oncancel}><ArrowLeft size={16}/>{tr("Wróć")}</Button><div class="voice-create-title"><div class="voice-create-icon"><AudioLines size={24}/></div><div><h1 id="voice-create-title">{tr("Dodaj głos")}</h1><p>{tr("Wybierz sposób tworzenia i przygotuj głos do swojej biblioteki.")}</p></div></div></header>
   <div class="voice-create-layout">
-    <aside class="voice-create-guide" aria-label="Sposób tworzenia głosu"><h2>Sposób tworzenia</h2><ButtonGroup label="Sposób tworzenia głosu" mode="single" value={method} disabled={busy} onchange={value => { method = value === 'design' ? 'design' : 'clone'; }} items={[{ value: 'clone', label: 'Klonuj głos', icon: Mic }, { value: 'design', label: 'Zaprojektuj głos', icon: WandSparkles }]}/><p>{method === 'clone' ? 'Zachowaj brzmienie z nagrania. Wczytaj próbkę albo użyj mikrofonu i dodaj jej tekst.' : 'Stwórz nowe brzmienie bez nagrania. Wybierz barwę, wiek, wysokość głosu i sposób mówienia.'}</p><div class="voice-create-hint"><h3>{method === 'clone' ? 'Przygotuj próbkę' : 'Dobierz charakter'}</h3><p>{method === 'clone' ? 'Najlepiej sprawdza się 10–30 sekund wyraźnej mowy jednej osoby, bez muzyki i pogłosu.' : 'Zacznij od kilku cech. Pozostaw „Automatycznie” przy ustawieniach, których nie chcesz określać.'}</p></div></aside>
-    <div class="voice-create-form"><div class="voice-create-form-heading"><h2>{method === 'clone' ? 'Klonowanie głosu' : 'Projektowanie głosu'}</h2><p>{method === 'clone' ? 'Nagranie i dane nowego głosu' : 'Nazwa i cechy nowego brzmienia'}</p></div>{#if method === 'clone'}<VoiceCloneForm {ready} {oncreated} {oncancel} onbusychange={value => busy = value}/>{:else}<VoiceDesignForm {ready} {oncreated} {oncancel} onbusychange={value => busy = value}/>{/if}</div>
+    <aside class="voice-create-guide" aria-label={tr("Sposób tworzenia głosu")}><h2>{tr("Sposób tworzenia")}</h2><ButtonGroup label={tr("Sposób tworzenia głosu")} mode="single" value={method} disabled={busy} onchange={value => { method = value === 'design' ? 'design' : 'clone'; }} items={uiOptions([{ value: 'clone', label: 'Klonuj głos', icon: Mic }, { value: 'design', label: 'Zaprojektuj głos', icon: WandSparkles }])}/><p>{method === 'clone' ? tr("Zachowaj brzmienie z nagrania. Wczytaj próbkę albo użyj mikrofonu i dodaj jej tekst.") : tr("Stwórz nowe brzmienie bez nagrania. Wybierz barwę, wiek, wysokość głosu i sposób mówienia.")}</p><div class="voice-create-hint"><h3>{method === 'clone' ? tr("Przygotuj próbkę") : 'Dobierz charakter'}</h3><p>{method === 'clone' ? tr("Najlepiej sprawdza się 10–30 sekund wyraźnej mowy jednej osoby, bez muzyki i pogłosu.") : tr("Zacznij od kilku cech. Pozostaw „Automatycznie” przy ustawieniach, których nie chcesz określać.")}</p></div></aside>
+    <div class="voice-create-form"><div class="voice-create-form-heading"><h2>{method === 'clone' ? tr("Klonowanie głosu") : tr("Projektowanie głosu")}</h2><p>{method === 'clone' ? tr("Nagranie i dane nowego głosu") : 'Nazwa i cechy nowego brzmienia'}</p></div>{#if method === 'clone'}<VoiceCloneForm {ready} {oncreated} {oncancel} onbusychange={value => busy = value}/>{:else}<VoiceDesignForm {ready} {oncreated} {oncancel} onbusychange={value => busy = value}/>{/if}</div>
   </div>
 </section>
 

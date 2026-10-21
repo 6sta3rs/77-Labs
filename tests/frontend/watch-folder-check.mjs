@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -9,7 +10,7 @@ async function load(file, dependencies) {
   for (const node of [...parsed.statements].reverse()) if (ts.isImportDeclaration(node)) source = source.slice(0, node.pos) + source.slice(node.end);
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const result = {};
-  new Function('exports', ...Object.keys(dependencies), code)(result, ...Object.values(dependencies));
+  new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(result, ...Object.values({...i18nDeps,...dependencies}));
   return result;
 }
 const api = await load('automation.ts', { generate: () => { throw Error('No ML'); }, request: () => { throw Error('No HTTP'); }, prepareRequest: () => {}, productionJson: () => { throw Error('No HTTP'); }, postJson: () => {} });

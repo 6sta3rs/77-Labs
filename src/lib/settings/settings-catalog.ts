@@ -25,7 +25,7 @@ export const settingsSections = [
 
 export type SettingsSection = typeof settingsSections[number]['id'];
 
-export function findSettings(query: string) {
+export function findSettings(query: string, translate: (label: string) => string = label => label) {
   const normalized = query.trim().toLocaleLowerCase('pl');
-  return settingsSections.filter(item => item.label.toLocaleLowerCase('pl').includes(normalized));
+  return settingsSections.filter(item => translate(item.label).toLocaleLowerCase().includes(normalized));
 }

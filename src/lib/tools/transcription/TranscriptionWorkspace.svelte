@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import '../../ui/document-editor.css'
   import Button from '../../ui/Button.svelte';
   import AudioPreview from '../../playback/AudioPreview.svelte';
@@ -186,76 +189,76 @@
   onDestroy(() => { flushSave(); disposed = true; micRevision++; controller?.abort(); readinessController?.abort(); if (recorder) { recorder.onstop = null; recorder.ondataavailable = null; recorder.onerror = null; if (recorder.state !== 'inactive') recorder.stop() }; stopTracks(); releaseSource() })
 </script>
 
-<ToolWorkspace title="Mowa na tekst" description="Wczytaj plik lub nagraj mikrofon, popraw tekst i przygotuj napisy." bind:tab historyCount={results.length}>
+<ToolWorkspace title={tr("Mowa na tekst")} description={tr("Wczytaj plik lub nagraj mikrofon, popraw tekst i przygotuj napisy.")} bind:tab historyCount={results.length}>
   {#snippet content()}
     <div class="transcription-content">
-      {#if !ready}<p class="transcription-notice" role="status">Uruchom lokalny silnik w „Modele i silnik”, aby rozpoznać mowę. Nagrywanie mikrofonu jest dostępne bez silnika.</p>{/if}
+      {#if !ready}<p class="transcription-notice" role="status">{tr("Uruchom lokalny silnik w „Modele i silnik”, aby rozpoznać mowę. Nagrywanie mikrofonu jest dostępne bez silnika.")}</p>{/if}
       <label class="transcription-source" class:dragging class:has-file={Boolean(file)} class:disabled={busy || capturing}
         ondragover={event => { event.preventDefault(); if (!busy && !capturing) dragging = true }} ondragleave={() => dragging = false}
         ondrop={event => { event.preventDefault(); dragging = false; choose(event.dataTransfer?.files[0]) }}>
         <span class="source-icon">{#if file}<FileAudio size={23}/>{:else}<Upload size={23}/>{/if}</span>
-        <strong>{file?.name || 'Kliknij, aby wybrać nagranie, lub przeciągnij je tutaj'}</strong>
-        <span>{file ? `${(file.size / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : 'WAV, MP3, M4A, OGG lub FLAC · do 64 MB'}</span>
-        <input bind:this={input} type="file" aria-label="Nagranie do transkrypcji" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.opus,.webm" disabled={busy || capturing} onchange={event => choose(event.currentTarget.files?.[0])}/>
+        <strong>{file?.name || tr("Kliknij, aby wybrać nagranie, lub przeciągnij je tutaj")}</strong>
+        <span>{file ? `${(file.size / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : tr("WAV, MP3, M4A, OGG lub FLAC · do 64 MB")}</span>
+        <input bind:this={input} type="file" aria-label={tr("Nagranie do transkrypcji")} accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.opus,.webm" disabled={busy || capturing} onchange={event => choose(event.currentTarget.files?.[0])}/>
       </label>
       <div class="microphone-row">
-        {#if microphone === 'recording'}<Button variant="outline" class=" recording" onclick={stopRecording}><Square size={14}/>{ready ? 'Zatrzymaj i przepisz' : 'Zatrzymaj nagranie'}</Button><span role="status">Nagrywanie · {Math.floor(recordedSeconds / 60)}:{String(recordedSeconds % 60).padStart(2, '0')}</span>
-        {:else if capturing}<span class="transcription-notice" role="status"><LoaderCircle size={14} class="spin"/>{microphone === 'requesting' ? 'Oczekiwanie na zgodę na mikrofon…' : 'Kończenie nagrania…'}</span>{#if microphone === 'requesting'}<Button variant="ghost" onclick={() => { micRevision++; microphone = 'idle'; message = 'Anulowano oczekiwanie na mikrofon.' }}>Anuluj</Button>{/if}
-        {:else}<Button variant="outline" disabled={busy || modelBusy} onclick={startRecording}><Mic size={15}/>Nagraj mikrofon</Button>{/if}
+        {#if microphone === 'recording'}<Button variant="outline" class=" recording" onclick={stopRecording}><Square size={14}/>{ready ? 'Zatrzymaj i przepisz' : 'Zatrzymaj nagranie'}</Button><span role="status">{tr("Nagrywanie ·")} {Math.floor(recordedSeconds / 60)}:{String(recordedSeconds % 60).padStart(2, '0')}</span>
+        {:else if capturing}<span class="transcription-notice" role="status"><LoaderCircle size={14} class="spin"/>{microphone === 'requesting' ? tr("Oczekiwanie na zgodę na mikrofon…") : tr("Kończenie nagrania…")}</span>{#if microphone === 'requesting'}<Button variant="ghost" onclick={() => { micRevision++; microphone = 'idle'; message = 'Anulowano oczekiwanie na mikrofon.' }}>{tr("Anuluj")}</Button>{/if}
+        {:else}<Button variant="outline" disabled={busy || modelBusy} onclick={startRecording}><Mic size={15}/>{tr("Nagraj mikrofon")}</Button>{/if}
       </div>
-      <p class="tool-workspace-note">Transkrypcja mikrofonu zaczyna się po zatrzymaniu nagrania. Limit: 10 minut / 64 MB. Dyktowanie na żywo znajdziesz w osobnym narzędziu „Dyktowanie”; skrót globalny i pływające okno wymagają osobnego włączenia w aplikacji desktopowej.</p>
-      {#if sourceUrl}<div class="source-preview"><AudioPreview src={sourceUrl} title="Nagranie źródłowe"/><Button variant="ghost" size="icon" href={sourceUrl} download={file?.name || 'nagranie.webm'} aria-label="Pobierz nagranie źródłowe"><Download size={16}/></Button><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label="Usuń nagranie z tego widoku" onclick={clear}><X size={16}/></Button></div>{/if}
+      <p class="tool-workspace-note">{tr("Transkrypcja mikrofonu zaczyna się po zatrzymaniu nagrania. Limit: 10 minut / 64 MB. Dyktowanie na żywo znajdziesz w osobnym narzędziu „Dyktowanie”; skrót globalny i pływające okno wymagają osobnego włączenia w aplikacji desktopowej.")}</p>
+      {#if sourceUrl}<div class="source-preview"><AudioPreview src={sourceUrl} title={tr("Nagranie źródłowe")}/><Button variant="ghost" size="icon" href={sourceUrl} download={file?.name || 'nagranie.webm'} aria-label={tr("Pobierz nagranie źródłowe")}><Download size={16}/></Button><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label={tr("Usuń nagranie z tego widoku")} onclick={clear}><X size={16}/></Button></div>{/if}
       {#if refinement?.status === 'suggested'}
-        <section class="tool-workspace-section" aria-label="Porównanie redakcji LLM">
-          <h2>Redakcja tekstu przez LLM</h2>
-          <label for={`${uid}-original`}>Oryginał rozpoznania</label>
+        <section class="tool-workspace-section" aria-label={tr("Porównanie redakcji LLM")}>
+          <h2>{tr("Redakcja tekstu przez LLM")}</h2>
+          <label for={`${uid}-original`}>{tr("Oryginał rozpoznania")}</label>
           <textarea id={`${uid}-original`} class="transcription-editor transcript-summary vs-document-editor" value={refinement.originalText} readonly></textarea>
-          <label for={`${uid}-refined`}>Propozycja po redakcji</label>
+          <label for={`${uid}-refined`}>{tr("Propozycja po redakcji")}</label>
           <textarea id={`${uid}-refined`} class="transcription-editor transcript-summary vs-document-editor" value={refinement.refinedText} readonly></textarea>
-          <p class="tool-workspace-note">Sprawdź, czy redakcja zachowała znaczenie wypowiedzi. Możesz użyć jej w TXT i edytorze. Napisy SRT/VTT nadal korzystają z tekstu i czasów segmentów poniżej; redakcja nie ma przypisanych czasów.</p>
-          <div class="transcription-actions">{#if refinement.applied}<Button variant="outline" disabled={busy || capturing} onclick={() => applyRefinement(false)}>Cofnij użycie redakcji</Button>{:else}<Button variant="outline" disabled={busy || capturing} onclick={() => applyRefinement(true)}>Użyj redakcji w TXT i edytorze</Button>{/if}</div>
-          <p class="tool-workspace-note" role="status">{refinement.applied ? 'TXT i edytor używają propozycji po redakcji. Poprawki transkrypcji poniżej nadal są zapisywane; cofnięcie wróci do ich aktualnej wersji.' : 'TXT i edytor używają bieżącego tekstu transkrypcji. Propozycja nie została zastosowana.'}</p>
+          <p class="tool-workspace-note">{tr("Sprawdź, czy redakcja zachowała znaczenie wypowiedzi. Możesz użyć jej w TXT i edytorze. Napisy SRT/VTT nadal korzystają z tekstu i czasów segmentów poniżej; redakcja nie ma przypisanych czasów.")}</p>
+          <div class="transcription-actions">{#if refinement.applied}<Button variant="outline" disabled={busy || capturing} onclick={() => applyRefinement(false)}>{tr("Cofnij użycie redakcji")}</Button>{:else}<Button variant="outline" disabled={busy || capturing} onclick={() => applyRefinement(true)}>{tr("Użyj redakcji w TXT i edytorze")}</Button>{/if}</div>
+          <p class="tool-workspace-note" role="status">{refinement.applied ? tr("TXT i edytor używają propozycji po redakcji. Poprawki transkrypcji poniżej nadal są zapisywane; cofnięcie wróci do ich aktualnej wersji.") : tr("TXT i edytor używają bieżącego tekstu transkrypcji. Propozycja nie została zastosowana.")}</p>
         </section>
       {/if}
       {#if refinementMessage}<p class="transcription-notice" role="status">{refinementMessage}</p>{/if}
-      <div class="transcription-label"><label for={`${uid}-text`}>{segments.length ? 'Tekst z segmentów' : 'Transkrypcja'}</label><span>{canonicalText.length.toLocaleString('pl-PL')} znaków</span></div>
+      <div class="transcription-label"><label for={`${uid}-text`}>{segments.length ? tr("Tekst z segmentów") : 'Transkrypcja'}</label><span>{canonicalText.length.toLocaleString(tr.locale)} {tr("znaków")}</span></div>
       {#if segments.length}
         <textarea id={`${uid}-text`} class="transcription-editor transcript-summary vs-document-editor" value={canonicalText} readonly aria-describedby={`${uid}-segment-help`}></textarea>
-        <p id={`${uid}-segment-help`} class="tool-workspace-note">Popraw tekst i czasy w segmentach poniżej. {refinement?.applied ? 'SRT i VTT korzystają z tych zmian; TXT używa wybranej propozycji po redakcji.' : 'TXT, SRT i VTT korzystają z tych samych zmian.'} Czasy podano w sekundach.</p>
+        <p id={`${uid}-segment-help`} class="tool-workspace-note">{tr("Popraw tekst i czasy w segmentach poniżej.")} {refinement?.applied ? tr("SRT i VTT korzystają z tych zmian; TXT używa wybranej propozycji po redakcji.") : tr("TXT, SRT i VTT korzystają z tych samych zmian.")} {tr("Czasy podano w sekundach.")}</p>
         <div class="transcription-segments">
           {#each segments.slice(page * pageSize, (page + 1) * pageSize) as segment, offset}
             {@const index = page * pageSize + offset}
-            <article class="transcription-segment"><header><strong>Segment {index + 1}</strong><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label={`Usuń segment ${index + 1}`} onclick={() => removeSegment(index)}><Trash2 size={14}/></Button></header><div class="segment-times"><label>Początek <input aria-label={`Początek segmentu ${index + 1} w sekundach`} type="number" min="0" step="0.001" value={Number.isFinite(segment.start) ? segment.start : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { start: event.currentTarget.valueAsNumber })}/></label><label>Koniec <input aria-label={`Koniec segmentu ${index + 1} w sekundach`} type="number" min="0" step="0.001" value={Number.isFinite(segment.end) ? segment.end : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { end: event.currentTarget.valueAsNumber })}/></label></div><textarea class="text-input" aria-label={`Tekst segmentu ${index + 1}`} value={segment.text} disabled={busy || capturing} rows="2" oninput={event => changeSegment(index, { text: event.currentTarget.value })}></textarea></article>
+            <article class="transcription-segment"><header><strong>{tr("Segment")} {index + 1}</strong><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label={tr("Usuń segment {arg0}", { arg0: String(index + 1) })} onclick={() => removeSegment(index)}><Trash2 size={14}/></Button></header><div class="segment-times"><label>{tr("Początek")} <input aria-label={tr("Początek segmentu {arg0} w sekundach", { arg0: String(index + 1) })} type="number" min="0" step="0.001" value={Number.isFinite(segment.start) ? segment.start : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { start: event.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec")} <input aria-label={tr(String(`Koniec segmentu ${index + 1} w sekundach`))} type="number" min="0" step="0.001" value={Number.isFinite(segment.end) ? segment.end : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { end: event.currentTarget.valueAsNumber })}/></label></div><textarea class="text-input" aria-label={tr("Tekst segmentu {arg0}", { arg0: String(index + 1) })} value={segment.text} disabled={busy || capturing} rows="2" oninput={event => changeSegment(index, { text: event.currentTarget.value })}></textarea></article>
           {/each}
         </div>
-        {#if pages > 1}<nav class="segment-pagination" aria-label="Strony segmentów"><Button variant="outline" disabled={page === 0} onclick={() => page--}><ChevronLeft size={14}/>Poprzednie</Button><span>{page + 1} / {pages}</span><Button variant="outline" disabled={page >= pages - 1} onclick={() => page++}>Następne<ChevronRight size={14}/></Button></nav>{/if}
-      {:else}<textarea id={`${uid}-text`} class="transcription-editor vs-document-editor" value={text} disabled={busy || capturing} oninput={event => { text = event.currentTarget.value; changed() }} placeholder="Tutaj pojawi się rozpoznany tekst. Możesz go poprawić przed pobraniem lub otwarciem w edytorze."></textarea>{/if}
+        {#if pages > 1}<nav class="segment-pagination" aria-label={tr("Strony segmentów")}><Button variant="outline" disabled={page === 0} onclick={() => page--}><ChevronLeft size={14}/>{tr("Poprzednie")}</Button><span>{page + 1} / {pages}</span><Button variant="outline" disabled={page >= pages - 1} onclick={() => page++}>{tr("Następne")}<ChevronRight size={14}/></Button></nav>{/if}
+      {:else}<textarea id={`${uid}-text`} class="transcription-editor vs-document-editor" value={text} disabled={busy || capturing} oninput={event => { text = event.currentTarget.value; changed() }} placeholder={tr("Tutaj pojawi się rozpoznany tekst. Możesz go poprawić przed pobraniem lub otwarciem w edytorze.")}></textarea>{/if}
       {#if timingError}<p class="transcription-error" role="alert">{timingError}</p>{/if}
-      {#if error}<p class="transcription-error" role="alert">{error}</p>{/if}
-      {#if message}<p class="transcription-notice" role="status">{message}</p>{/if}
+      {#if error}<p class="transcription-error" role="alert">{tr(String(error))}</p>{/if}
+      {#if message}<p class="transcription-notice" role="status">{tr(String(message))}</p>{/if}
       {#if saved}<p class:transcription-error={saveFailed} class:transcription-notice={!saveFailed} role="status">{saved}</p>{/if}
-      {#if busy}<p class="transcription-notice" role="status"><LoaderCircle size={14} class="spin"/>Rozpoznawanie mowy… Pierwsze wczytanie modelu może potrwać dłużej.</p>{/if}
+      {#if busy}<p class="transcription-notice" role="status"><LoaderCircle size={14} class="spin"/>{tr("Rozpoznawanie mowy… Pierwsze wczytanie modelu może potrwać dłużej.")}</p>{/if}
     </div>
   {/snippet}
   {#snippet settings()}
-    <section class="tool-workspace-section"><h2>Rozpoznawanie</h2><ToolModelSettings {ready} disabled={busy || capturing} family="asr" bind:busy={modelBusy}/></section>
-    <Select label="Preferowany język · wskazówka" value={language} onchange={next => language = next} options={[{ value: 'auto', label: 'Wykryj automatycznie' }, { value: 'pl', label: 'Polski' }, { value: 'en', label: 'Angielski' }, { value: 'de', label: 'Niemiecki' }, { value: 'fr', label: 'Francuski' }, { value: 'es', label: 'Hiszpański' }, { value: 'it', label: 'Włoski' }, { value: 'uk', label: 'Ukraiński' }]} disabled={busy || capturing}/>
-    <p class="tool-workspace-note">Obecny backend wykrywa język automatycznie i może pominąć wskazówkę. Przy wyniku zapisujemy język rozpoznany przez silnik.</p>
-    <Select label="Tryb transkrypcji" value={mode} onchange={next => mode = next} options={modeOptions} disabled={busy || capturing}/>
-    <section class="tool-workspace-section"><h2>Redakcja tekstu</h2><div class="transcription-label"><span>Poproś LLM o redakcję po rozpoznaniu</span><Switch label="Redakcja transkrypcji przez LLM" checked={refine} onchange={value => refine = value} disabled={busy || capturing}/></div><p class="tool-workspace-note">Domyślnie wyłączone. Używa LLM wcześniej wskazanego w ustawieniach i jego zasad redakcji; tekst może trafić do skonfigurowanego dostawcy. Nie zmienia konfiguracji LLM. Wynik zatwierdzisz po porównaniu z oryginałem.</p></section>
-    {#if mode === 'fast'}<p class="tool-workspace-note">Tryb szybki automatycznie wybiera model dyktowania. Pozostałe tryby korzystają z wybranego ASR. Nie każdy silnik zwraca segmenty lub czasy słów.</p>{/if}
+    <section class="tool-workspace-section"><h2>{tr("Rozpoznawanie")}</h2><ToolModelSettings {ready} disabled={busy || capturing} family="asr" bind:busy={modelBusy}/></section>
+    <Select label={tr("Preferowany język · wskazówka")} value={language} onchange={next => language = next} options={[{ value: 'auto', label: 'Wykryj automatycznie' }, { value: 'pl', label: tr("Polski") }, { value: 'en', label: 'Angielski' }, { value: 'de', label: 'Niemiecki' }, { value: 'fr', label: 'Francuski' }, { value: 'es', label: tr("Hiszpański") }, { value: 'it', label: tr("Włoski") }, { value: 'uk', label: tr("Ukraiński") }]} disabled={busy || capturing}/>
+    <p class="tool-workspace-note">{tr("Obecny backend wykrywa język automatycznie i może pominąć wskazówkę. Przy wyniku zapisujemy język rozpoznany przez silnik.")}</p>
+    <Select label={tr("Tryb transkrypcji")} value={mode} onchange={next => mode = next} options={modeOptions.map(option=>({...option,label:tr(option.label)}))} disabled={busy || capturing}/>
+    <section class="tool-workspace-section"><h2>{tr("Redakcja tekstu")}</h2><div class="transcription-label"><span>{tr("Poproś LLM o redakcję po rozpoznaniu")}</span><Switch label={tr("Redakcja transkrypcji przez LLM")} checked={refine} onchange={value => refine = value} disabled={busy || capturing}/></div><p class="tool-workspace-note">{tr("Domyślnie wyłączone. Używa LLM wcześniej wskazanego w ustawieniach i jego zasad redakcji; tekst może trafić do skonfigurowanego dostawcy. Nie zmienia konfiguracji LLM. Wynik zatwierdzisz po porównaniu z oryginałem.")}</p></section>
+    {#if mode === 'fast'}<p class="tool-workspace-note">{tr("Tryb szybki automatycznie wybiera model dyktowania. Pozostałe tryby korzystają z wybranego ASR. Nie każdy silnik zwraca segmenty lub czasy słów.")}</p>{/if}
     {#if readinessNotice}<p class="tool-workspace-note" role="status">{readinessNotice}</p>{/if}
-    <section class="tool-workspace-section"><h2>Eksport</h2><div class="transcription-exports"><Button variant="outline" disabled={!outputText.trim() || busy || !!timingError} onclick={() => exportText('txt')}><Download size={14}/>{refinement?.applied ? 'Tekst TXT po redakcji' : 'Tekst TXT'}</Button><Button variant="outline" disabled={!segments.length || busy || !!timingError} onclick={() => exportText('srt')}>Napisy SRT</Button><Button variant="outline" disabled={!segments.length || busy || !!timingError} onclick={() => exportText('vtt')}>Napisy VTT</Button></div><p class="tool-workspace-note">TXT zawiera wybraną wersję tekstu. SRT/VTT zachowują aktualny tekst segmentów i wymagają poprawnych czasów. Nagranie źródłowe pobierzesz przy odtwarzaczu.</p></section>
+    <section class="tool-workspace-section"><h2>{tr("Eksport")}</h2><div class="transcription-exports"><Button variant="outline" disabled={!outputText.trim() || busy || !!timingError} onclick={() => exportText('txt')}><Download size={14}/>{refinement?.applied ? tr("Tekst TXT po redakcji") : tr("Tekst TXT")}</Button><Button variant="outline" disabled={!segments.length || busy || !!timingError} onclick={() => exportText('srt')}>{tr("Napisy SRT")}</Button><Button variant="outline" disabled={!segments.length || busy || !!timingError} onclick={() => exportText('vtt')}>{tr("Napisy VTT")}</Button></div><p class="tool-workspace-note">{tr("TXT zawiera wybraną wersję tekstu. SRT/VTT zachowują aktualny tekst segmentów i wymagają poprawnych czasów. Nagranie źródłowe pobierzesz przy odtwarzaczu.")}</p></section>
   {/snippet}
   {#snippet history()}
-    <p class="tool-workspace-note">Na tym urządzeniu zapisujemy do 20 wyników, łącznie do 1 MB. Najstarsze zapisy ustępują miejsca nowym. Historia obejmuje tekst, poprawione segmenty, czasy i decyzję o redakcji z oryginałem; nie zapisuje plików audio.</p>
+    <p class="tool-workspace-note">{tr("Na tym urządzeniu zapisujemy do 20 wyników, łącznie do 1 MB. Najstarsze zapisy ustępują miejsca nowym. Historia obejmuje tekst, poprawione segmenty, czasy i decyzję o redakcji z oryginałem; nie zapisuje plików audio.")}</p>
     {#if saved}<p class:transcription-error={saveFailed} class:transcription-notice={!saveFailed} role="status">{saved}</p>{/if}
-    {#each results as result (result.id)}<article class="tool-workspace-history-item"><strong>{result.name}</strong><small>{new Date(result.updated).toLocaleString('pl-PL')} · {result.language.toUpperCase()} · {result.text.length.toLocaleString('pl-PL')} znaków</small><p class="transcription-excerpt">{result.text.slice(0, 180) || 'Nie rozpoznano mowy.'}</p><div class="transcription-actions"><Button variant="outline" disabled={busy || capturing} onclick={() => restore(result)}>Otwórz wynik</Button><Button variant="ghost" disabled={busy || capturing} onclick={() => deleteResult(result.id)}>Usuń zapis</Button></div></article>{/each}
-    {#if !results.length}<p class="tool-workspace-empty">Rozpoznane wypowiedzi pojawią się tutaj.</p>{/if}
+    {#each results as result (result.id)}<article class="tool-workspace-history-item"><strong>{result.name}</strong><small>{new Date(result.updated).toLocaleString(tr.locale)} · {result.language.toUpperCase()} · {result.text.length.toLocaleString(tr.locale)} {tr("znaków")}</small><p class="transcription-excerpt">{result.text.slice(0, 180) || tr("Nie rozpoznano mowy.")}</p><div class="transcription-actions"><Button variant="outline" disabled={busy || capturing} onclick={() => restore(result)}>{tr("Otwórz wynik")}</Button><Button variant="ghost" disabled={busy || capturing} onclick={() => deleteResult(result.id)}>{tr("Usuń zapis")}</Button></div></article>{/each}
+    {#if !results.length}<p class="tool-workspace-empty">{tr("Rozpoznane wypowiedzi pojawią się tutaj.")}</p>{/if}
   {/snippet}
   {#snippet actions()}
-    <span class="tool-workspace-note">{segments.length ? `Segmenty z czasami: ${segments.length}` : 'Transkrypcja po przesłaniu nagrania'}</span>
-    <div class="transcription-actions"><Button variant="outline" disabled={!outputText.trim() || busy || capturing} onclick={() => ontext(outputText)}>Otwórz w edytorze</Button>{#if busy}<Button variant="outline" onclick={() => controller?.abort()}>Przerwij oczekiwanie</Button>{:else}<Button variant="default" disabled={!file || locked || mode === 'fast' && fastReady === false} onclick={run}>Przepisz nagranie</Button>{/if}</div>
+    <span class="tool-workspace-note">{segments.length ? `Segmenty z czasami: ${segments.length}` : tr("Transkrypcja po przesłaniu nagrania")}</span>
+    <div class="transcription-actions"><Button variant="outline" disabled={!outputText.trim() || busy || capturing} onclick={() => ontext(outputText)}>{tr("Otwórz w edytorze")}</Button>{#if busy}<Button variant="outline" onclick={() => controller?.abort()}>{tr("Przerwij oczekiwanie")}</Button>{:else}<Button variant="default" disabled={!file || locked || mode === 'fast' && fastReady === false} onclick={run}>{tr("Przepisz nagranie")}</Button>{/if}</div>
   {/snippet}
 </ToolWorkspace>
 

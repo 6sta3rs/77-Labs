@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { onMount } from 'svelte';
   import { Download, X, Check, Cpu } from '@lucide/svelte';
@@ -35,23 +38,23 @@
   });
 </script>
 
-<section class="runtime-install" aria-label="Instalacja samodzielnego środowiska">
-  <h2><Cpu size={18}/> Samodzielne środowisko Python</h2>
-  <p>Przygotuj osobne środowisko silnika Seventy Seven Labs bez wcześniejszej instalacji. Istniejący silnik pozostaje zachowany. Wagi modeli pobiera się osobno w katalogu modeli.</p>
-  {#if !available}<p class="runtime-install-note">Instalator jest dostępny w aplikacji Windows x64.</p>{:else}
-    <Select ariaLabel="Wariant środowiska" bind:value={profile} options={[{ value: 'cpu', label: 'CPU — bez karty NVIDIA' }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]} disabled={active || acting}/>
-    <p class="runtime-install-note">{profile === 'cpu' ? 'CPU: kilka GB pobierania, wymagane co najmniej 20 GB wolnego miejsca. Generowanie będzie wolniejsze.' : 'CUDA: kilka–kilkanaście GB pobierania i co najmniej 35 GB wolnego miejsca. Wymaga zgodnej karty NVIDIA i sterownika obsługującego CUDA 12.8.'} To szacunek dla bibliotek, bez wag modeli.</p>
-    <p class="runtime-install-note">Instalator pobierze przypięty uv i CPython, zweryfikuje źródła oraz zainstaluje zależności jako osobne kopie. Nie zmienia globalnego Pythona ani PATH. Aktywacja jest osobną czynnością po pomyślnym teście uruchomienia.</p>
-    {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
+<section class="runtime-install" aria-label={tr("Instalacja samodzielnego środowiska")}>
+  <h2><Cpu size={18}/> {tr("Samodzielne środowisko Python")}</h2>
+  <p>{tr("Przygotuj osobne środowisko silnika Seventy Seven Labs bez wcześniejszej instalacji. Istniejący silnik pozostaje zachowany. Wagi modeli pobiera się osobno w katalogu modeli.")}</p>
+  {#if !available}<p class="runtime-install-note">{tr("Instalator jest dostępny w aplikacji Windows x64.")}</p>{:else}
+    <Select ariaLabel={tr("Wariant środowiska")} bind:value={profile} options={[{ value: 'cpu', label: tr('CPU — bez karty NVIDIA') }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]} disabled={active || acting}/>
+    <p class="runtime-install-note">{profile === 'cpu' ? tr("CPU: kilka GB pobierania, wymagane co najmniej 20 GB wolnego miejsca. Generowanie będzie wolniejsze.") : tr("CUDA: kilka–kilkanaście GB pobierania i co najmniej 35 GB wolnego miejsca. Wymaga zgodnej karty NVIDIA i sterownika obsługującego CUDA 12.8.")} {tr("To szacunek dla bibliotek, bez wag modeli.")}</p>
+    <p class="runtime-install-note">{tr("Instalator pobierze przypięty uv i CPython, zweryfikuje źródła oraz zainstaluje zależności jako osobne kopie. Nie zmienia globalnego Pythona ani PATH. Aktywacja jest osobną czynnością po pomyślnym teście uruchomienia.")}</p>
+    {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
     {#if status}
-      <div class="runtime-install-status" role="status"><strong>{phases[status.phase] || status.phase}</strong><span>{status.message}</span>{#if status.candidate}<code>{status.candidate}</code>{/if}</div>
-      {#if active}{#if status.phase === 'uv' && status.totalBytes}<progress max={status.totalBytes} value={status.downloadedBytes} aria-label="Pobieranie uv"></progress><small>{byteLabel(status.downloadedBytes)} / {byteLabel(status.totalBytes)}</small>{:else}<progress aria-label="Instalacja środowiska"></progress>{/if}{/if}
-      {#if status.logs.length}<details><summary>Dziennik instalacji</summary><pre>{status.logs.join('\n')}</pre></details>{/if}
+      <div class="runtime-install-status" role="status"><strong>{tr(phases[status.phase] || status.phase)}</strong><span>{tr(String(status.message))}</span>{#if status.candidate}<code>{status.candidate}</code>{/if}</div>
+      {#if active}{#if status.phase === 'uv' && status.totalBytes}<progress max={status.totalBytes} value={status.downloadedBytes} aria-label={tr("Pobieranie uv")}></progress><small>{byteLabel(status.downloadedBytes)} / {byteLabel(status.totalBytes)}</small>{:else}<progress aria-label={tr("Instalacja środowiska")}></progress>{/if}{/if}
+      {#if status.logs.length}<details><summary>{tr("Dziennik instalacji")}</summary><pre>{status.logs.join('\n')}</pre></details>{/if}
     {/if}
     <div class="runtime-install-actions">
-      {#if active}<Button variant="outline" disabled={acting || status?.state === 'cancelling'} onclick={() => action(runtimeInstaller.cancel)}><X size={15}/>Anuluj instalację</Button>
-      {:else}<Button variant="outline" disabled={acting} onclick={() => action(() => runtimeInstaller.start(profile))}><Download size={15}/>{status && ['failed', 'cancelled', 'interrupted'].includes(status.state) ? 'Ponów w nowym środowisku' : 'Pobierz i przygotuj środowisko'}</Button>{/if}
-      {#if status?.state === 'ready'}<Button variant="default" disabled={acting || !runtimeStopped} onclick={() => action(async () => { const result = await runtimeInstaller.activate(); await onactivated?.(); return result; })}><Check size={15}/>Użyj tego środowiska</Button>{#if !runtimeStopped}<span>Zatrzymaj silnik przed aktywacją.</span>{/if}{/if}
+      {#if active}<Button variant="outline" disabled={acting || status?.state === 'cancelling'} onclick={() => action(runtimeInstaller.cancel)}><X size={15}/>{tr("Anuluj instalację")}</Button>
+      {:else}<Button variant="outline" disabled={acting} onclick={() => action(() => runtimeInstaller.start(profile))}><Download size={15}/>{status && ['failed', 'cancelled', 'interrupted'].includes(status.state) ? tr("Ponów w nowym środowisku") : tr("Pobierz i przygotuj środowisko")}</Button>{/if}
+      {#if status?.state === 'ready'}<Button variant="default" disabled={acting || !runtimeStopped} onclick={() => action(async () => { const result = await runtimeInstaller.activate(); await onactivated?.(); return result; })}><Check size={15}/>{tr("Użyj tego środowiska")}</Button>{#if !runtimeStopped}<span>{tr("Zatrzymaj silnik przed aktywacją.")}</span>{/if}{/if}
     </div>
   {/if}
 </section>

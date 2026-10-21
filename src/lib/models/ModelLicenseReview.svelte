@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import { onDestroy, untrack } from 'svelte'
   import { ExternalLink, FileCheck, LoaderCircle, RefreshCw, X } from '@lucide/svelte'
@@ -25,7 +28,7 @@
     { key: 'id', label: 'Id wariantu' }, { key: 'label', label: 'Nazwa' }, { key: 'license_category', label: 'Kategoria' },
     { key: 'commercial_inference', label: 'Użycie komercyjne modelu' }, { key: 'commercial_outputs', label: 'Komercyjne użycie wyników' },
   ]
-  function date(value?: string | null) { if (!value) return 'Brak daty w starszym zapisie'; const parsed = new Date(value); return Number.isFinite(parsed.getTime()) ? parsed.toLocaleString('pl-PL') : value }
+  function date(value?: string | null) { if (!value) return tr('Brak daty w starszym zapisie'); const parsed = new Date(value); return Number.isFinite(parsed.getTime()) ? parsed.toLocaleString(tr.locale) : value }
   async function openSource(value: unknown) {
     const url = licenseLink(value)
     if (!url) { error = 'Brak poprawnego adresu HTTPS źródła warunków.'; return }
@@ -78,29 +81,29 @@
   onDestroy(() => { disposed = true; controller?.abort(); if (busy) { busy = false; onbusychange?.(false) } })
 </script>
 
-<section class="model-license-review" aria-label={`Warunki modelu ${repoId}`}>
-  <header><FileCheck size={20}/><div><h2>Warunki modelu</h2><code>{repoId}</code></div>{#if onclose}<Button variant="ghost" size="icon" aria-label="Zamknij warunki modelu" disabled={busy} onclick={onclose}><X size={16}/></Button>{/if}</header>
-  <p>Decyzja dotyczy jednego modelu i wskazanej wersji warunków. Aplikacja zapisuje ją lokalnie; nie przyznaje dodatkowych praw ani dostępu od dostawcy.</p>
-  <Button variant="outline" disabled={locked} onclick={load}><RefreshCw size={14}/>Odśwież warunki i stan</Button>
-  {#if loading || busy}<p role="status"><LoaderCircle size={14} class="spin"/>{busy ? 'Zapisywanie jawnej decyzji…' : 'Odczytywanie informacji o modelu…'}</p>{/if}
-  {#if !ready}<p role="status">Uruchom prywatny silnik, aby odczytać jego rejestr licencji.</p>{/if}
+<section class="model-license-review" aria-label={tr(String(`Warunki modelu ${repoId}`))}>
+  <header><FileCheck size={20}/><div><h2>{tr("Warunki modelu")}</h2><code>{repoId}</code></div>{#if onclose}<Button variant="ghost" size="icon" aria-label={tr("Zamknij warunki modelu")} disabled={busy} onclick={onclose}><X size={16}/></Button>{/if}</header>
+  <p>{tr("Decyzja dotyczy jednego modelu i wskazanej wersji warunków. Aplikacja zapisuje ją lokalnie; nie przyznaje dodatkowych praw ani dostępu od dostawcy.")}</p>
+  <Button variant="outline" disabled={locked} onclick={load}><RefreshCw size={14}/>{tr("Odśwież warunki i stan")}</Button>
+  {#if loading || busy}<p role="status"><LoaderCircle size={14} class="spin"/>{busy ? tr('Zapisywanie jawnej decyzji…') : tr('Odczytywanie informacji o modelu…')}</p>{/if}
+  {#if !ready}<p role="status">{tr("Uruchom prywatny silnik, aby odczytać jego rejestr licencji.")}</p>{/if}
   {#if details}
-    <div class="license-status"><strong>{licenseStateLabel(details.acceptance.state)}</strong><span>{licenseCategoryLabel(details.acceptance.category)}</span></div>
-    <h3>Deklaracja licencji w rejestrze</h3><p class="license-original">{licenseText(details.info.license)}</p>
-    {#if details.acceptance.category === 'unknown' || String(details.info.license).toUpperCase().includes('NOASSERTION')}<p class="license-notice">Rejestr zwraca nieustalone warunki lub NOASSERTION. Panel nie potwierdza dozwolonych zastosowań tego modelu. Poniższe źródła pozostają podstawą Twojej decyzji.</p>{/if}
-    <h3>Autorzy i wymagane uznanie</h3><p class="license-original">{licenseText(details.info.credit)}</p>
-    <h3>Uwagi z rejestru upstream</h3><p class="license-original">{licenseText(details.info.notes)}</p>
-    <div class="license-links">{#each [{ key: 'source_url', label: 'Repozytorium modelu' }, { key: 'evidence_url', label: 'Wskazane źródło warunków' }] as link}{#if licenseLink(details.info[link.key])}<a href={licenseLink(details.info[link.key])} target="_blank" rel="noreferrer" onclick={event => { event.preventDefault(); void openSource(details!.info[link.key]) }}>{link.label}<ExternalLink size={13}/><small>{licenseText(details.info[link.key])}</small></a>{:else}<p>{link.label}: {licenseText(details.info[link.key])}</p>{/if}{/each}</div>
-    <p>Ten endpoint przekazuje deklaracje i odnośniki, bez pełnego tekstu dokumentów licencji. Przed potwierdzeniem zapoznaj się z podanymi źródłami. Klasyfikacja rejestru nie zastępuje ich treści.</p>
-    <h3>Szczegóły warunków i kompletności</h3><dl>{#each disclosures as field}<dt>{field.label}</dt><dd>{licenseText(details.info[field.key])}</dd>{/each}</dl>
-    {#if details.info.variants?.length}<h3>Warianty i ich odrębne warunki</h3>{#each details.info.variants as variant}<article class="license-variant"><dl>{#each variantFields as field}<dt>{field.label}</dt><dd>{licenseText(variant[field.key])}</dd>{/each}</dl>{#if licenseLink(variant.evidence_url)}<a href={licenseLink(variant.evidence_url)} target="_blank" rel="noreferrer" onclick={event => { event.preventDefault(); void openSource(variant.evidence_url) }}>Źródło warunków wariantu<ExternalLink size={13}/></a>{:else}<p>Źródło: {licenseText(variant.evidence_url)}</p>{/if}<dl>{#each ['license', 'license_status', 'output_terms'] as key}<dt>Obserwacja źródłowa: {key}</dt><dd class="license-original">{licenseText(variant.observations?.[key])}</dd>{/each}</dl></article>{/each}{/if}
-    {#if details.acceptance.state === 'terms_updated'}<p class="license-notice">Poprzednia decyzja nie obejmuje aktualnych warunków. Zmienione pola: {licenseText(details.acceptance.changed_fields)}.</p>{/if}
-    <details><summary>Wersje i odcisk warunków</summary><dl>{#each revisions as field}<dt>{field.label}</dt><dd><code>{licenseText(details.info[field.key])}</code></dd>{/each}<dt>Odcisk warunków do potwierdzenia</dt><dd><code>{details.acceptance.fingerprint}</code></dd></dl><p>Backend sprawdza ten odcisk przy zapisie. Zmiana warunków wymaga ich ponownego odczytania i nowej decyzji.</p></details>
-    {#if details.acceptance.required && !details.acceptance.accepted}<label class="license-confirm" for={`${uid}-agree`}><input id={`${uid}-agree`} type="checkbox" bind:checked={agreed} disabled={locked}/>Zapoznałem się z powyższymi informacjami i wskazanymi warunkami. Potwierdzam, że mam uprawnienia wymagane do planowanego użycia tego modelu.</label><Button variant="default" disabled={locked || !agreed} onclick={() => decide('accept')}>Zapisz moje potwierdzenie dla tego modelu</Button>{/if}
-    {#if details.acceptance.state === 'accepted'}{#if withdrawing}<p class="license-notice">Cofnąć potwierdzenie tylko dla {details.repo_id}? Backend ponownie zablokuje użycie wymagające tych warunków.</p><div class="license-actions"><Button variant="outline" disabled={locked} onclick={() => decide('revoke')}>Potwierdzam cofnięcie</Button><Button variant="ghost" disabled={locked} onclick={() => withdrawing = false}>Zachowaj potwierdzenie</Button></div>{:else}<Button variant="ghost" disabled={locked} onclick={() => withdrawing = true}>Cofnij moje potwierdzenie tego modelu</Button>{/if}{/if}
-    <details><summary>Historia lokalnych decyzji ({details.history.length})</summary>{#each details.history as entry}<article class="license-history"><strong>{entry.action === 'accepted' ? 'Potwierdzono warunki' : entry.action === 'withdrawn' ? 'Cofnięto potwierdzenie' : entry.action}</strong><span>{date(entry.at)} · wersja aplikacji: {entry.app_version || 'niezapisana'}</span><code>{entry.fingerprint || 'brak odcisku w starszym zapisie'}</code></article>{/each}{#if !details.history.length}<p>Brak zapisanych decyzji.</p>{/if}</details>
+    <div class="license-status"><strong>{tr(licenseStateLabel(details.acceptance.state))}</strong><span>{tr(licenseCategoryLabel(details.acceptance.category))}</span></div>
+    <h3>{tr("Deklaracja licencji w rejestrze")}</h3><p class="license-original">{licenseText(details.info.license)}</p>
+    {#if details.acceptance.category === 'unknown' || String(details.info.license).toUpperCase().includes('NOASSERTION')}<p class="license-notice">{tr("Rejestr zwraca nieustalone warunki lub NOASSERTION. Panel nie potwierdza dozwolonych zastosowań tego modelu. Poniższe źródła pozostają podstawą Twojej decyzji.")}</p>{/if}
+    <h3>{tr("Autorzy i wymagane uznanie")}</h3><p class="license-original">{licenseText(details.info.credit)}</p>
+    <h3>{tr("Uwagi z rejestru upstream")}</h3><p class="license-original">{licenseText(details.info.notes)}</p>
+    <div class="license-links">{#each [{ key: 'source_url', label: 'Repozytorium modelu' }, { key: 'evidence_url', label: 'Wskazane źródło warunków' }] as link}{#if licenseLink(details.info[link.key])}<a href={licenseLink(details.info[link.key])} target="_blank" rel="noreferrer" onclick={event => { event.preventDefault(); void openSource(details!.info[link.key]) }}>{tr(String(link.label))}<ExternalLink size={13}/><small>{licenseText(details.info[link.key])}</small></a>{:else}<p>{tr(String(link.label))}: {licenseText(details.info[link.key])}</p>{/if}{/each}</div>
+    <p>{tr("Ten endpoint przekazuje deklaracje i odnośniki, bez pełnego tekstu dokumentów licencji. Przed potwierdzeniem zapoznaj się z podanymi źródłami. Klasyfikacja rejestru nie zastępuje ich treści.")}</p>
+    <h3>{tr("Szczegóły warunków i kompletności")}</h3><dl>{#each disclosures as field}<dt>{tr(String(field.label))}</dt><dd>{licenseText(details.info[field.key])}</dd>{/each}</dl>
+    {#if details.info.variants?.length}<h3>{tr("Warianty i ich odrębne warunki")}</h3>{#each details.info.variants as variant}<article class="license-variant"><dl>{#each variantFields as field}<dt>{tr(String(field.label))}</dt><dd>{licenseText(variant[field.key])}</dd>{/each}</dl>{#if licenseLink(variant.evidence_url)}<a href={licenseLink(variant.evidence_url)} target="_blank" rel="noreferrer" onclick={event => { event.preventDefault(); void openSource(variant.evidence_url) }}>{tr("Źródło warunków wariantu")}<ExternalLink size={13}/></a>{:else}<p>{tr("Źródło:")} {licenseText(variant.evidence_url)}</p>{/if}<dl>{#each ['license', 'license_status', 'output_terms'] as key}<dt>{tr("Obserwacja źródłowa:")} {key}</dt><dd class="license-original">{licenseText(variant.observations?.[key])}</dd>{/each}</dl></article>{/each}{/if}
+    {#if details.acceptance.state === 'terms_updated'}<p class="license-notice">{tr("Poprzednia decyzja nie obejmuje aktualnych warunków. Zmienione pola:")} {licenseText(details.acceptance.changed_fields)}.</p>{/if}
+    <details><summary>{tr("Wersje i odcisk warunków")}</summary><dl>{#each revisions as field}<dt>{tr(String(field.label))}</dt><dd><code>{licenseText(details.info[field.key])}</code></dd>{/each}<dt>{tr("Odcisk warunków do potwierdzenia")}</dt><dd><code>{details.acceptance.fingerprint}</code></dd></dl><p>{tr("Backend sprawdza ten odcisk przy zapisie. Zmiana warunków wymaga ich ponownego odczytania i nowej decyzji.")}</p></details>
+    {#if details.acceptance.required && !details.acceptance.accepted}<label class="license-confirm" for={`${uid}-agree`}><input id={`${uid}-agree`} type="checkbox" bind:checked={agreed} disabled={locked}/>{tr("Zapoznałem się z powyższymi informacjami i wskazanymi warunkami. Potwierdzam, że mam uprawnienia wymagane do planowanego użycia tego modelu.")}</label><Button variant="default" disabled={locked || !agreed} onclick={() => decide('accept')}>{tr("Zapisz moje potwierdzenie dla tego modelu")}</Button>{/if}
+    {#if details.acceptance.state === 'accepted'}{#if withdrawing}<p class="license-notice">{tr("Cofnąć potwierdzenie tylko dla")} {details.repo_id}{tr("? Backend ponownie zablokuje użycie wymagające tych warunków.")}</p><div class="license-actions"><Button variant="outline" disabled={locked} onclick={() => decide('revoke')}>{tr("Potwierdzam cofnięcie")}</Button><Button variant="ghost" disabled={locked} onclick={() => withdrawing = false}>{tr("Zachowaj potwierdzenie")}</Button></div>{:else}<Button variant="ghost" disabled={locked} onclick={() => withdrawing = true}>{tr("Cofnij moje potwierdzenie tego modelu")}</Button>{/if}{/if}
+    <details><summary>{tr("Historia lokalnych decyzji (")}{details.history.length})</summary>{#each details.history as entry}<article class="license-history"><strong>{entry.action === 'accepted' ? tr('Potwierdzono warunki') : entry.action === 'withdrawn' ? tr("Cofnięto potwierdzenie") : entry.action}</strong><span>{date(entry.at)} {tr("· wersja aplikacji:")} {entry.app_version || tr('niezapisana')}</span><code>{entry.fingerprint || tr("brak odcisku w starszym zapisie")}</code></article>{/each}{#if !details.history.length}<p>{tr("Brak zapisanych decyzji.")}</p>{/if}</details>
   {/if}
-  {#if error}<p class="license-error" role="alert">{error}</p>{/if}{#if message}<p class="license-notice" role="status">{message}</p>{/if}
+  {#if error}<p class="license-error" role="alert">{tr(String(error))}</p>{/if}{#if message}<p class="license-notice" role="status">{tr(String(message))}</p>{/if}
 </section>
 
 <style>

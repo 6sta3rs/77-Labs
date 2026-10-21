@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { tick, untrack, type Snippet } from 'svelte'
   import { fade } from 'svelte/transition'
   import type { HTMLButtonAttributes } from 'svelte/elements'
@@ -212,7 +215,7 @@
         event.preventDefault(); await show(true); await keydown(event)
       }
     }}>
-    {#if triggerContent}{@render triggerContent()}{:else}<span class="vs-select-value" class:vs-select-language-value={isLanguage} data-placeholder={!selected || undefined}>{#if isLanguage}<LanguageFlag language={selected?.value || selected?.label || ''}/><span class="vs-select-language-text">{selected?.label ?? placeholder}</span>{:else}{selected?.label ?? placeholder}{/if}</span><ChevronDown size={14} class="vs-control-chevron" style={`transform:rotate(${open ? 180 : 0}deg)`} />{/if}
+    {#if triggerContent}{@render triggerContent()}{:else}<span class="vs-select-value" class:vs-select-language-value={isLanguage} data-placeholder={!selected || undefined}>{#if isLanguage}<LanguageFlag language={selected?.value || selected?.label || ''}/><span class="vs-select-language-text">{selected?.label ?? tr(placeholder)}</span>{:else}{selected?.label ?? tr(placeholder)}{/if}</span><ChevronDown size={14} class="vs-control-chevron" style={`transform:rotate(${open ? 180 : 0}deg)`} />{/if}
   </button>
   <select bind:this={input} class="vs-native-control" aria-hidden="true" tabindex="-1"
     {name} {value} {disabled} {required} {form}
@@ -235,11 +238,11 @@
   {#if open}
     <div class="vs-select-popup vs-select-with-arrows" bind:this={popup} use:portal transition:fade={{ duration: fadeDuration() }} inert={!open} aria-hidden={!open}
       style={`left:${position.left}px;top:${position.top}px;--select-width:${position.width}px;--select-max-height:${position.maxHeight}px`}>
-      {#if canScrollUp}<button type="button" class="vs-select-scroll vs-select-scroll-up" tabindex="-1" aria-label="Przewiń opcje w górę"
+      {#if canScrollUp}<button type="button" class="vs-select-scroll vs-select-scroll-up" tabindex="-1" aria-label={tr("Przewiń opcje w górę")}
         onpointerdown={event => event.preventDefault()} onclick={() => scrollBy(-1)}
         onpointerenter={event => startScrolling(event, -1)} onpointerleave={stopScrolling}><ChevronUp size={16}/></button>{/if}
       <div id={`${uid}-list`} class="vs-select-list" role="listbox" tabindex="-1" bind:this={list}
-        aria-label={ariaLabel || native['aria-label'] || label || 'Opcje'} aria-required={required || undefined}
+        aria-label={ariaLabel || native['aria-label'] || label || tr('Opcje')} aria-required={required || undefined}
         aria-activedescendant={active >= 0 ? `${uid}-option-${active}` : undefined} onkeydown={keydown} onscroll={updateScroll}>
         {#each groups as group, groupIndex}
           {#if group.name}<div role="group" aria-labelledby={`${uid}-group-${groupIndex}`}>
@@ -249,7 +252,7 @@
           {:else}{#each group.options as option, offset (option.value)}{@render optionRow(option, group.start + offset)}{/each}{/if}
         {/each}
       </div>
-      {#if canScrollDown}<button type="button" class="vs-select-scroll vs-select-scroll-down" tabindex="-1" aria-label="Przewiń opcje w dół"
+      {#if canScrollDown}<button type="button" class="vs-select-scroll vs-select-scroll-down" tabindex="-1" aria-label={tr("Przewiń opcje w dół")}
         onpointerdown={event => event.preventDefault()} onclick={() => scrollBy(1)}
         onpointerenter={event => startScrolling(event, 1)} onpointerleave={stopScrolling}><ChevronDown size={16}/></button>{/if}
     </div>

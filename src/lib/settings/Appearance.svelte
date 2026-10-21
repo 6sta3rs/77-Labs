@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { Check, Monitor, Moon, RotateCcw, Sun, Plus, Paintbrush } from '@lucide/svelte'
   import { defaultAppearance, themeColors, saveAppearance, type AppearanceSettings } from './appearance'
   import { getThemes, getTheme, isCustomTheme, duplicateTheme, saveCustomTheme, removeCustomTheme, serializeTheme, libraryWarning } from '../themes/library'
@@ -86,11 +91,11 @@
 {/snippet}
 
 <div class="appearance-panel">
-  <header class="appearance-header"><div><h2>Wygląd</h2><p>Dostosuj Studio do swojego sposobu pracy.</p></div>
-    <Tooltip content="Przywróć domyślny wygląd"><Button variant="outline" size="xs" onclick={() => update({ ...defaultAppearance })}><RotateCcw/><span>Przywróć</span></Button></Tooltip>
+  <header class="appearance-header"><div><h2>{tr("Wygląd")}</h2><p>{tr("Dostosuj Studio do swojego sposobu pracy.")}</p></div>
+    <Tooltip content={tr("Przywróć domyślny wygląd")}><Button variant="outline" size="xs" onclick={() => update({ ...defaultAppearance })}><RotateCcw/><span>{tr("Przywróć")}</span></Button></Tooltip>
   </header>
   <section aria-labelledby="mode-title">
-    <h3 id="mode-title">Schemat kolorów</h3>
+    <h3 id="mode-title">{tr("Schemat kolorów")}</h3>
     <div class="mode-grid">
       {#each modes as mode}
         <button type="button" class="mode-card" class:selected={value.mode === mode.value} aria-pressed={value.mode === mode.value} onclick={() => update({ mode: mode.value })}>
@@ -102,14 +107,14 @@
               {@render miniPreview(mode.value)}
             {/if}
           </div>
-          <span class="mode-caption"><mode.icon size={13}/>{mode.label}{#if value.mode === mode.value}<Check size={13}/>{/if}</span>
+          <span class="mode-caption"><mode.icon size={13}/>{tr(mode.label)}{#if value.mode === mode.value}<Check size={13}/>{/if}</span>
         </button>
       {/each}
     </div>
   </section>
   <section aria-labelledby="theme-title">
-    <div class="section-title"><h3 id="theme-title">Motywy</h3><div class="theme-actions"><Button size="xs" variant="outline" onclick={() => openEditor('create')}><Paintbrush/>Utwórz motyw</Button><Button size="xs" variant="outline" onclick={() => openEditor('import')}><Plus/>Dodaj motyw</Button></div></div>
-    <p class="theme-help">Wybierz osobno motyw jasny i ciemny. Kliknięcie nazwy wybiera oba dostępne warianty.</p>
+    <div class="section-title"><h3 id="theme-title">{tr("Motywy")}</h3><div class="theme-actions"><Button size="xs" variant="outline" onclick={() => openEditor('create')}><Paintbrush/>{tr("Utwórz motyw")}</Button><Button size="xs" variant="outline" onclick={() => openEditor('import')}><Plus/>{tr("Dodaj motyw")}</Button></div></div>
+    <p class="theme-help">{tr("Wybierz osobno motyw jasny i ciemny. Kliknięcie nazwy wybiera oba dostępne warianty.")}</p>
     <div class="theme-grid">
       {#each themeItems as theme (theme.id)}
         <ThemeCard {theme} lightSelected={owner('light') === theme.id} darkSelected={owner('dark') === theme.id}
@@ -119,41 +124,41 @@
           onremove={isCustomTheme(theme.id) ? () => { deleteTarget = theme; failure = '' } : undefined}/>
       {/each}
     </div>
-    <p class="theme-current">Jasny: {getTheme(owner('light'))?.label || 'Labs'} · Ciemny: {getTheme(owner('dark'))?.label || 'Labs'}</p>
-    {#if message}<p class="theme-message" role="status">{message}</p>{/if}
-    {#if failure && !deleteTarget}<p class="theme-error" role="alert">{failure}</p>{/if}
-    {#if libraryWarning}<p class="theme-error" role="alert">{libraryWarning}</p>{/if}
+    <p class="theme-current">{tr("Jasny:")} {getTheme(owner('light'))?.label || 'Labs'} {tr("· Ciemny:")} {getTheme(owner('dark'))?.label || 'Labs'}</p>
+    {#if message}<p class="theme-message" role="status">{tr(message)}</p>{/if}
+    {#if failure && !deleteTarget}<p class="theme-error" role="alert">{tr(failure)}</p>{/if}
+    {#if libraryWarning}<p class="theme-error" role="alert">{tr(libraryWarning)}</p>{/if}
   </section>
   <section aria-labelledby="orb-title">
-    <h3 id="orb-title">Kula głosu</h3>
+    <h3 id="orb-title">{tr("Kula głosu")}</h3>
     <div class="settings-group">
       <div class="appearance-row orb-style-row">
         <div class="orb-style-preview" aria-hidden="true"><VoiceOrb {voiceId} size={176} variant={value.orbVariant} preview/></div>
-        <div class="orb-style-options"><h4>Styl kuli</h4><p id="orb-style-description">Jeden styl w całej aplikacji: edytorze, odtwarzaczu i podglądach głosu.</p>
-          <div class="orb-style-control"><Select ariaLabel="Styl kuli głosu" aria-describedby="orb-style-description" bind:value={orbSelection} options={orbStyles} onchange={selectOrbStyle}/></div>
-          <h4>Kolor kuli</h4>
-          <div class="orb-style-control"><Select ariaLabel="Kolor kuli głosu" value={value.orbPalette ?? 'voice'} options={orbColorOptions} onchange={palette => update({ orbPalette: palette })}/></div>
-          <p class="orb-preview-note">Animacja pokazowa — bez odtwarzania dźwięku.</p>
+        <div class="orb-style-options"><h4>{tr("Styl kuli")}</h4><p id="orb-style-description">{tr("Jeden styl w całej aplikacji: edytorze, odtwarzaczu i podglądach głosu.")}</p>
+          <div class="orb-style-control"><Select ariaLabel={tr("Styl kuli głosu")} aria-describedby="orb-style-description" bind:value={orbSelection} options={uiOptions(orbStyles)} onchange={selectOrbStyle}/></div>
+          <h4>{tr("Kolor kuli")}</h4>
+          <div class="orb-style-control"><Select ariaLabel={tr("Kolor kuli głosu")} value={value.orbPalette ?? 'voice'} options={uiOptions(orbColorOptions)} onchange={palette => update({ orbPalette: palette })}/></div>
+          <p class="orb-preview-note">{tr("Animacja pokazowa — bez odtwarzania dźwięku.")}</p>
         </div>
       </div>
     </div>
   </section>
   <section aria-labelledby="interface-title">
-    <h3 id="interface-title">Interfejs</h3>
+    <h3 id="interface-title">{tr("Interfejs")}</h3>
     <div class="settings-group">
-      <div class="appearance-row"><div><h4>Kontrast</h4><p>Wyrazistość obramowań i podziałów interfejsu.</p></div><div class="row-control"><Slider label="Kontrast" value={value.contrast} min={75} max={150} step={5} valueLabel={`${value.contrast}%`} onchange={(contrast) => update({ contrast })}/></div></div>
-      <div class="appearance-row"><div><h4>Przezroczystość menu</h4><p>Wyższa wartość daje bardziej jednolite tło.</p></div><div class="row-control"><Slider label="Nieprzezroczystość" value={value.glassOpacity} min={70} max={100} step={5} valueLabel={`${value.glassOpacity}%`} onchange={(glassOpacity) => update({ glassOpacity })}/></div></div>
-      <div class="appearance-row"><div><h4>Rozmiar tekstu interfejsu</h4><p>Czytelność menu, przycisków i ustawień.</p></div><div class="row-control"><Slider label="Tekst interfejsu" value={value.interfaceFontSize} min={12} max={16} valueLabel={`${value.interfaceFontSize} px`} onchange={(interfaceFontSize) => update({ interfaceFontSize })}/></div></div>
-      <div class="appearance-row"><div><h4>Rozmiar tekstu edytora</h4><p>Więcej przestrzeni lub większe litery podczas pisania.</p></div><div class="row-control"><Slider label="Tekst edytora" value={value.editorFontSize} min={16} max={24} valueLabel={`${value.editorFontSize} px`} onchange={(editorFontSize) => update({ editorFontSize })}/></div></div>
-      <div class="appearance-row"><div><h4>Ogranicz animacje</h4><p>Wyłącz płynne przejścia elementów interfejsu.</p></div><Switch label="Ogranicz animacje" checked={value.reduceMotion} onchange={(reduceMotion) => update({ reduceMotion })}/></div>
+      <div class="appearance-row"><div><h4>{tr("Kontrast")}</h4><p>{tr("Wyrazistość obramowań i podziałów interfejsu.")}</p></div><div class="row-control"><Slider label={tr("Kontrast")} value={value.contrast} min={75} max={150} step={5} valueLabel={`${value.contrast}%`} onchange={(contrast) => update({ contrast })}/></div></div>
+      <div class="appearance-row"><div><h4>{tr("Przezroczystość menu")}</h4><p>{tr("Wyższa wartość daje bardziej jednolite tło.")}</p></div><div class="row-control"><Slider label={tr("Nieprzezroczystość")} value={value.glassOpacity} min={70} max={100} step={5} valueLabel={`${value.glassOpacity}%`} onchange={(glassOpacity) => update({ glassOpacity })}/></div></div>
+      <div class="appearance-row"><div><h4>{tr("Rozmiar tekstu interfejsu")}</h4><p>{tr("Czytelność menu, przycisków i ustawień.")}</p></div><div class="row-control"><Slider label={tr("Tekst interfejsu")} value={value.interfaceFontSize} min={12} max={16} valueLabel={`${value.interfaceFontSize} px`} onchange={(interfaceFontSize) => update({ interfaceFontSize })}/></div></div>
+      <div class="appearance-row"><div><h4>{tr("Rozmiar tekstu edytora")}</h4><p>{tr("Więcej przestrzeni lub większe litery podczas pisania.")}</p></div><div class="row-control"><Slider label={tr("Tekst edytora")} value={value.editorFontSize} min={16} max={24} valueLabel={`${value.editorFontSize} px`} onchange={(editorFontSize) => update({ editorFontSize })}/></div></div>
+      <div class="appearance-row"><div><h4>{tr("Ogranicz animacje")}</h4><p>{tr("Wyłącz płynne przejścia elementów interfejsu.")}</p></div><Switch label={tr("Ogranicz animacje")} checked={value.reduceMotion} onchange={(reduceMotion) => update({ reduceMotion })}/></div>
     </div>
-    <p class="font-note">Krój pisma: Segoe UI · systemowa czcionka Windows</p>
+    <p class="font-note">{tr("Krój pisma: Segoe UI · systemowa czcionka Windows")}</p>
   </section>
 </div>
 
 {#if editor}<ThemeDialog kind={editor.kind} seed={editor.seed} onsubmit={saved} onclose={() => editor = undefined}/>{/if}
 {#if deleteTarget}
-  <dialog class="remove-dialog" use:mountDialog aria-labelledby="remove-theme-title" oncancel={(event) => { event.preventDefault(); deleteTarget = undefined }}><h2 id="remove-theme-title">Usunąć motyw „{deleteTarget.label}”?</h2><p>Usuniesz jeden własny motyw. Jeśli jest używany, zastąpi go Labs.</p>{#if failure}<p class="theme-error" role="alert">{failure}</p>{/if}<div><Button variant="outline" onclick={() => deleteTarget = undefined}>Anuluj</Button><Button variant="destructive" onclick={remove}>Usuń motyw</Button></div></dialog>
+  <dialog class="remove-dialog" use:mountDialog aria-labelledby="remove-theme-title" oncancel={(event) => { event.preventDefault(); deleteTarget = undefined }}><h2 id="remove-theme-title">{tr("Usunąć motyw „")}{tr(deleteTarget.label)}”?</h2><p>{tr("Usuniesz jeden własny motyw. Jeśli jest używany, zastąpi go Labs.")}</p>{#if failure}<p class="theme-error" role="alert">{tr(failure)}</p>{/if}<div><Button variant="outline" onclick={() => deleteTarget = undefined}>{tr("Anuluj")}</Button><Button variant="destructive" onclick={remove}>{tr("Usuń motyw")}</Button></div></dialog>
 {/if}
 
 <style>

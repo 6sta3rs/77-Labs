@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from '../i18n'
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onMount } from 'svelte'
   import { Play, Pause } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
@@ -25,9 +28,9 @@
   onMount(() => {
     playback = new AudiobookPlayback(audio, async (path, signal) => {
       const response = await request(path, { signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]) })
-      if (!response.ok) throw new Error(`Nie można pobrać fragmentu (${response.status}).`)
+      if (!response.ok) throw new Error(tr('Nie można pobrać fragmentu ({status}).', { status: response.status }))
       const blob = await response.blob()
-      if (!blob.type.startsWith('audio/')) throw new Error('Silnik nie zwrócił nagrania audio.')
+      if (!blob.type.startsWith('audio/')) throw new Error(tr('Silnik nie zwrócił nagrania audio.'))
       return blob
     }, next => book = next)
     for (const chunk of pending) playback.append(chunk)
@@ -43,15 +46,15 @@
 
 <audio bind:this={audio} preload="auto"></audio>
 {#if book.count}
-  <section class="production-source book-live-player" aria-label="Odsłuch podczas generowania">
-    <strong>Odsłuch audiobooka</strong>
-    <p class="tool-workspace-note" role="status">{book.error || (book.loading ? 'Wczytywanie fragmentu…' : book.waiting ? 'Czekam na kolejny fragment…' : `Fragment ${book.current} z ${book.count} gotowych`)}{!book.error && !book.finished ? ' · Kolejne fragmenty dołączą automatycznie.' : ''}</p>
+  <section class="production-source book-live-player" aria-label={tr("Odsłuch podczas generowania")}>
+    <strong>{tr("Odsłuch audiobooka")}</strong>
+    <p class="tool-workspace-note" role="status">{book.error || (book.loading ? tr('Wczytywanie fragmentu…') : book.waiting ? tr('Czekam na kolejny fragment…') : tr('Fragment {current} z {count} gotowych', { current: book.current, count: book.count }))}{!book.error && !book.finished ? " " + tr("· Kolejne fragmenty dołączą automatycznie.") : ''}</p>
     <div class="production-inline">
-      <Button variant="outline" aria-label={book.playing ? 'Wstrzymaj audiobook' : 'Odtwórz audiobook'} onclick={() => book.playing ? playback?.pause() : playback?.play()}>{#if book.playing}<Pause size={16}/>Wstrzymaj{:else}<Play size={16}/>Odtwórz{/if}</Button>
-      <span>{durationLabel(book.time)} / {durationLabel(book.duration)}{!book.finished ? ' gotowe' : ''}</span>
+      <Button variant="outline" aria-label={book.playing ? tr("Wstrzymaj audiobook") : tr("Odtwórz audiobook")} onclick={() => book.playing ? playback?.pause() : playback?.play()}>{#if book.playing}<Pause size={16}/>{tr("Wstrzymaj")}{:else}<Play size={16}/>{tr("Odtwórz")}{/if}</Button>
+      <span>{durationLabel(book.time)} / {durationLabel(book.duration)}{!book.finished ? " " + tr("gotowe") : ''}</span>
     </div>
-    {#if reading}<p class="book-reading" aria-label="Teraz czytany fragment">{#each reading.words as word, index}<span class:current={index === reading.word}>{word}</span>{' '}{/each}</p>{/if}
-    <input type="range" aria-label="Pozycja gotowej części audiobooka" min="0" max={book.duration || 1} step="0.01" value={book.time} oninput={event => playback?.seek(event.currentTarget.valueAsNumber)}/>
+    {#if reading}<p class="book-reading" aria-label={tr("Teraz czytany fragment")}>{#each reading.words as word, index}<span class:current={index === reading.word}>{word}</span>{' '}{/each}</p>{/if}
+    <input type="range" aria-label={tr("Pozycja gotowej części audiobooka")} min="0" max={book.duration || 1} step="0.01" value={book.time} oninput={event => playback?.seek(event.currentTarget.valueAsNumber)}/>
   </section>
 {/if}
 

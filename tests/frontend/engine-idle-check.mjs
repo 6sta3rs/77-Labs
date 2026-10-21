@@ -17,6 +17,6 @@ assert.match(client, /isDesktop\(\) \? invoke<number>/, 'Browser and dev mode mu
 assert.match(main, /runtime::runtime_set_idle_minutes,/, 'Command must be registered in main.rs.');
 assert.match(rust, /pub fn runtime_set_idle_minutes\(/, 'Rust command must exist.');
 assert.match(rust, /Duration::from_secs\(900\)/, 'Rust default must be 15 minutes.');
-assert.match(settings, /label="Utrzymuj silnik po bezczynności"/, 'The General settings control must be labelled in Polish.');
+assert.match(settings, /label=(?:"|\{tr\(")Utrzymuj silnik po bezczynności/, 'The General settings control must be labelled in Polish.');
 assert.match(settings, /Dłużej = szybsze kolejne generowanie, ale silnik dłużej zajmuje pamięć RAM\/VRAM\./, 'The hint must be shown.');
 console.log('Engine idle wiring: 10 assertions passed (storage key, choices, default, command name and registration, browser guard, UI control).');

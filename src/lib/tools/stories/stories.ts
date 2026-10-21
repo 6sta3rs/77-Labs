@@ -1,3 +1,4 @@
+import { translateUi } from '../../i18n';
 /** Stories compile directly to the existing /longform/render chapter/span contract. */
 export type StoryBlock = { id: string; text: string; voiceId: string; pauseMs: number; speed: number | null }
 export type StoryScene = { id: string; title: string; blocks: StoryBlock[] }
@@ -17,7 +18,7 @@ const id = () => crypto.randomUUID()
 export function newStoryBlock(voiceId = ''): StoryBlock { return { id: id(), text: '', voiceId, pauseMs: 0, speed: null } }
 export function newStoryScene(title = 'Nowa scena'): StoryScene { return { id: id(), title, blocks: [newStoryBlock()] } }
 export function newStory(): StoryState {
-  return { kind: 'stories', version: 1, title: 'Nowa historia', scenes: [newStoryScene('Scena 1')], settings: {
+  return { kind: 'stories', version: 1, title: translateUi("Nowa historia"), scenes: [newStoryScene('Scena 1')], settings: {
     defaultVoice: '', language: 'Auto', format: 'mp3', bitrate: '128k', loudness: 'off', speed: 1,
     lineGapMs: 0, paragraphGapMs: 0, trimEdges: false, varyRepeats: false, customQuality: false,
     steps: 32, guidance: 2, seed: '', author: '', narrator: '',
@@ -33,29 +34,29 @@ export function moveStoryItem<T extends { id: string }>(items: T[], itemId: stri
 
 function finiteRange(value: number, min: number, max: number) { return Number.isFinite(value) && value >= min && value <= max }
 export function storyError(story: StoryState, knownVoices?: ReadonlySet<string>, scenes = story.scenes) {
-  if (!story.title.trim()) return 'Nadaj historii tytuł.'
-  if (!scenes.length) return 'Dodaj przynajmniej jedną scenę.'
-  if (story.scenes.length > 1000 || story.scenes.reduce((n, scene) => n + scene.blocks.length, 0) > 10_000) return 'Projekt przekracza limit 1000 scen lub 10 000 bloków.'
-  if (new TextEncoder().encode(JSON.stringify(story)).length > STORIES_MAX_BYTES) return 'Projekt przekracza limit 1 MB. Podziel historię na mniejsze projekty.'
+  if (!story.title.trim()) return translateUi("Nadaj historii tytuł.")
+  if (!scenes.length) return translateUi("Dodaj przynajmniej jedną scenę.")
+  if (story.scenes.length > 1000 || story.scenes.reduce((n, scene) => n + scene.blocks.length, 0) > 10_000) return translateUi("Projekt przekracza limit 1000 scen lub 10 000 bloków.")
+  if (new TextEncoder().encode(JSON.stringify(story)).length > STORIES_MAX_BYTES) return translateUi("Projekt przekracza limit 1 MB. Podziel historię na mniejsze projekty.")
   const settings = story.settings
-  if (!['mp3', 'm4b'].includes(settings.format) || !['64k', '128k', '192k', '256k'].includes(settings.bitrate) || !['off', 'acx', 'podcast'].includes(settings.loudness)) return 'Wybierz obsługiwany format, bitrate i profil głośności.'
-  if (!finiteRange(settings.speed, 0.5, 2) || !Number.isInteger(settings.lineGapMs) || !finiteRange(settings.lineGapMs, 0, 5000) || !Number.isInteger(settings.paragraphGapMs) || !finiteRange(settings.paragraphGapMs, 0, 5000)) return 'Tempo musi mieścić się w zakresie 0,5–2×, a przerwy wspólne w zakresie 0–5000 ms.'
-  if (settings.customQuality && (!Number.isInteger(settings.steps) || !finiteRange(settings.steps, 1, 512) || !finiteRange(settings.guidance, 0, 20))) return 'Podaj 1–512 kroków syntezy i współczynnik prowadzenia 0–20.'
-  if (settings.seed.trim() && (!/^\d+$/.test(settings.seed.trim()) || !finiteRange(Number(settings.seed), 0, 4_294_967_295))) return 'Seed musi być liczbą całkowitą od 0 do 4 294 967 295 albo pozostać pusty.'
+  if (!['mp3', 'm4b'].includes(settings.format) || !['64k', '128k', '192k', '256k'].includes(settings.bitrate) || !['off', 'acx', 'podcast'].includes(settings.loudness)) return translateUi("Wybierz obsługiwany format, bitrate i profil głośności.")
+  if (!finiteRange(settings.speed, 0.5, 2) || !Number.isInteger(settings.lineGapMs) || !finiteRange(settings.lineGapMs, 0, 5000) || !Number.isInteger(settings.paragraphGapMs) || !finiteRange(settings.paragraphGapMs, 0, 5000)) return translateUi("Tempo musi mieścić się w zakresie 0,5–2×, a przerwy wspólne w zakresie 0–5000 ms.")
+  if (settings.customQuality && (!Number.isInteger(settings.steps) || !finiteRange(settings.steps, 1, 512) || !finiteRange(settings.guidance, 0, 20))) return translateUi("Podaj 1–512 kroków syntezy i współczynnik prowadzenia 0–20.")
+  if (settings.seed.trim() && (!/^\d+$/.test(settings.seed.trim()) || !finiteRange(Number(settings.seed), 0, 4_294_967_295))) return translateUi("Seed musi być liczbą całkowitą od 0 do 4 294 967 295 albo pozostać pusty.")
   const sceneIds = new Set<string>(), blockIds = new Set<string>()
   for (const [sceneIndex, scene] of scenes.entries()) {
-    if (!scene.id || sceneIds.has(scene.id)) return 'Sceny muszą mieć różne identyfikatory.'
+    if (!scene.id || sceneIds.has(scene.id)) return translateUi("Sceny muszą mieć różne identyfikatory.")
     sceneIds.add(scene.id)
-    if (!scene.title.trim()) return `Scena ${sceneIndex + 1}: wpisz tytuł.`
-    if (!scene.blocks.length) return `Scena „${scene.title}”: dodaj blok wypowiedzi.`
+    if (!scene.title.trim()) return translateUi("Scena {arg0}: wpisz tytuł.", { arg0: String(sceneIndex + 1) })
+    if (!scene.blocks.length) return translateUi("Scena „{arg0}”: dodaj blok wypowiedzi.", { arg0: String(scene.title) })
     for (const [index, block] of scene.blocks.entries()) {
-      if (!block.id || blockIds.has(block.id)) return 'Bloki muszą mieć różne identyfikatory.'
+      if (!block.id || blockIds.has(block.id)) return translateUi("Bloki muszą mieć różne identyfikatory.")
       blockIds.add(block.id)
-      if (!Number.isInteger(block.pauseMs) || !finiteRange(block.pauseMs, 0, 10_000)) return `Scena „${scene.title}”, blok ${index + 1}: przerwa musi mieścić się w zakresie 0–10 000 ms.`
-      if (block.speed !== null && !finiteRange(block.speed, 0.5, 2)) return `Scena „${scene.title}”, blok ${index + 1}: tempo musi mieścić się w zakresie 0,5–2×.`
-      if (!block.text.trim() && block.pauseMs === 0) return `Scena „${scene.title}”, blok ${index + 1}: wpisz wypowiedź lub dodaj przerwę.`
+      if (!Number.isInteger(block.pauseMs) || !finiteRange(block.pauseMs, 0, 10_000)) return translateUi("Scena „{arg0}”, blok {arg1}: przerwa musi mieścić się w zakresie 0–10 000 ms.", { arg0: String(scene.title), arg1: String(index + 1) })
+      if (block.speed !== null && !finiteRange(block.speed, 0.5, 2)) return translateUi("Scena „{arg0}”, blok {arg1}: tempo musi mieścić się w zakresie 0,5–2×.", { arg0: String(scene.title), arg1: String(index + 1) })
+      if (!block.text.trim() && block.pauseMs === 0) return translateUi("Scena „{arg0}”, blok {arg1}: wpisz wypowiedź lub dodaj przerwę.", { arg0: String(scene.title), arg1: String(index + 1) })
       const voice = block.voiceId || settings.defaultVoice
-      if (block.text.trim() && (!voice || knownVoices && !knownVoices.has(voice))) return `Scena „${scene.title}”, blok ${index + 1}: wybierz dostępny głos dla wypowiedzi.`
+      if (block.text.trim() && (!voice || knownVoices && !knownVoices.has(voice))) return translateUi("Scena „{arg0}”, blok {arg1}: wybierz dostępny głos dla wypowiedzi.", { arg0: String(scene.title), arg1: String(index + 1) })
     }
   }
   return ''
@@ -81,18 +82,18 @@ export function compileStory(story: StoryState, knownVoices?: ReadonlySet<string
 
 /** Strict shape read; never reinterpret an audiobook/dubbing project as a Story. */
 export function readStory(value: unknown): StoryState {
-  if (!value || typeof value !== 'object') throw new Error('Nieprawidłowy zapis historii.')
+  if (!value || typeof value !== 'object') throw new Error(translateUi("Nieprawidłowy zapis historii."))
   const row = value as Record<string, unknown>, settings = row.settings as Record<string, unknown> | undefined
-  if (row.kind !== 'stories' || row.version !== 1 || typeof row.title !== 'string' || !Array.isArray(row.scenes) || !settings || typeof settings !== 'object') throw new Error('To nie jest obsługiwany projekt Stories.')
+  if (row.kind !== 'stories' || row.version !== 1 || typeof row.title !== 'string' || !Array.isArray(row.scenes) || !settings || typeof settings !== 'object') throw new Error(translateUi("To nie jest obsługiwany projekt Stories."))
   const defaults = newStory().settings
-  for (const [key, fallback] of Object.entries(defaults)) if (typeof settings[key] !== typeof fallback || typeof fallback === 'number' && !Number.isFinite(settings[key])) throw new Error(`Nieprawidłowe ustawienie projektu: ${key}.`)
+  for (const [key, fallback] of Object.entries(defaults)) if (typeof settings[key] !== typeof fallback || typeof fallback === 'number' && !Number.isFinite(settings[key])) throw new Error(translateUi("Nieprawidłowe ustawienie projektu: {arg0}.", { arg0: String(key) }))
   const sceneIds = new Set<string>(), blockIds = new Set<string>()
   if (row.scenes.length > 1000) throw new Error('Projekt zawiera zbyt wiele scen.')
   for (const scene of row.scenes) {
-    if (!scene || typeof scene !== 'object' || typeof scene.id !== 'string' || !scene.id || sceneIds.has(scene.id) || typeof scene.title !== 'string' || !Array.isArray(scene.blocks)) throw new Error('Nieprawidłowy zapis sceny.')
+    if (!scene || typeof scene !== 'object' || typeof scene.id !== 'string' || !scene.id || sceneIds.has(scene.id) || typeof scene.title !== 'string' || !Array.isArray(scene.blocks)) throw new Error(translateUi("Nieprawidłowy zapis sceny."))
     sceneIds.add(scene.id)
     for (const block of scene.blocks) {
-      if (!block || typeof block !== 'object' || typeof block.id !== 'string' || !block.id || blockIds.has(block.id) || typeof block.text !== 'string' || typeof block.voiceId !== 'string' || typeof block.pauseMs !== 'number' || !Number.isFinite(block.pauseMs) || (block.speed !== null && (typeof block.speed !== 'number' || !Number.isFinite(block.speed)))) throw new Error('Nieprawidłowy zapis bloku wypowiedzi.')
+      if (!block || typeof block !== 'object' || typeof block.id !== 'string' || !block.id || blockIds.has(block.id) || typeof block.text !== 'string' || typeof block.voiceId !== 'string' || typeof block.pauseMs !== 'number' || !Number.isFinite(block.pauseMs) || (block.speed !== null && (typeof block.speed !== 'number' || !Number.isFinite(block.speed)))) throw new Error(translateUi("Nieprawidłowy zapis bloku wypowiedzi."))
       blockIds.add(block.id)
     }
   }
@@ -108,7 +109,7 @@ export function storyStats(story: StoryState) {
 }
 
 export function storyAudioPath(output: string) {
-  if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(mp3|m4b)$/i.test(output)) throw new Error('Silnik zwrócił nieprawidłową nazwę pliku historii.')
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(mp3|m4b)$/i.test(output)) throw new Error(translateUi("Silnik zwrócił nieprawidłową nazwę pliku historii."))
   return `/audio/${encodeURIComponent(output)}`
 }
 
@@ -118,16 +119,16 @@ export function applyStoryEvent(state: StoryRenderState, event: { type: string; 
   const next = { ...state, completed: [...state.completed], failed: [...state.failed], logs: [...state.logs] }
   const detail = [event.reason || event.error || event.message, event.hint].filter(value => typeof value === 'string').join(' ').slice(0, 900)
   if (event.type === 'started') { next.phase = 'running'; next.jobId = typeof event.job_id === 'string' ? event.job_id : ''; next.total = typeof event.chapters === 'number' && Number.isFinite(event.chapters) ? Math.max(0, event.chapters) : 0; next.message = 'Uruchomiono generowanie historii.' }
-  else if (event.type === 'chapter') { if (Number.isInteger(event.index) && !next.completed.includes(event.index as number)) next.completed.push(event.index as number); next.message = `Scena gotowa: ${String(event.title || '')}${event.cached ? ' · z pamięci podręcznej' : ''}` }
-  else if (event.type === 'chapter_error') { if (Number.isInteger(event.index) && !next.failed.includes(event.index as number)) next.failed.push(event.index as number); next.message = `Nie udało się nagrać sceny: ${detail || event.title || 'sprawdź dziennik'}` }
-  else if (event.type === 'assembling' || event.type === 'mastering') { next.phase = event.type; next.message = event.type === 'assembling' ? 'Łączenie scen i zapis rozdziałów…' : 'Wyrównywanie głośności…' }
+  else if (event.type === 'chapter') { if (Number.isInteger(event.index) && !next.completed.includes(event.index as number)) next.completed.push(event.index as number); next.message = `Scena gotowa: ${String(event.title || '')}${event.cached ? " " + translateUi("· z pamięci podręcznej") : ''}` }
+  else if (event.type === 'chapter_error') { if (Number.isInteger(event.index) && !next.failed.includes(event.index as number)) next.failed.push(event.index as number); next.message = translateUi("Nie udało się nagrać sceny: {arg0}", { arg0: String(detail || event.title || 'sprawdź dziennik') }) }
+  else if (event.type === 'assembling' || event.type === 'mastering') { next.phase = event.type; next.message = event.type === 'assembling' ? translateUi("Łączenie scen i zapis rozdziałów…") : translateUi("Wyrównywanie głośności…") }
   else if (event.type === 'done') {
-    try { storyAudioPath(String(event.output || '')); next.output = String(event.output); next.phase = 'done'; next.failed = Array.isArray(event.failed_chapters) ? event.failed_chapters.filter((index): index is number => typeof index === 'number' && Number.isInteger(index)) : next.failed; next.message = next.failed.length ? `Plik niepełny: nie nagrano ${next.failed.length} scen. Sprawdź dziennik.` : 'Historia gotowa do odsłuchania i pobrania.' }
+    try { storyAudioPath(String(event.output || '')); next.output = String(event.output); next.phase = 'done'; next.failed = Array.isArray(event.failed_chapters) ? event.failed_chapters.filter((index): index is number => typeof index === 'number' && Number.isInteger(index)) : next.failed; next.message = next.failed.length ? translateUi("Plik niepełny: nie nagrano {arg0} scen. Sprawdź dziennik.", { arg0: String(next.failed.length) }) : translateUi("Historia gotowa do odsłuchania i pobrania.") }
     catch (cause) { next.phase = 'error'; next.message = cause instanceof Error ? cause.message : String(cause) }
   }
-  else if (event.type === 'error') { next.phase = 'error'; next.message = detail || 'Generowanie historii nie powiodło się.' }
-  else if (event.type === 'stopped' || event.type === 'cancelled') { next.phase = 'stopped'; next.message = 'Render przerwany. Gotowe sceny mogą być dostępne do wznowienia.' }
-  else if (event.type === 'routing_notice') next.message = detail || 'Silnik zmienił sposób wykonania zadania.'
+  else if (event.type === 'error') { next.phase = 'error'; next.message = detail || translateUi("Generowanie historii nie powiodło się.") }
+  else if (event.type === 'stopped' || event.type === 'cancelled') { next.phase = 'stopped'; next.message = translateUi("Render przerwany. Gotowe sceny mogą być dostępne do wznowienia.") }
+  else if (event.type === 'routing_notice') next.message = detail || translateUi("Silnik zmienił sposób wykonania zadania.")
   else return state
   next.logs = [...next.logs.slice(-39), next.message]
   return next

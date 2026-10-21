@@ -221,7 +221,8 @@ export function voiceLanguageSupport(voice:Voice,modelLanguages:readonly string[
   if(model.length)return {languages:model,source:'model',sample};
   return {languages:sample?[sample]:[],source:'sample',sample};
 }
-export function voiceLanguageCount(count:number):string {
+export function voiceLanguageCount(count:number,locale='pl-PL'):string {
+  if(locale.startsWith('en'))return `${new Intl.NumberFormat(locale).format(count)} ${count===1?'language':'languages'}`;
   return `${count} ${count===1?'język':count%10>=2&&count%10<=4&&(count%100<12||count%100>14)?'języki':'języków'}`;
 }
 export function filterVoices(voices:Voice[], filters:VoiceFilters,modelLanguages:readonly string[]=[]):Voice[] {

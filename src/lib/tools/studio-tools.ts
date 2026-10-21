@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { productionJson, postJson } from './production/production';
 import { request } from '../platform/api';
 import { beginCatalogRead, invalidateCatalogReads, publishEngineCatalog } from '../models/engine-catalog-state';
@@ -31,7 +32,7 @@ export const batch = {
   action: (id: string, action: 'cancel' | 'retry', signal?: AbortSignal) => json(`/batch/jobs/${part(id)}/${action}`, { method: 'POST', signal }),
 };
 export async function convertVoice(file: File, profileId: string, matchDuration: boolean, signal?: AbortSignal) {
-  if (file.size > 64 * 1024 * 1024) throw new Error('Wybierz nagranie mniejsze niż 64 MB.');
+  if (file.size > 64 * 1024 * 1024) throw new Error(translateUi("Wybierz nagranie mniejsze niż 64 MB."));
   const body = new FormData(); body.append('audio', file); body.append('profile_id', profileId); body.append('match_duration', String(matchDuration));
   return json<{ id: string; audio_url: string; text: string; duration_s: number }>('/convert', { method: 'POST', body, signal });
 }
@@ -39,7 +40,7 @@ export async function engineCatalog(signal?: AbortSignal) {
   const revision = beginCatalogRead();
   const catalog = await json<EngineCatalog>('/engines', { signal });
   signal?.throwIfAborted();
-  if (!publishEngineCatalog(catalog, revision)) throw new DOMException('Odczyt zastąpiony nowszym katalogiem modeli.', 'AbortError');
+  if (!publishEngineCatalog(catalog, revision)) throw new DOMException(translateUi("Odczyt zastąpiony nowszym katalogiem modeli."), 'AbortError');
   return catalog;
 }
 export const modelsCatalog = (signal?: AbortSignal) => json<{ models: Model[]; disk_free_gb?: number; total_installed_bytes?: number }>('/models', { signal });
@@ -55,9 +56,9 @@ export const deleteBackendRecording = (id: string, signal?: AbortSignal) => json
 export async function loadBackendAudio(path: string, signal?: AbortSignal) {
   const normalized = path.startsWith('/audio/') ? path : `/audio/${part(path)}`;
   const response = await request(normalized, { signal });
-  if (!response.ok) throw new Error(`Nie można wczytać nagrania (${response.status}).`);
+  if (!response.ok) throw new Error(translateUi("Nie można wczytać nagrania ({arg0}).", { arg0: String(response.status) }));
   const blob = await response.blob();
-  if (!blob.type.startsWith('audio/')) throw new Error('Silnik nie zwrócił pliku audio.');
+  if (!blob.type.startsWith('audio/')) throw new Error(translateUi("Silnik nie zwrócił pliku audio."));
   return blob;
 }
 

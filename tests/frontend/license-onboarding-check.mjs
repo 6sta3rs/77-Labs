@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
@@ -6,7 +7,7 @@ async function module(path, dependencies = {}) {
   const source = await readFile(new URL(path, import.meta.url), 'utf8')
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const result = {}
-  new Function('exports', 'require', code)(result, name => { assert.ok(name in dependencies, name); return dependencies[name] })
+  new Function('exports', 'require', code)(result, name => { if (/\/i18n$/.test(name)) return i18nRequire(name); assert.ok(name in dependencies, name); return dependencies[name] })
   return result
 }
 const licenses = await module('../../src/lib/models/model-licenses.ts')

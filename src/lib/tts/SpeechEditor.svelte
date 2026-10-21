@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { tick } from 'svelte';
   import VoiceAvatar from '../ui/VoiceAvatar.svelte';
   import { ChevronDown, Plus, Search, Smile, Sparkles, Undo2, X } from '@lucide/svelte';
@@ -33,7 +36,7 @@
   let lastEditTime = 0;
   let expectedBlocks: SpeechBlock[] | undefined;
   let inputType = '';
-  let filteredTags = $derived(audioTags.filter(tag => `${tag.label} ${tag.value} ${tag.category}`.toLocaleLowerCase('pl').includes(query.toLocaleLowerCase('pl'))));
+  let filteredTags = $derived(audioTags.filter(tag => `${tr(tag.label)} ${tag.value} ${tr(tag.category)}`.toLocaleLowerCase('pl').includes(query.toLocaleLowerCase('pl'))));
   let canUndoAuto = $derived(beforeAuto !== null && sameSpeechBlocks(blocks, afterAuto));
 
   $effect(() => {
@@ -290,18 +293,18 @@
 
 <svelte:window onpointerdown={(event) => { if (tagsOpen && !(event.target as Element).closest('.speech-tag-controls, .tag-popover, [data-speech-tag-trigger]')) tagsOpen = false; }} />
 
-<div class="speech-editor" aria-label="Edytor narracji">
+<div class="speech-editor" aria-label={tr("Edytor narracji")}>
   <div class="speech-blocks">
     {#each blocks as block, index (block.id)}
       {@const voice = voices.find(row => row.id === block.voiceId)}
-      <section class="speech-block" aria-label={`Mówca ${index + 1}`}>
+      <section class="speech-block" aria-label={tr("Mówca {value0}", {value0: (index + 1)})}>
         <div class="speaker-row">
-          <button class="voice-pill" disabled={disabled} onclick={() => onchoosevoice(block.id)} aria-label={`Wybierz głos dla mówcy ${index + 1}: ${voice?.name ?? 'Nie wybrano'}`}>
+          <button class="voice-pill" disabled={disabled} onclick={() => onchoosevoice(block.id)} aria-label={tr("Wybierz głos dla mówcy {value0}: {value1}", {value0: (index + 1), value1: (voice?.name ?? 'Nie wybrano')})}>
             <span class="voice-avatar" aria-hidden="true"><VoiceAvatar voiceId={block.voiceId} portraitSrc={voice?.portraitSrc} size={16}/></span>
-            <span>{voice?.name ?? 'Wybierz głos'}</span><ChevronDown size={13} />
+            <span>{voice?.name ?? tr("Wybierz głos")}</span><ChevronDown size={13} />
           </button>
-          <div class="speaker-actions">{#if blocks.length > 1}<button class="remove-speaker" disabled={disabled} onclick={() => removeSpeaker(block.id)} aria-label={`Usuń mówcę ${index + 1}`} title="Usuń mówcę (Ctrl+Z cofa)"><X size={17}/></button>
-          {:else}<button class="clear-text" disabled={disabled||!block.text} onclick={()=>clearText(block.id)} aria-label={`Wyczyść tekst mówcy ${index+1}`} title="Wyczyść tekst"><X size={17}/></button>{/if}</div>
+          <div class="speaker-actions">{#if blocks.length > 1}<button class="remove-speaker" disabled={disabled} onclick={() => removeSpeaker(block.id)} aria-label={tr("Usuń mówcę {value0}", {value0: (index + 1)})} title={tr("Usuń mówcę (Ctrl+Z cofa)")}><X size={17}/></button>
+          {:else}<button class="clear-text" disabled={disabled||!block.text} onclick={()=>clearText(block.id)} aria-label={tr("Wyczyść tekst mówcy {value0}", {value0: (index+1)})} title={tr("Wyczyść tekst")}><X size={17}/></button>{/if}</div>
         </div>
         <div class="editor-field">
           <div class="highlight-layer" aria-hidden="true">{#each tokenizeSpeech(block.text) as token}<span class:audio-tag={token.isTag}>{token.text}</span>{/each}{#if block.text.endsWith('\n')}<br />{/if}</div>
@@ -310,8 +313,8 @@
             class="speech-input"
             value={block.text}
             disabled={disabled}
-            aria-label={`Tekst mówcy ${index + 1}`}
-            placeholder="Wpisz tekst, który ma zabrzmieć…"
+            aria-label={tr("Tekst mówcy {value0}", {value0: (index + 1)})}
+            placeholder={tr("Wpisz tekst, który ma zabrzmieć…")}
             spellcheck="true"
             onbeforeinput={(event) => {
               inputType = (event as InputEvent).inputType;
@@ -332,34 +335,34 @@
       </section>
     {/each}
   </div>
-  <div class="add-speaker-row"><span></span><button disabled={disabled} onclick={()=>addSpeaker()} title="Shift+Enter w tekście"><Plus size={16} />Dodaj mówcę</button><span></span></div>
+  <div class="add-speaker-row"><span></span><button disabled={disabled} onclick={()=>addSpeaker()} title={tr("Shift+Enter w tekście")}><Plus size={16} />{tr("Dodaj mówcę")}</button><span></span></div>
   <div class="speech-tag-controls" class:hidden-toolbar={hideToolbar}>
     {#if tagsOpen}
-      <div class="tag-popover" role="dialog" aria-label="Tagi audio" use:popupPortal>
-        <div class="tag-search"><Search size={15} /><input bind:this={searchInput} bind:value={query} placeholder="Szukaj tagów…" aria-label="Szukaj tagów audio" onkeydown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); (event.currentTarget.closest('.tag-popover')?.querySelector('.tag-option') as HTMLButtonElement)?.focus(); } }} /><button aria-label="Zamknij tagi" onclick={closeTags}><X size={14} /></button></div>
+      <div class="tag-popover" role="dialog" aria-label={tr("Tagi audio")} use:popupPortal>
+        <div class="tag-search"><Search size={15} /><input bind:this={searchInput} bind:value={query} placeholder={tr("Szukaj tagów…")} aria-label={tr("Szukaj tagów audio")} onkeydown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); (event.currentTarget.closest('.tag-popover')?.querySelector('.tag-option') as HTMLButtonElement)?.focus(); } }} /><button aria-label={tr("Zamknij tagi")} onclick={closeTags}><X size={14} /></button></div>
         <div class="tag-options">
           {#each ['Pauzy', 'Wokalizacje', 'Reakcje'] as category}
             {#if filteredTags.some(tag => tag.category === category)}
-              <p class="tag-category">{category}</p>
+              <p class="tag-category">{tr(category)}</p>
               <div class="tag-category-items">
                 {#each filteredTags.filter(tag => tag.category === category) as tag}
-                  <button class="tag-option" onclick={() => insertTag(tag.value)} title={`${tag.description} · ${tag.value}`}>{tag.label}</button>
+                  <button class="tag-option" onclick={() => insertTag(tag.value)} title={`${tag.description} · ${tag.value}`}>{tr(tag.label)}</button>
                 {/each}
               </div>
             {/if}
           {/each}
-          {#if filteredTags.length === 0}<p class="no-tags">Brak pasujących tagów.</p>{/if}
+          {#if filteredTags.length === 0}<p class="no-tags">{tr("Brak pasujących tagów.")}</p>{/if}
         </div>
-        <p class="tag-note">Tagi obsługiwane przez OmniVoice. Automatyczne pauzy nie dobierają emocji.</p>
+        <p class="tag-note">{tr("Tagi obsługiwane przez OmniVoice. Automatyczne pauzy nie dobierają emocji.")}</p>
       </div>
     {/if}
     {#if !hideToolbar}
-      <button bind:this={ownTagTrigger} class="tag-toggle" disabled={disabled} aria-expanded={tagsOpen} onclick={toggleTags}><Smile size={15} /><span>Tagi audio</span><ChevronDown size={13} /></button>
-      <button class="auto-tag" disabled={disabled || !blocks.some(block => block.text.trim())} onclick={autoTag} title="Lokalna reguła: pauza po wielokropku i między akapitami"><Sparkles size={14} />Automatyczne pauzy</button>
-      {#if canUndoAuto}<button class="undo-tag" disabled={disabled} onclick={undoAutoTag} aria-label="Cofnij automatyczne pauzy" title="Cofnij automatyczne pauzy"><Undo2 size={14} /></button>{/if}
+      <button bind:this={ownTagTrigger} class="tag-toggle" disabled={disabled} aria-expanded={tagsOpen} onclick={toggleTags}><Smile size={15} /><span>{tr("Tagi audio")}</span><ChevronDown size={13} /></button>
+      <button class="auto-tag" disabled={disabled || !blocks.some(block => block.text.trim())} onclick={autoTag} title={tr("Lokalna reguła: pauza po wielokropku i między akapitami")}><Sparkles size={14} />{tr("Automatyczne pauzy")}</button>
+      {#if canUndoAuto}<button class="undo-tag" disabled={disabled} onclick={undoAutoTag} aria-label={tr("Cofnij automatyczne pauzy")} title={tr("Cofnij automatyczne pauzy")}><Undo2 size={14} /></button>{/if}
     {/if}
   </div>
-  <span class="editor-status" role="status">{status}</span>
+  <span class="editor-status" role="status">{tr(status)}</span>
 </div>
 
 <style>

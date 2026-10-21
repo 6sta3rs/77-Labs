@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../ui/Button.svelte';
   import AudioPreview from '../playback/AudioPreview.svelte';
   import FilePicker from '../ui/FilePicker.svelte';
@@ -67,17 +70,17 @@
 </script>
 
 <div class="reference-input">
-  <p class="form-label">{label}</p>
+  <p class="form-label">{tr(label)}</p>
   <div class="tool-actions">
-    <FilePicker label="Wybierz plik audio" ariaLabel={label} accept={referenceAudioAccept} disabled={disabled || starting || recording || checking} showName={false} onchange={files => { void select(files[0]); }}/>
-    {#if recording}<Button type="button" variant="outline" onclick={stop}><Square size={14}/>Zatrzymaj nagranie · {durationLabel(elapsed)}</Button>
-    {:else}<Button type="button" variant="outline" disabled={disabled || starting || checking} onclick={record}><Mic size={15}/>{starting ? 'Otwieranie mikrofonu…' : 'Nagraj z mikrofonu'}</Button>{/if}
-    {#if file}<Button type="button" variant="ghost" disabled={disabled || starting || recording || checking} onclick={() => { void select(); }}><X size={14}/>Wyczyść nagranie</Button>{/if}
+    <FilePicker label={tr("Wybierz plik audio")} ariaLabel={tr(label)} accept={referenceAudioAccept} disabled={disabled || starting || recording || checking} showName={false} onchange={files => { void select(files[0]); }}/>
+    {#if recording}<Button type="button" variant="outline" onclick={stop}><Square size={14}/>{tr("Zatrzymaj nagranie ·")} {durationLabel(elapsed)}</Button>
+    {:else}<Button type="button" variant="outline" disabled={disabled || starting || checking} onclick={record}><Mic size={15}/>{starting ? tr("Otwieranie mikrofonu…") : tr("Nagraj z mikrofonu")}</Button>{/if}
+    {#if file}<Button type="button" variant="ghost" disabled={disabled || starting || recording || checking} onclick={() => { void select(); }}><X size={14}/>{tr("Wyczyść nagranie")}</Button>{/if}
   </div>
-  {#if checking}<p class="page-footnote" role="status">Sprawdzanie nagrania…</p>{/if}
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
-  {#if file}<p class="page-footnote">{file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB{duration ? ` · ${durationLabel(duration)}` : ''}</p><AudioPreview src={audioUrl} title={label}/>{#if warning}<p class="page-footnote">{warning}</p>{/if}{/if}
-  <p class="page-footnote">Wybierz czystą mowę jednego głosu, bez muzyki i nakładających się wypowiedzi. Zalecana próbka: 10–30 s, maksymalny plik: 128 MB. Mikrofon zatrzymuje nagranie po 60 s.</p>
+  {#if checking}<p class="page-footnote" role="status">{tr("Sprawdzanie nagrania…")}</p>{/if}
+  {#if error}<p class="tool-error" role="alert">{tr(error)}</p>{/if}
+  {#if file}<p class="page-footnote">{file.name} · {(file.size / 1024 / 1024).toFixed(2)} {tr("MB")}{duration ? ` · ${durationLabel(duration)}` : ''}</p><AudioPreview src={audioUrl} title={tr(label)}/>{#if warning}<p class="page-footnote">{tr(warning)}</p>{/if}{/if}
+  <p class="page-footnote">{tr("Wybierz czystą mowę jednego głosu, bez muzyki i nakładających się wypowiedzi. Zalecana próbka: 10–30 s, maksymalny plik: 128 MB. Mikrofon zatrzymuje nagranie po 60 s.")}</p>
 </div>
 
 <style>

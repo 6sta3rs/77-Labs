@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { untrack } from 'svelte'
   import { X, Upload, Sun, Moon, Plus } from '@lucide/svelte'
   import { THEME_COLOR_ROLES, getThemeColorsForAppearance, type ThemeDefinition, type ThemeAppearance, type ThemeColorRole } from '../themes/t3-palettes'
@@ -68,31 +71,31 @@
 
 <dialog use:mount aria-labelledby="theme-dialog-title" onkeydown={(event) => { if (event.key === 'Escape') event.stopPropagation() }} oncancel={(event) => { event.preventDefault(); onclose() }}>
   <form onsubmit={submit}>
-    <header><div><h2 id="theme-dialog-title">{titles[kind]}</h2><p>{kind === 'import' ? 'Wczytaj plik JSON motywu lub wklej jego zawartość.' : 'Zmieniaj kolory osobno dla jasnego i ciemnego wariantu.'}</p></div><Tooltip content="Zamknij edytor motywu"><Button variant="ghost" size="icon" aria-label="Zamknij edytor motywu" onclick={onclose}><X/></Button></Tooltip></header>
+    <header><div><h2 id="theme-dialog-title">{tr(titles[kind])}</h2><p>{kind === 'import' ? tr("Wczytaj plik JSON motywu lub wklej jego zawartość.") : tr('Zmieniaj kolory osobno dla jasnego i ciemnego wariantu.')}</p></div><Tooltip content={tr("Zamknij edytor motywu")}><Button variant="ghost" size="icon" aria-label={tr("Zamknij edytor motywu")} onclick={onclose}><X/></Button></Tooltip></header>
     <div class="dialog-content">
       {#if kind === 'import'}
-        <label class="upload-theme"><Upload size={16}/><span>{importedName || 'Wybierz plik JSON'}</span><input class="vs-file-input" type="file" accept=".json,application/json" onchange={readFile}/></label>
-        <label class="field-label" for="theme-json">JSON motywu</label>
+        <label class="upload-theme"><Upload size={16}/><span>{importedName || tr('Wybierz plik JSON')}</span><input class="vs-file-input" type="file" accept=".json,application/json" onchange={readFile}/></label>
+        <label class="field-label" for="theme-json">{tr("JSON motywu")}</label>
         <textarea id="theme-json" class="text-input json-input" bind:value={json} spellcheck="false" placeholder={'{\n  "version": 1,\n  "name": "Mój motyw",\n  "appearance": "dark",\n  "colors": { "accent": "#346bf1" }\n}'}></textarea>
-        <p class="hint">Format JSON v1, maks. 256 KB. Brakujące kolory uzupełnimy paletą Labs dla danego trybu.</p>
+        <p class="hint">{tr("Format JSON v1, maks. 256 KB. Brakujące kolory uzupełnimy paletą Labs dla danego trybu.")}</p>
       {:else}
-        <label class="field-label" for="theme-name">Nazwa motywu</label><input id="theme-name" class="text-input" bind:value={draft.label} maxlength="48" required/>
-        <div class="variant-tabs" aria-label="Wariant motywu"><button type="button" class:chosen={mode === 'light'} aria-pressed={mode === 'light'} onclick={() => mode = 'light'}><Sun size={14}/>Jasny</button><button type="button" class:chosen={mode === 'dark'} aria-pressed={mode === 'dark'} onclick={() => mode = 'dark'}><Moon size={14}/>Ciemny</button></div>
-        {#if !hasMode}<div class="missing-variant"><p>Ten motyw nie ma jeszcze wariantu {mode === 'light' ? 'jasnego' : 'ciemnego'}.</p><Button variant="outline" size="sm" onclick={addVariant}><Plus/>Dodaj wariant</Button></div>
+        <label class="field-label" for="theme-name">{tr("Nazwa motywu")}</label><input id="theme-name" class="text-input" bind:value={draft.label} maxlength="48" required/>
+        <div class="variant-tabs" aria-label={tr("Wariant motywu")}><button type="button" class:chosen={mode === 'light'} aria-pressed={mode === 'light'} onclick={() => mode = 'light'}><Sun size={14}/>{tr("Jasny")}</button><button type="button" class:chosen={mode === 'dark'} aria-pressed={mode === 'dark'} onclick={() => mode = 'dark'}><Moon size={14}/>{tr("Ciemny")}</button></div>
+        {#if !hasMode}<div class="missing-variant"><p>{tr("Ten motyw nie ma jeszcze wariantu")} {mode === 'light' ? 'jasnego' : 'ciemnego'}.</p><Button variant="outline" size="sm" onclick={addVariant}><Plus/>{tr("Dodaj wariant")}</Button></div>
         {:else}
           <div class="palette-preview" style={`--p-bg:${colors.canvas};--p-panel:${colors.sidebar};--p-text:${colors.text};--p-muted:${colors.textMuted};--p-border:${colors.border};--p-primary:${colors.messageAction};--p-on-primary:${colors.messageActionForeground}`}>
-            <aside><span></span><span></span><span></span></aside><div><strong>Twoje studio</strong><p>Podgląd tekstu i kolorów interfejsu.</p><span class="preview-action">Wygeneruj mowę</span></div>
+            <aside><span></span><span></span><span></span></aside><div><strong>{tr("Twoje studio")}</strong><p>{tr("Podgląd tekstu i kolorów interfejsu.")}</p><span class="preview-action">{tr("Wygeneruj mowę")}</span></div>
           </div>
           {#snippet field(role: ThemeColorRole)}
-            <div class="color-field"><label for={`color-${role}`}>{labels[role] || role}</label><div><input type="color" aria-label={`Wybierz kolor: ${labels[role] || role}`} value={hex(colors[role])} oninput={(event) => setColor(role, event.currentTarget.value)}/><input id={`color-${role}`} class="text-input" aria-invalid={!validThemeColor(colors[role])} value={colors[role]} oninput={(event) => setColor(role, event.currentTarget.value)} spellcheck="false"/></div></div>
+            <div class="color-field"><label for={`color-${role}`}>{tr(labels[role] || role)}</label><div><input type="color" aria-label={tr("Wybierz kolor: {value0}", {value0: (labels[role] || role)})} value={hex(colors[role])} oninput={(event) => setColor(role, event.currentTarget.value)}/><input id={`color-${role}`} class="text-input" aria-invalid={!validThemeColor(colors[role])} value={colors[role]} oninput={(event) => setColor(role, event.currentTarget.value)} spellcheck="false"/></div></div>
           {/snippet}
           <div class="color-grid">{#each mainRoles as role}{@render field(role)}{/each}</div>
-          <details><summary>Pozostałe kolory ({appRoles.length - mainRoles.length})</summary><div class="color-grid">{#each appRoles.filter(role => !mainRoles.includes(role)) as role}{@render field(role)}{/each}</div></details>
+          <details><summary>{tr("Pozostałe kolory ({count})", { count: appRoles.length - mainRoles.length })}</summary><div class="color-grid">{#each appRoles.filter(role => !mainRoles.includes(role)) as role}{@render field(role)}{/each}</div></details>
         {/if}
       {/if}
-      {#if error}<p class="error" role="alert">{error}</p>{/if}
+      {#if error}<p class="error" role="alert">{tr(error)}</p>{/if}
     </div>
-    <footer><Button variant="outline" onclick={onclose}>Anuluj</Button><Button type="submit">{kind === 'import' ? 'Dodaj motyw' : 'Zapisz motyw'}</Button></footer>
+    <footer><Button variant="outline" onclick={onclose}>{tr("Anuluj")}</Button><Button type="submit">{kind === 'import' ? tr("Dodaj motyw") : 'Zapisz motyw'}</Button></footer>
   </form>
 </dialog>
 

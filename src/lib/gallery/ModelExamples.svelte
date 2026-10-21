@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import ModelTrigger from '../ui/ModelTrigger.svelte'
   import ModelIcon from '../ui/ModelIcon.svelte'
   import ModelPicker from '../models/ModelPicker.svelte'
@@ -14,16 +17,16 @@
   async function choose(id: string) { selected=id;notice=`Wybrano w podglądzie: ${models.find(model=>model.id===id)?.name}.` }
 </script>
 <section class="model-example" id="control-16">
-  <header><span>16</span><h2>Wybór modeli</h2><code>ModelTrigger / ModelPicker</code></header>
-  <p>Przykładowy katalog pokazuje działanie komponentów. W Studio te same kontrolki odczytują lokalne silniki.</p>
-  <div class="verified-icons" aria-label="Oryginalne znaki modeli i wydawców">{#each [{id:'omnivoice',name:'OmniVoice · k2-fsa'},{id:'voxcpm2',name:'VoxCPM'},{id:'moss-tts-nano',name:'OpenMOSS'},{id:'pockettts',name:'PocketTTS'}] as model}<span><ModelIcon id={model.id} size={32}/>{model.name}</span>{/each}</div>
+  <header><span>16</span><h2>{tr("Wybór modeli")}</h2><code>{tr("ModelTrigger / ModelPicker")}</code></header>
+  <p>{tr("Przykładowy katalog pokazuje działanie komponentów. W Studio te same kontrolki odczytują lokalne silniki.")}</p>
+  <div class="verified-icons" aria-label={tr("Oryginalne znaki modeli i wydawców")}>{#each [{id:'omnivoice',name:'OmniVoice · k2-fsa'},{id:'voxcpm2',name:'VoxCPM'},{id:'moss-tts-nano',name:'OpenMOSS'},{id:'pockettts',name:'PocketTTS'}] as model}<span><ModelIcon id={model.id} size={32}/>{model.name}</span>{/each}</div>
   <div class="examples-layout"><div>
     <ModelTrigger name={active.name} modelId={active.id} brand={active.brand} expanded={panel} active={panel} onclick={()=>panel=!panel}/>
-    <p class="selection-copy">Wybrany: <strong>{active.name}</strong></p>
-    <ModelTrigger label="Przeglądarka modeli" name="Otwórz pełne okno" popup="dialog" expanded={dialog} onclick={()=>dialog=true}/>
-    <p class="hint">Sprawdź wyszukiwanie, filtry dostępności i języka, listę/karty oraz pozycje wyłączone.</p>
+    <p class="selection-copy">{tr("Wybrany:")} <strong>{active.name}</strong></p>
+    <ModelTrigger label={tr("Przeglądarka modeli")} name="Otwórz pełne okno" popup="dialog" expanded={dialog} onclick={()=>dialog=true}/>
+    <p class="hint">{tr("Sprawdź wyszukiwanie, filtry dostępności i języka, listę/karty oraz pozycje wyłączone.")}</p>
     <p role="status">{notice}</p>
-  </div><div class="picker-example">{#if panel}<ModelPicker {models} selectedId={selected} onselect={choose} onclose={()=>panel=false}/>{:else}<div class="picker-placeholder">Kliknij nazwę modelu, aby otworzyć panel wyboru.</div>{/if}</div></div>
+  </div><div class="picker-example">{#if panel}<ModelPicker {models} selectedId={selected} onselect={choose} onclose={()=>panel=false}/>{:else}<div class="picker-placeholder">{tr("Kliknij nazwę modelu, aby otworzyć panel wyboru.")}</div>{/if}</div></div>
 </section>
 {#if dialog}<ModelPicker {models} mode="dialog" selectedId={selected} onselect={choose} onclose={()=>dialog=false}/>{/if}
 <style>

@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 export type ModelLicenseCategory = 'commercial' | 'conditions' | 'unknown' | 'noncommercial'
 export type ModelAcceptance = {
   repo_id: string; license: string | null; category: ModelLicenseCategory; required: boolean; accepted: boolean
@@ -36,20 +37,20 @@ export function licenseText(value: unknown): string {
   return typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
 }
 export function licenseCategoryLabel(value: unknown) {
-  return ({ commercial: 'Komercyjne według klasyfikacji rejestru', conditions: 'Dodatkowe warunki', unknown: 'Nieustalona / niezweryfikowana', noncommercial: 'Niekomercyjna według rejestru' } as Record<string, string>)[String(value)] || 'Nieustalona / niezweryfikowana'
+  return ({ commercial: translateUi("Komercyjne według klasyfikacji rejestru"), conditions: 'Dodatkowe warunki', unknown: 'Nieustalona / niezweryfikowana', noncommercial: translateUi("Niekomercyjna według rejestru") } as Record<string, string>)[String(value)] || 'Nieustalona / niezweryfikowana'
 }
 export function licenseStateLabel(value: string) {
-  return ({ not_required: 'Rejestr nie wymaga potwierdzenia', accepted: 'Lokalne potwierdzenie zapisane', not_accepted: 'Brak lokalnego potwierdzenia', withdrawn: 'Potwierdzenie cofnięte', terms_updated: 'Warunki zmieniły się — przeczytaj ponownie' } as Record<string, string>)[value] || 'Stan nieustalony'
+  return ({ not_required: translateUi("Rejestr nie wymaga potwierdzenia"), accepted: translateUi("Lokalne potwierdzenie zapisane"), not_accepted: translateUi("Brak lokalnego potwierdzenia"), withdrawn: translateUi("Potwierdzenie cofnięte"), terms_updated: translateUi("Warunki zmieniły się — przeczytaj ponownie") } as Record<string, string>)[value] || 'Stan nieustalony'
 }
 
 export class ModelLicenseTermsChangedError extends Error {
   readonly code = 'terms_changed'
-  constructor() { super('Warunki modelu zmieniły się od chwili ich odczytania. Odśwież informacje i podejmij nową decyzję.'); this.name = 'ModelLicenseTermsChangedError' }
+  constructor() { super(translateUi("Warunki modelu zmieniły się od chwili ich odczytania. Odśwież informacje i podejmij nową decyzję.")); this.name = 'ModelLicenseTermsChangedError' }
 }
 export class ModelLicenseRequiredError extends Error {
   readonly code = 'model_licence_required'
   constructor(readonly models: RequiredModelLicense[]) {
-    super(models.length ? `Przed generowaniem wymagane jest sprawdzenie warunków modeli: ${models.map(model => `${model.repo_id} (${model.license || 'licencja nieustalona'})`).join('; ')}. Otwórz Ustawienia → Modele i silnik → Warunki modelu.` : 'Silnik nie może zweryfikować rejestru licencji modeli. Otwórz Ustawienia → Modele i silnik i sprawdź informacje o modelach.')
+    super(models.length ? translateUi("Przed generowaniem wymagane jest sprawdzenie warunków modeli: {arg0}. Otwórz Ustawienia → Modele i silnik → Warunki modelu.", { arg0: String(models.map(model => `${model.repo_id} (${model.license || 'licencja nieustalona'})`).join('; ')) }) : translateUi("Silnik nie może zweryfikować rejestru licencji modeli. Otwórz Ustawienia → Modele i silnik i sprawdź informacje o modelach."))
     this.name = 'ModelLicenseRequiredError'
   }
 }
@@ -78,10 +79,10 @@ export async function assertModelLicenseResponse(response: Response, signal?: Ab
 }
 
 export function parseModelLicenseDetails(raw: unknown, repo: string): ModelLicenseDetails {
-  if (!raw || typeof raw !== 'object') throw new Error('Silnik nie zwrócił informacji o licencji modelu.')
+  if (!raw || typeof raw !== 'object') throw new Error(translateUi("Silnik nie zwrócił informacji o licencji modelu."))
   const data = raw as ModelLicenseDetails, acceptance = data.acceptance
-  if (!validModelRepo(repo) || data.repo_id !== repo || !data.info || typeof data.info !== 'object' || Array.isArray(data.info) || !acceptance || acceptance.repo_id !== repo || typeof acceptance.required !== 'boolean' || typeof acceptance.accepted !== 'boolean' || !states.has(acceptance.state) || !categories.has(acceptance.category) || !fingerprintPattern.test(acceptance.fingerprint) || !Array.isArray(data.history)) throw new Error('Niepełny kontrakt licencji modelu. Nie można zapisać potwierdzenia; odśwież informacje lub zaktualizuj silnik.')
-  if (data.info.variants !== undefined && (!Array.isArray(data.info.variants) || data.info.variants.some(variant => !variant || typeof variant !== 'object' || Array.isArray(variant))) || data.history.some(entry => !entry || typeof entry !== 'object' || typeof entry.action !== 'string')) throw new Error('Nieprawidłowe warianty lub historia warunków. Nie można zapisać potwierdzenia.')
+  if (!validModelRepo(repo) || data.repo_id !== repo || !data.info || typeof data.info !== 'object' || Array.isArray(data.info) || !acceptance || acceptance.repo_id !== repo || typeof acceptance.required !== 'boolean' || typeof acceptance.accepted !== 'boolean' || !states.has(acceptance.state) || !categories.has(acceptance.category) || !fingerprintPattern.test(acceptance.fingerprint) || !Array.isArray(data.history)) throw new Error(translateUi("Niepełny kontrakt licencji modelu. Nie można zapisać potwierdzenia; odśwież informacje lub zaktualizuj silnik."))
+  if (data.info.variants !== undefined && (!Array.isArray(data.info.variants) || data.info.variants.some(variant => !variant || typeof variant !== 'object' || Array.isArray(variant))) || data.history.some(entry => !entry || typeof entry !== 'object' || typeof entry.action !== 'string')) throw new Error(translateUi("Nieprawidłowe warianty lub historia warunków. Nie można zapisać potwierdzenia."))
   return data
 }
 
@@ -93,28 +94,28 @@ export class ModelLicenseService {
     const response = await this.transport(path, { ...options, signal })
     signal.throwIfAborted()
     const text = await response.text(); signal.throwIfAborted()
-    if (text.length > 1024 * 1024) throw new Error('Informacje o licencji przekraczają limit 1 MB. Nie zapisano potwierdzenia.')
+    if (text.length > 1024 * 1024) throw new Error(translateUi("Informacje o licencji przekraczają limit 1 MB. Nie zapisano potwierdzenia."))
     let data: unknown
-    try { data = JSON.parse(text) } catch { if (response.ok) throw new Error('Nieprawidłowe informacje o licencji modelu.') }
+    try { data = JSON.parse(text) } catch { if (response.ok) throw new Error(translateUi("Nieprawidłowe informacje o licencji modelu.")) }
     if (!response.ok) {
       const detail = data && typeof data === 'object' ? (data as { detail?: { code?: string } }).detail : undefined
       if (response.status === 409 && detail?.code === 'terms_changed') throw new ModelLicenseTermsChangedError()
-      if (response.status === 404) throw new Error('Ten silnik nie udostępnia informacji o warunkach modelu. Wymagany jest kontrakt licencji z wersji 0.5.7.')
-      throw new Error(`Nie udało się odczytać lub zapisać warunków modelu (${response.status}). Nie zakładaj, że decyzja została zapisana; odśwież stan.`)
+      if (response.status === 404) throw new Error(translateUi("Ten silnik nie udostępnia informacji o warunkach modelu. Wymagany jest kontrakt licencji z wersji 0.5.7."))
+      throw new Error(translateUi("Nie udało się odczytać lub zapisać warunków modelu ({arg0}). Nie zakładaj, że decyzja została zapisana; odśwież stan.", { arg0: String(response.status) }))
     }
     return data
   }
   async details(repo: string, signal?: AbortSignal) {
-    if (!validModelRepo(repo)) throw new Error('Wybierz poprawne repozytorium modelu w formacie autor/model.')
+    if (!validModelRepo(repo)) throw new Error(translateUi("Wybierz poprawne repozytorium modelu w formacie autor/model."))
     return parseModelLicenseDetails(await this.json(`/models/licenses/details/${encodeURIComponent(repo)}`, { signal }), repo)
   }
   async accept(details: ModelLicenseDetails, confirmed: boolean, signal?: AbortSignal) {
     const reviewed = parseModelLicenseDetails(details, details.repo_id)
-    if (confirmed !== true) throw new Error('Potwierdź zapoznanie się z warunkami przed zapisaniem decyzji.')
+    if (confirmed !== true) throw new Error(translateUi("Potwierdź zapoznanie się z warunkami przed zapisaniem decyzji."))
     return this.json('/models/licenses/accept', { method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ repo_id: reviewed.repo_id, fingerprint: reviewed.acceptance.fingerprint, accepted: true }) })
   }
   async revoke(repo: string, signal?: AbortSignal) {
-    if (!validModelRepo(repo)) throw new Error('Nieprawidłowe repozytorium modelu.')
+    if (!validModelRepo(repo)) throw new Error(translateUi("Nieprawidłowe repozytorium modelu."))
     return this.json('/models/licenses/revoke', { method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ repo_id: repo }) })
   }
 }

@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { untrack } from 'svelte';
   import { voiceIdentity, orbPreviewIdentity, VoiceOrbRenderer, type OrbVariant } from './voice-orb';
   import { SharedVoiceOrb, type OrbPresentation } from './shared-voice-orb';

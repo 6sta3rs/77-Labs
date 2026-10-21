@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onDestroy, tick, untrack } from 'svelte'
   import { Database, FolderOpen, HardDrive, History, RefreshCw, RotateCcw, ShieldCheck } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
@@ -88,64 +91,64 @@
   }
 </script>
 
-<section class="storage-settings studio-tools" aria-label="Przechowywanie">
-  <div class="page-heading"><div><h2>Przechowywanie</h2><p class="page-footnote">Prywatne dane aplikacji, modele, miejsce na dysku i kopie bezpieczeństwa.</p></div><Button variant="outline" disabled={!ready || busy || loading} onclick={() => refresh(true)}><RefreshCw size={15}/>{loading ? 'Odczytywanie…' : 'Odśwież'}</Button></div>
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
-  {#if message}<p class="tool-notice" role="status">{message}</p>{/if}
-  {#if !ready}<p class="tool-notice">Uruchom prywatny silnik, aby odczytać i zmienić ustawienia przechowywania.</p>{/if}
-  {#if storageState?.last_error}<p class="tool-error" role="alert">{storageState.last_error} Dotychczasowy katalog pozostaje aktywny. Wybierz nowy pusty katalog, aby ponowić kopię.</p>{/if}
+<section class="storage-settings studio-tools" aria-label={tr("Przechowywanie")}>
+  <div class="page-heading"><div><h2>{tr("Przechowywanie")}</h2><p class="page-footnote">{tr("Prywatne dane aplikacji, modele, miejsce na dysku i kopie bezpieczeństwa.")}</p></div><Button variant="outline" disabled={!ready || busy || loading} onclick={() => refresh(true)}><RefreshCw size={15}/>{loading ? 'Odczytywanie…' : tr("Odśwież")}</Button></div>
+  {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
+  {#if message}<p class="tool-notice" role="status">{tr(String(message))}</p>{/if}
+  {#if !ready}<p class="tool-notice">{tr("Uruchom prywatny silnik, aby odczytać i zmienić ustawienia przechowywania.")}</p>{/if}
+  {#if storageState?.last_error}<p class="tool-error" role="alert">{storageState.last_error} {tr("Dotychczasowy katalog pozostaje aktywny. Wybierz nowy pusty katalog, aby ponowić kopię.")}</p>{/if}
 
   <section class="tool-card storage-card" aria-labelledby="storage-data-title">
-    <h3 id="storage-data-title"><Database size={18}/> Głosy, projekty i nagrania silnika</h3>
+    <h3 id="storage-data-title"><Database size={18}/> {tr("Głosy, projekty i nagrania silnika")}</h3>
     {#if storageState}
-      <p>Aktywny katalog: <code>{storageState.data_dir}</code></p>
-      <label for="storage-data-path">Nowy pusty katalog danych — ostatni folder musi nazywać się <code>data</code></label>
-      <div class="storage-path"><Input id="storage-data-path" bind:value={dataPath} spellcheck={false} disabled={busy || loading || Boolean(storageState.pending)} placeholder="D:\SeventySevenLabs\data"/><Button variant="outline" disabled={!desktop || busy || loading || Boolean(storageState.pending)} onclick={() => choose('data')}><FolderOpen size={15}/>Wybierz folder…</Button></div>
-      <p class="page-footnote">Po restarcie silnika aplikacja skopiuje bazę, głosy, pliki i projekty, sprawdzi kopię i aktywuje nową lokalizację. Dotychczasowy katalog pozostanie zachowany. Modele mają osobny katalog. Projekty edytora i nagrania zapisane w pamięci przeglądarki (IndexedDB) pozostają w profilu aplikacji.</p>
+      <p>{tr("Aktywny katalog:")} <code>{storageState.data_dir}</code></p>
+      <label for="storage-data-path">{tr("Nowy pusty katalog danych — ostatni folder musi nazywać się")} <code>{tr("data")}</code></label>
+      <div class="storage-path"><Input id="storage-data-path" bind:value={dataPath} spellcheck={false} disabled={busy || loading || Boolean(storageState.pending)} placeholder={tr("D:\\SeventySevenLabs\\data")}/><Button variant="outline" disabled={!desktop || busy || loading || Boolean(storageState.pending)} onclick={() => choose('data')}><FolderOpen size={15}/>{tr("Wybierz folder…")}</Button></div>
+      <p class="page-footnote">{tr("Po restarcie silnika aplikacja skopiuje bazę, głosy, pliki i projekty, sprawdzi kopię i aktywuje nową lokalizację. Dotychczasowy katalog pozostanie zachowany. Modele mają osobny katalog. Projekty edytora i nagrania zapisane w pamięci przeglądarki (IndexedDB) pozostają w profilu aplikacji.")}</p>
       {#if storageState.pending}
-        <p class="tool-notice" role="status">Zaplanowano kopię do <code>{storageState.pending.destination}</code>. Zostanie wykonana przy kolejnym uruchomieniu silnika.</p>
-        <Button variant="outline" disabled={busy || loading} onclick={() => action(async signal => { storageState = await storageSettings.cancelRelocation(signal) }, 'Anulowano plan. Zarezerwowany katalog pozostał na dysku; dane nie zostały przeniesione.')}>Anuluj plan przeniesienia</Button>
+        <p class="tool-notice" role="status">{tr("Zaplanowano kopię do")} <code>{storageState.pending.destination}</code>{tr(". Zostanie wykonana przy kolejnym uruchomieniu silnika.")}</p>
+        <Button variant="outline" disabled={busy || loading} onclick={() => action(async signal => { storageState = await storageSettings.cancelRelocation(signal) }, tr("Anulowano plan. Zarezerwowany katalog pozostał na dysku; dane nie zostały przeniesione."))}>{tr("Anuluj plan przeniesienia")}</Button>
       {:else}
-        <Button variant="outline" disabled={!ready || busy || loading || transferring || !dataPath.trim()} onclick={() => action(async signal => { storageState = await storageSettings.relocate(dataPath, signal); dataPath = storageState.pending?.destination || dataPath }, 'Zapisano plan przeniesienia. Uruchom ponownie silnik, aby wykonać i sprawdzić kopię.')}>Zaplanuj kopię i zmianę katalogu</Button>
+        <Button variant="outline" disabled={!ready || busy || loading || transferring || !dataPath.trim()} onclick={() => action(async signal => { storageState = await storageSettings.relocate(dataPath, signal); dataPath = storageState.pending?.destination || dataPath }, tr("Zapisano plan przeniesienia. Uruchom ponownie silnik, aby wykonać i sprawdzić kopię."))}>{tr("Zaplanuj kopię i zmianę katalogu")}</Button>
       {/if}
-      {#if storageState.last_relocation}<p class="page-footnote">Ostatnia kopia: {new Date(storageState.last_relocation.completed_at * 1000).toLocaleString('pl')}. Poprzedni katalog: <code>{storageState.last_relocation.source}</code>.</p>{/if}
-    {:else}<p>{loading ? 'Odczytywanie katalogu danych…' : 'Katalog zostanie odczytany po połączeniu z silnikiem.'}</p>{/if}
+      {#if storageState.last_relocation}<p class="page-footnote">{tr("Ostatnia kopia:")} {new Date(storageState.last_relocation.completed_at * 1000).toLocaleString(tr.locale)}{tr(". Poprzedni katalog:")} <code>{storageState.last_relocation.source}</code>.</p>{/if}
+    {:else}<p>{loading ? 'Odczytywanie katalogu danych…' : tr("Katalog zostanie odczytany po połączeniu z silnikiem.")}</p>{/if}
   </section>
 
   <section class="tool-card storage-card" aria-labelledby="storage-model-title">
-    <h3 id="storage-model-title"><HardDrive size={18}/> Cache modeli</h3>
+    <h3 id="storage-model-title"><HardDrive size={18}/> {tr("Cache modeli")}</h3>
     {#if models}
-      <label for="storage-model-path">Katalog wag modeli</label>
-      <div class="storage-path"><Input id="storage-model-path" bind:value={modelPath} spellcheck={false} disabled={busy || loading || transferring}/><Button variant="outline" disabled={!desktop || busy || loading || transferring} onclick={() => choose('models')}><FolderOpen size={15}/>Wybierz folder…</Button></div>
-      <p class="page-footnote">Bieżący katalog: <code>{models.effective}</code>. Nowa lokalizacja obowiązuje po restarcie silnika; istniejące modele pozostają w poprzednim miejscu. Wybierz pusty katalog lub prywatny cache utworzony przez tę aplikację.</p>
-      <div class="tool-actions"><Button variant="outline" disabled={busy || loading || transferring || !modelPath.trim() || modelPath === models.configured} onclick={() => action(async signal => { models = await modelManagement.storage(modelPath, signal); modelPath = models.configured }, 'Zapisano katalog modeli. Zastosuj go restartem silnika.')}>Zapisz katalog modeli</Button><Button variant="ghost" disabled={busy || loading || transferring || models.configured === storageState?.model_default} onclick={() => action(async signal => { models = await storageSettings.resetModels(signal); modelPath = models.configured }, 'Wybrano prywatny domyślny katalog modeli. Zastosuj go restartem silnika.')}><RotateCcw size={14}/>Przywróć domyślny</Button></div>
-      {#if models.restart_required}<p class="tool-notice" role="status">Zmiana katalogu modeli wymaga restartu silnika.</p>{/if}
-    {:else}<p>Brak odczytu katalogu modeli.</p>{/if}
+      <label for="storage-model-path">{tr("Katalog wag modeli")}</label>
+      <div class="storage-path"><Input id="storage-model-path" bind:value={modelPath} spellcheck={false} disabled={busy || loading || transferring}/><Button variant="outline" disabled={!desktop || busy || loading || transferring} onclick={() => choose('models')}><FolderOpen size={15}/>{tr("Wybierz folder…")}</Button></div>
+      <p class="page-footnote">{tr("Bieżący katalog:")} <code>{models.effective}</code>{tr(". Nowa lokalizacja obowiązuje po restarcie silnika; istniejące modele pozostają w poprzednim miejscu. Wybierz pusty katalog lub prywatny cache utworzony przez tę aplikację.")}</p>
+      <div class="tool-actions"><Button variant="outline" disabled={busy || loading || transferring || !modelPath.trim() || modelPath === models.configured} onclick={() => action(async signal => { models = await modelManagement.storage(modelPath, signal); modelPath = models.configured }, 'Zapisano katalog modeli. Zastosuj go restartem silnika.')}>{tr("Zapisz katalog modeli")}</Button><Button variant="ghost" disabled={busy || loading || transferring || models.configured === storageState?.model_default} onclick={() => action(async signal => { models = await storageSettings.resetModels(signal); modelPath = models.configured }, tr("Wybrano prywatny domyślny katalog modeli. Zastosuj go restartem silnika."))}><RotateCcw size={14}/>{tr("Przywróć domyślny")}</Button></div>
+      {#if models.restart_required}<p class="tool-notice" role="status">{tr("Zmiana katalogu modeli wymaga restartu silnika.")}</p>{/if}
+    {:else}<p>{tr("Brak odczytu katalogu modeli.")}</p>{/if}
   </section>
 
-  {#if needsRestart && onrestart}<div class="tool-actions"><Button disabled={!ready || busy || loading || transferring} onclick={restart}><RefreshCw size={15}/>Zastosuj zmiany i uruchom silnik ponownie</Button></div>{/if}
+  {#if needsRestart && onrestart}<div class="tool-actions"><Button disabled={!ready || busy || loading || transferring} onclick={restart}><RefreshCw size={15}/>{tr("Zastosuj zmiany i uruchom silnik ponownie")}</Button></div>{/if}
 
   <section class="tool-card storage-card" aria-labelledby="storage-disk-title">
-    <h3 id="storage-disk-title"><HardDrive size={18}/> Wykorzystanie dysku</h3>
+    <h3 id="storage-disk-title"><HardDrive size={18}/> {tr("Wykorzystanie dysku")}</h3>
     {#if report}
-      {#each report.volumes as volume (volume.path)}<div class="storage-volume"><strong>Dysk {volume.path}</strong><span>{byteLabel(volume.free_bytes)} wolne z {byteLabel(volume.total_bytes)}</span>{#if volume.low_space}<span class="tool-error">Mało miejsca na dysku — mniej niż 5 GB.</span>{/if}</div>{/each}
-      <dl class="storage-usage">{#each report.categories as category (category.id)}<div><dt>{category.label}<code>{category.path}</code></dt><dd>{category.complete ? '' : 'co najmniej '}{byteLabel(category.bytes)}</dd></div>{#each category.errors as detail}<p class="page-footnote">{detail}</p>{/each}{/each}</dl>
-      <p class="page-footnote">Pomiar: {new Date(report.generated_at * 1000).toLocaleString('pl')}{report.cached ? ' · wynik z pamięci podręcznej' : ''}. Rozmiary logiczne plików; biblioteki i modele mogą współdzielić fizyczne dane przez hardlinki. Nie sumuj tych wartości jako zajętego miejsca.</p>
-    {:else}<p>{loading ? 'Mierzenie prywatnych katalogów…' : 'Odśwież, aby sprawdzić zajęte miejsce.'}</p>{/if}
+      {#each report.volumes as volume (volume.path)}<div class="storage-volume"><strong>{tr("Dysk")} {volume.path}</strong><span>{byteLabel(volume.free_bytes)} {tr("wolne z")} {byteLabel(volume.total_bytes)}</span>{#if volume.low_space}<span class="tool-error">{tr("Mało miejsca na dysku — mniej niż 5 GB.")}</span>{/if}</div>{/each}
+      <dl class="storage-usage">{#each report.categories as category (category.id)}<div><dt>{tr(String(category.label))}<code>{category.path}</code></dt><dd>{category.complete ? '' : 'co najmniej '}{byteLabel(category.bytes)}</dd></div>{#each category.errors as detail}<p class="page-footnote">{tr(String(detail))}</p>{/each}{/each}</dl>
+      <p class="page-footnote">{tr("Pomiar:")} {new Date(report.generated_at * 1000).toLocaleString(tr.locale)}{report.cached ? " " + tr("· wynik z pamięci podręcznej") : ''}{tr(". Rozmiary logiczne plików; biblioteki i modele mogą współdzielić fizyczne dane przez hardlinki. Nie sumuj tych wartości jako zajętego miejsca.")}</p>
+    {:else}<p>{loading ? tr("Mierzenie prywatnych katalogów…") : tr("Odśwież, aby sprawdzić zajęte miejsce.")}</p>{/if}
   </section>
 
   <section class="tool-card storage-card" aria-labelledby="storage-backup-title">
-    <h3 id="storage-backup-title"><ShieldCheck size={18}/> Kopie bezpieczeństwa bazy</h3>
-    <p>Przed aktualizacją silnik tworzy automatyczną kopię. Możesz też zapisać spójny obraz bieżącej bazy SQLite. Ręczna kopia bazy nie zawiera plików nagrań.</p>
-    <Button variant="outline" disabled={!ready || busy || loading || transferring} onclick={() => action(async signal => { backups = (await storageSettings.backup(signal)).backups }, 'Utworzono i sprawdzono kopię bazy SQLite.')}>Utwórz kopię bazy teraz</Button>
-    {#if backups.length}<ul class="storage-backups">{#each backups as backup (backup.path)}<li><strong>{backup.kind} · {new Date(backup.created_at * 1000).toLocaleString('pl')} · {byteLabel(backup.bytes)}</strong><code>{backup.path}</code></li>{/each}</ul>{:else}<p class="page-footnote">Nie odczytano zapisanych kopii. Pierwsza automatyczna kopia powstanie przed kolejną aktualizacją bazy.</p>{/if}
+    <h3 id="storage-backup-title"><ShieldCheck size={18}/> {tr("Kopie bezpieczeństwa bazy")}</h3>
+    <p>{tr("Przed aktualizacją silnik tworzy automatyczną kopię. Możesz też zapisać spójny obraz bieżącej bazy SQLite. Ręczna kopia bazy nie zawiera plików nagrań.")}</p>
+    <Button variant="outline" disabled={!ready || busy || loading || transferring} onclick={() => action(async signal => { backups = (await storageSettings.backup(signal)).backups }, tr("Utworzono i sprawdzono kopię bazy SQLite."))}>{tr("Utwórz kopię bazy teraz")}</Button>
+    {#if backups.length}<ul class="storage-backups">{#each backups as backup (backup.path)}<li><strong>{backup.kind} · {new Date(backup.created_at * 1000).toLocaleString(tr.locale)} · {byteLabel(backup.bytes)}</strong><code>{backup.path}</code></li>{/each}</ul>{:else}<p class="page-footnote">{tr("Nie odczytano zapisanych kopii. Pierwsza automatyczna kopia powstanie przed kolejną aktualizacją bazy.")}</p>{/if}
   </section>
 
   <section class="tool-card storage-card" aria-labelledby="storage-history-title">
-    <h3 id="storage-history-title"><History size={18}/> Historia generowania</h3>
-    <p>Po kolejnych generacjach najstarsze nagrania ponad limit będą usuwane razem z plikami audio. Ulubione są zawsze zachowywane. Wpisz 0, aby zachować wszystko.</p>
-    <label for="storage-history-cap">Liczba zachowywanych nagrań</label>
-    <div class="storage-retention"><Input id="storage-history-cap" type="number" min="0" max="100000" step="1" bind:value={cap} disabled={!ready || busy || loading}/><Button variant="outline" disabled={!ready || busy || loading || !validRetentionCap(cap) || cap === savedCap} onclick={saveRetention}>Zapisz limit historii</Button></div>
+    <h3 id="storage-history-title"><History size={18}/> {tr("Historia generowania")}</h3>
+    <p>{tr("Po kolejnych generacjach najstarsze nagrania ponad limit będą usuwane razem z plikami audio. Ulubione są zawsze zachowywane. Wpisz 0, aby zachować wszystko.")}</p>
+    <label for="storage-history-cap">{tr("Liczba zachowywanych nagrań")}</label>
+    <div class="storage-retention"><Input id="storage-history-cap" type="number" min="0" max="100000" step="1" bind:value={cap} disabled={!ready || busy || loading}/><Button variant="outline" disabled={!ready || busy || loading || !validRetentionCap(cap) || cap === savedCap} onclick={saveRetention}>{tr("Zapisz limit historii")}</Button></div>
   </section>
 </section>
 

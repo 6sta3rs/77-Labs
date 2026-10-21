@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 // Execute the actual component script with controlled HTTP/lifecycle results.
 // No browser, backend, native runtime, account read or inference.
@@ -39,7 +40,7 @@ async function subject(overrides = {}, props = {}) {
   }
   source += '\nreturn {refresh,save,changeSettings,modelChoices,get settings(){return settings},get connection(){return connection},get loaded(){return loaded},get busy(){return busy},get result(){return result},get error(){return error},get message(){return message},get embedded(){return embedded}}'
   const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText
-  const value = new Function(...Object.keys(dependencies), code)(...Object.values(dependencies))
+  const value = new Function(...Object.keys({...i18nDeps,...dependencies}), code)(...Object.values({...i18nDeps,...dependencies}))
   const cleanups = []
   return { value, calls, mount() { for (const callback of lifecycle) { const cleanup = callback(); if (cleanup) cleanups.push(cleanup) } }, destroy() { cleanups.splice(0).reverse().forEach(callback => callback()) } }
 }

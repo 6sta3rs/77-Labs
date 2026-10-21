@@ -21,11 +21,16 @@ export function profileAccent(profile: Profile): string | undefined {
 export function profileVoiceMetadata(profile: Profile): Pick<Voice, 'createdAt' | 'accent'> {
   return { createdAt: profileCreatedAt(profile.created_at), accent: profileAccent(profile) }
 }
-export function voiceAge(createdAt?: string, now = Date.now()): string {
+export function voiceAge(createdAt?: string, now = Date.now(), locale = 'pl-PL'): string {
   if (!createdAt) return 'Brak daty'
   const age = now - new Date(createdAt).getTime()
   if (!Number.isFinite(age) || age < 0) return 'Brak daty'
   const days = Math.floor(age / 86400000), years = Math.floor(days / 365.25), months = Math.floor(days / 30.44)
+  if (locale.startsWith('en')) {
+    const value = years || months || days;
+    const unit = years ? 'year' : months ? 'month' : 'day';
+    return value ? `${new Intl.NumberFormat(locale).format(value)} ${unit}${value === 1 ? '' : 's'}` : 'Today';
+  }
   const plural = (n: number, one: string, few: string, many: string) => `${n} ${n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many}`
   return years ? plural(years, 'rok', 'lata', 'lat') : months ? plural(months, 'miesiąc', 'miesiące', 'miesięcy') : days ? plural(days, 'dzień', 'dni', 'dni') : 'Dzisiaj'
 }

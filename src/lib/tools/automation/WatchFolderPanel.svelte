@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import Button from '../../ui/Button.svelte';
   import { onMount } from 'svelte';
   import { FolderOpen, Play, Square } from '@lucide/svelte';
@@ -44,23 +47,23 @@
   $effect(() => { if (!ready && status.enabled && watchFolder.requiresRuntime()) void watchFolder.stop('Silnik nie jest gotowy. Włącz obserwację ponownie po jego przygotowaniu.').catch(fail); });
 </script>
 
-<section class="tool-workspace-section watch-folder" aria-label="Obserwowany folder">
-  <h2>Obserwowany folder</h2>
+<section class="tool-workspace-section watch-folder" aria-label={tr("Obserwowany folder")}>
+  <h2>{tr("Obserwowany folder")}</h2>
   {#if !watchFolder.available()}
-    <p class="tool-workspace-note">Ta funkcja wymaga aplikacji desktopowej i lokalnego mostu plików.</p>
+    <p class="tool-workspace-note">{tr("Ta funkcja wymaga aplikacji desktopowej i lokalnego mostu plików.")}</p>
   {:else}
-    <p class="tool-workspace-note">Domyślnie wyłączony. Włączenie dodaje istniejące i nowe nagrania z tego folderu do wybranej receptury. Podfoldery są pomijane. Pliki źródłowe pozostają bez zmian.</p>
-    <label for={`${uid}-path`}>Lokalny folder wejściowy</label>
-    <div class="watch-path"><Input id={`${uid}-path`} bind:value={path} disabled={status.enabled || busy} placeholder="C:\Nagrania\Do-przetworzenia"/><Button variant="outline" disabled={status.enabled || busy} onclick={choose}><FolderOpen size={14}/>Wybierz folder</Button></div>
-    <Select ariaLabel="Zapisana receptura dla folderu" value={recipeId} disabled={status.enabled || busy} onchange={value => recipeId = value} options={[{ value: '', label: 'Wybierz zapisaną recepturę audio', disabled: true }, ...audioRecipes.map(recipe => ({ value: recipe.id, label: recipe.name }))]}/>
-    {#if !audioRecipes.length}<p class="tool-workspace-note">Najpierw zapisz recepturę z wejściem audio.</p>{/if}
-    <p class:watch-error={status.state === 'error'} class="watch-status" role="status">{status.enabled ? 'Włączony' : 'Wyłączony'} · {status.message}</p>
-    {#if status.lastScan}<small>Ostatni odczyt: {new Date(status.lastScan).toLocaleTimeString('pl')} · oczekujące pliki: {status.pending.length} · pominięte wpisy: {status.skipped} · trwałe potwierdzenia: {status.acknowledged}</small>{/if}
-    {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
+    <p class="tool-workspace-note">{tr("Domyślnie wyłączony. Włączenie dodaje istniejące i nowe nagrania z tego folderu do wybranej receptury. Podfoldery są pomijane. Pliki źródłowe pozostają bez zmian.")}</p>
+    <label for={`${uid}-path`}>{tr("Lokalny folder wejściowy")}</label>
+    <div class="watch-path"><Input id={`${uid}-path`} bind:value={path} disabled={status.enabled || busy} placeholder={tr("C:\\Nagrania\\Do-przetworzenia")}/><Button variant="outline" disabled={status.enabled || busy} onclick={choose}><FolderOpen size={14}/>{tr("Wybierz folder")}</Button></div>
+    <Select ariaLabel="Zapisana receptura dla folderu" value={recipeId} disabled={status.enabled || busy} onchange={value => recipeId = value} options={[{ value: '', label: tr("Wybierz zapisaną recepturę audio"), disabled: true }, ...audioRecipes.map(recipe => ({ value: recipe.id, label: recipe.name }))]}/>
+    {#if !audioRecipes.length}<p class="tool-workspace-note">{tr("Najpierw zapisz recepturę z wejściem audio.")}</p>{/if}
+    <p class:watch-error={status.state === 'error'} class="watch-status" role="status">{status.enabled ? tr("Włączony") : tr("Wyłączony")} · {tr(String(status.message))}</p>
+    {#if status.lastScan}<small>{tr("Ostatni odczyt:")} {new Date(status.lastScan).toLocaleTimeString(tr.locale)} {tr("· oczekujące pliki:")} {status.pending.length} {tr("· pominięte wpisy:")} {status.skipped} {tr("· trwałe potwierdzenia:")} {status.acknowledged}</small>{/if}
+    {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
     <div class="tool-actions">
-      {#if status.enabled}<Button variant="outline" onclick={stop}><Square size={14}/>Zatrzymaj źródło wejść</Button>{:else}<Button variant="outline" disabled={busy || !sourceReady || disabled || !path.trim()} onclick={start}><Play size={14}/>{busy ? 'Przygotowywanie…' : 'Włącz obserwację i kolejkę'}</Button>{/if}
+      {#if status.enabled}<Button variant="outline" onclick={stop}><Square size={14}/>{tr("Zatrzymaj źródło wejść")}</Button>{:else}<Button variant="outline" disabled={busy || !sourceReady || disabled || !path.trim()} onclick={start}><Play size={14}/>{busy ? 'Przygotowywanie…' : tr("Włącz obserwację i kolejkę")}</Button>{/if}
     </div>
-    <p class="tool-workspace-note">Audio do 64 MB: WAV, MP3, FLAC, OGG, M4A, AAC, Opus i WebM. Plik czeka co najmniej 3 s bez zmiany rozmiaru i daty; na Windows także na zwolnienie uchwytu zapisu. Zalecany zapis do pliku tymczasowego i dopiero potem zmiana nazwy na docelowe audio. Obserwacja używa kopii receptury z chwili włączenia. Zatrzymanie źródła nie anuluje zadań już dodanych do kolejki.</p>
+    <p class="tool-workspace-note">{tr("Audio do 64 MB: WAV, MP3, FLAC, OGG, M4A, AAC, Opus i WebM. Plik czeka co najmniej 3 s bez zmiany rozmiaru i daty; na Windows także na zwolnienie uchwytu zapisu. Zalecany zapis do pliku tymczasowego i dopiero potem zmiana nazwy na docelowe audio. Obserwacja używa kopii receptury z chwili włączenia. Zatrzymanie źródła nie anuluje zadań już dodanych do kolejki.")}</p>
   {/if}
 </section>
 

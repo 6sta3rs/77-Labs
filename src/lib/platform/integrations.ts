@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 export const LOCAL_API_BASE = 'http://127.0.0.1:4312/v1'
 export const LOCAL_MCP_URL = 'http://127.0.0.1:4312/mcp'
 export const MCP_PROTOCOL_VERSION = '2025-11-25'
@@ -16,30 +17,30 @@ export type WatermarkResult = { is_watermarked: boolean; confidence: number; mes
 export type LoopbackTransport = (path: string, options?: RequestInit) => Promise<Response>
 
 export function integrationError(cause: unknown) {
-  if (cause instanceof Error && cause.name === 'TimeoutError') return 'Serwer nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.'
+  if (cause instanceof Error && cause.name === 'TimeoutError') return translateUi("Serwer nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.")
   const raw = cause instanceof Error ? cause.message : String(cause)
   return raw.replace(/\bBearer\s+[^\s,;"']+/gi, 'Bearer [ukryto]').replace(/\bhf_[A-Za-z0-9_-]{8,}/g, '[ukryty token HF]').replace(/\bsk-[A-Za-z0-9_-]{8,}/g, '[ukryty klucz]').replace(/\b(api[_-]?key|token|authorization)\s*[=:]\s*[^\s,;"']+/gi, '$1=[ukryto]').slice(0, 700)
 }
 
 export function watermarkFileError(file: Pick<File, 'name' | 'size'>) {
-  if (!file.size) return 'Wybierz niepusty plik audio.'
-  if (file.size > 64 * 1024 * 1024) return 'Nagranie do detekcji nie może przekraczać 64 MB.'
-  if (!/\.(wav|mp3|flac|ogg|m4a|aac|opus)$/i.test(file.name)) return 'Wybierz WAV, MP3, FLAC, OGG, M4A, AAC lub OPUS.'
+  if (!file.size) return translateUi("Wybierz niepusty plik audio.")
+  if (file.size > 64 * 1024 * 1024) return translateUi("Nagranie do detekcji nie może przekraczać 64 MB.")
+  if (!/\.(wav|mp3|flac|ogg|m4a|aac|opus)$/i.test(file.name)) return translateUi("Wybierz WAV, MP3, FLAC, OGG, M4A, AAC lub OPUS.")
   return ''
 }
 
 export function parseWatermarkResult(raw: unknown): WatermarkResult {
-  if (!raw || typeof raw !== 'object') throw new Error('Detektor nie zwrócił prawidłowego wyniku.')
+  if (!raw || typeof raw !== 'object') throw new Error(translateUi("Detektor nie zwrócił prawidłowego wyniku."))
   const data = raw as Record<string, unknown>
   // Upstream can return HTTP 200 with error. It is never a negative detection.
-  if (data.error) throw new Error(`Nie udało się sprawdzić znaku wodnego. ${integrationError(data.error)}`)
-  if (typeof data.is_watermarked !== 'boolean' || typeof data.is_omnivoice !== 'boolean' || typeof data.confidence !== 'number' || !Number.isFinite(data.confidence) || data.confidence < 0 || data.confidence > 1 || typeof data.message_bits !== 'string') throw new Error('Detektor zwrócił nieprawidłowy wynik. Sprawdź konfigurację i ponów próbę.')
+  if (data.error) throw new Error(translateUi("Nie udało się sprawdzić znaku wodnego. {arg0}", { arg0: String(integrationError(data.error)) }))
+  if (typeof data.is_watermarked !== 'boolean' || typeof data.is_omnivoice !== 'boolean' || typeof data.confidence !== 'number' || !Number.isFinite(data.confidence) || data.confidence < 0 || data.confidence > 1 || typeof data.message_bits !== 'string') throw new Error(translateUi("Detektor zwrócił nieprawidłowy wynik. Sprawdź konfigurację i ponów próbę."))
   return { is_watermarked: data.is_watermarked, confidence: data.confidence, is_omnivoice: data.is_omnivoice, message_bits: /^[01]{0,64}$/.test(data.message_bits) ? data.message_bits : '', ...(typeof data.source === 'string' ? { source: data.source.slice(0, 80) } : {}) }
 }
 
 export function watermarkTitle(result: WatermarkResult) {
-  if (!result.is_watermarked) return 'Nie wykryto znaku wodnego AudioSeal'
-  return result.is_omnivoice ? 'Wykryto znak AudioSeal i zgodną sygnaturę silnika' : 'Wykryto znak AudioSeal; źródło niepotwierdzone'
+  if (!result.is_watermarked) return translateUi("Nie wykryto znaku wodnego AudioSeal")
+  return result.is_omnivoice ? translateUi("Wykryto znak AudioSeal i zgodną sygnaturę silnika") : translateUi("Wykryto znak AudioSeal; źródło niepotwierdzone")
 }
 
 export function watermarkSettingsPath(settings: WatermarkSettings) {
@@ -48,7 +49,7 @@ export function watermarkSettingsPath(settings: WatermarkSettings) {
 
 export function bindingPayload(clientId: string, label: string, profileId: string, engineId: string) {
   const id = clientId.trim()
-  if (!/^[A-Za-z0-9._:-]{1,128}$/.test(id)) throw new Error('Id klienta: wpisz 1–128 liter, cyfr, kropek, podkreśleń, dwukropków lub myślników.')
+  if (!/^[A-Za-z0-9._:-]{1,128}$/.test(id)) throw new Error(translateUi("Id klienta: wpisz 1–128 liter, cyfr, kropek, podkreśleń, dwukropków lub myślników."))
   return { client_id: id, label: label.trim().slice(0, 160), profile_id: profileId, default_engine: engineId }
 }
 
@@ -63,22 +64,22 @@ export function mcpMessages(text: string, complete = false): Array<Record<string
   const values: unknown[] = []
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try { const parsed = JSON.parse(trimmed); values.push(...(Array.isArray(parsed) ? parsed : [parsed])) }
-    catch { if (complete) throw new Error('Nieprawidłowa odpowiedź JSON serwera MCP.') }
+    catch { if (complete) throw new Error(translateUi("Nieprawidłowa odpowiedź JSON serwera MCP.")) }
   } else {
     const frames = text.replace(/\r\n/g, '\n').split('\n\n')
     if (!complete) frames.pop()
     for (const frame of frames) {
       const data = frame.split('\n').filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n')
       if (!data) continue
-      try { values.push(JSON.parse(data)) } catch { if (complete) throw new Error('Nieprawidłowa ramka odpowiedzi MCP.') }
+      try { values.push(JSON.parse(data)) } catch { if (complete) throw new Error(translateUi("Nieprawidłowa ramka odpowiedzi MCP.")) }
     }
   }
   return values.filter((value): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value))
 }
 
 async function rpcResult(response: Response, id: number, signal: AbortSignal) {
-  if (!response.ok) throw new Error(`Serwer MCP odrzucił żądanie (${response.status}). Sprawdź włączenie integracji i zrestartuj prywatny silnik.`)
-  if (!response.body) throw new Error('Serwer MCP nie zwrócił odpowiedzi.')
+  if (!response.ok) throw new Error(translateUi("Serwer MCP odrzucił żądanie ({arg0}). Sprawdź włączenie integracji i zrestartuj prywatny silnik.", { arg0: String(response.status) }))
+  if (!response.body) throw new Error(translateUi("Serwer MCP nie zwrócił odpowiedzi."))
   const reader = response.body.getReader(), decoder = new TextDecoder()
   const cancel = () => { void reader.cancel(signal.reason).catch(() => {}) }
   signal.addEventListener('abort', cancel, { once: true })
@@ -89,15 +90,15 @@ async function rpcResult(response: Response, id: number, signal: AbortSignal) {
       const { value, done } = await reader.read()
       signal.throwIfAborted()
       bytes += value?.byteLength || 0
-      if (bytes > 1024 * 1024) throw new Error('Odpowiedź testu MCP przekracza limit 1 MB.')
+      if (bytes > 1024 * 1024) throw new Error(translateUi("Odpowiedź testu MCP przekracza limit 1 MB."))
       buffer += decoder.decode(value, { stream: !done })
       const message = mcpMessages(buffer, done).find(message => String(message.id) === String(id))
       if (message) {
-        if (message.error) throw new Error(`Błąd MCP: ${integrationError((message.error as { message?: unknown }).message || 'nieznany błąd protokołu')}`)
-        if (!message.result || typeof message.result !== 'object') throw new Error('MCP nie zwrócił wyniku żądania.')
+        if (message.error) throw new Error(translateUi("Błąd MCP: {arg0}", { arg0: String(integrationError((message.error as { message?: unknown }).message || 'nieznany błąd protokołu')) }))
+        if (!message.result || typeof message.result !== 'object') throw new Error(translateUi("MCP nie zwrócił wyniku żądania."))
         return message.result as Record<string, unknown>
       }
-      if (done) throw new Error('MCP zakończył odpowiedź bez wyniku żądania.')
+      if (done) throw new Error(translateUi("MCP zakończył odpowiedź bez wyniku żądania."))
     }
   } finally { signal.removeEventListener('abort', cancel); await reader.cancel().catch(() => {}); reader.releaseLock() }
 }
@@ -115,10 +116,10 @@ export async function testMcpConnection(transport: LoopbackTransport, parentSign
     const protocol = typeof result.protocolVersion === 'string' ? result.protocolVersion : MCP_PROTOCOL_VERSION
     headers['MCP-Protocol-Version'] = protocol
     const notification = await transport('/mcp', { method: 'POST', headers, signal, body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) })
-    if (!notification.ok) throw new Error(`MCP nie zaakceptował inicjalizacji klienta (${notification.status}).`)
+    if (!notification.ok) throw new Error(translateUi("MCP nie zaakceptował inicjalizacji klienta ({arg0}).", { arg0: String(notification.status) }))
     await notification.body?.cancel().catch(() => {})
     const list = await rpcResult(await transport('/mcp', { method: 'POST', headers, signal, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) }), 2, signal)
-    if (!Array.isArray(list.tools)) throw new Error('MCP nie zwrócił listy narzędzi.')
+    if (!Array.isArray(list.tools)) throw new Error(translateUi("MCP nie zwrócił listy narzędzi."))
     const tools = list.tools.flatMap(tool => tool && typeof tool === 'object' && typeof tool.name === 'string' ? [tool.name as string] : [])
     const server = result.serverInfo && typeof result.serverInfo === 'object' ? result.serverInfo as Record<string, unknown> : {}
     return { protocol, server: typeof server.name === 'string' ? server.name : 'MCP', version: typeof server.version === 'string' ? server.version : '', tools, checkedAt: new Date().toISOString() }

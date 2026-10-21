@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onMount, tick, untrack } from 'svelte'
   import { Check, FileCheck, LoaderCircle, X } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
@@ -124,21 +127,21 @@
 
 {#if open}
   <dialog class="license-onboarding" use:mount aria-labelledby={`${uid}-title`} aria-describedby={`${uid}-intro`} oncancel={event => { event.preventDefault(); close() }} onkeydown={event => { if (event.key === 'Escape' || ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.key.toLowerCase() === 'k'))) event.stopPropagation() }} onclick={backdrop}>
-    <header><div><p class="eyebrow">Pierwsze kroki</p><h1 id={`${uid}-title`} tabindex="-1" data-onboarding-title>Przygotuj modele do pracy</h1></div><Button variant="ghost" size="icon" aria-label="Odłóż przegląd warunków" disabled={writing || reconciling} onclick={close}><X size={18}/></Button></header>
+    <header><div><p class="eyebrow">{tr("Pierwsze kroki")}</p><h1 id={`${uid}-title`} tabindex="-1" data-onboarding-title>{tr("Przygotuj modele do pracy")}</h1></div><Button variant="ghost" size="icon" aria-label={tr("Odłóż przegląd warunków")} disabled={writing || reconciling} onclick={close}><X size={18}/></Button></header>
     <div class="onboarding-content">
-      <p id={`${uid}-intro`}>Przed pierwszą syntezą sprawdź warunki wybranego modelu i jego wymaganych składników. Każde potwierdzenie zapisujesz osobno, po przeczytaniu informacji i źródeł.</p>
-      {#if connecting || (loading && !plan)}<p class="progress" role="status"><LoaderCircle size={16} class="spin"/>{connecting ? 'Łączenie z prywatnym silnikiem…' : 'Sprawdzanie modeli i zapisanych decyzji…'}</p>
+      <p id={`${uid}-intro`}>{tr("Przed pierwszą syntezą sprawdź warunki wybranego modelu i jego wymaganych składników. Każde potwierdzenie zapisujesz osobno, po przeczytaniu informacji i źródeł.")}</p>
+      {#if connecting || (loading && !plan)}<p class="progress" role="status"><LoaderCircle size={16} class="spin"/>{connecting ? tr("Łączenie z prywatnym silnikiem…") : 'Sprawdzanie modeli i zapisanych decyzji…'}</p>
       {:else if plan}
-        <div class="plan-summary"><div><strong>{plan.engine.label || plan.engine.id}</strong>{#if plan.engine.model_id}<code>{plan.engine.model_id}</code>{/if}</div><span>{plan.models.length - pending.length} z {plan.models.length} sprawdzonych</span></div>
-        {#if finished}<p class="complete" role="status"><Check size={20}/>Wymagane potwierdzenia są aktualne. Możesz wrócić do studia.</p><p class="hint">To sprawdzenie dotyczy warunków. Stan instalacji modeli i silnika znajdziesz w ustawieniach.</p>{/if}
-        <nav aria-label="Modele do przeglądu">{#each plan.models as model (model.repo_id)}<button class:selected={selected === model.repo_id} disabled={locked} aria-current={selected === model.repo_id ? 'step' : undefined} onclick={() => selected = model.repo_id}><span class="step-icon">{#if !model.required || model.accepted}<Check size={16}/>{:else}<FileCheck size={16}/>{/if}</span><span><code>{model.repo_id}</code><small>{licenseStateLabel(model.state)}</small></span></button>{/each}</nav>
-        {#if loading}<p class="progress" role="status"><LoaderCircle size={16} class="spin"/>Odświeżanie zapisanych decyzji…</p>{/if}
+        <div class="plan-summary"><div><strong>{plan.engine.label || plan.engine.id}</strong>{#if plan.engine.model_id}<code>{plan.engine.model_id}</code>{/if}</div><span>{plan.models.length - pending.length} {tr("z")} {plan.models.length} {tr("sprawdzonych")}</span></div>
+        {#if finished}<p class="complete" role="status"><Check size={20}/>{tr("Wymagane potwierdzenia są aktualne. Możesz wrócić do studia.")}</p><p class="hint">{tr("To sprawdzenie dotyczy warunków. Stan instalacji modeli i silnika znajdziesz w ustawieniach.")}</p>{/if}
+        <nav aria-label={tr("Modele do przeglądu")}>{#each plan.models as model (model.repo_id)}<button class:selected={selected === model.repo_id} disabled={locked} aria-current={selected === model.repo_id ? 'step' : undefined} onclick={() => selected = model.repo_id}><span class="step-icon">{#if !model.required || model.accepted}<Check size={16}/>{:else}<FileCheck size={16}/>{/if}</span><span><code>{model.repo_id}</code><small>{licenseStateLabel(model.state)}</small></span></button>{/each}</nav>
+        {#if loading}<p class="progress" role="status"><LoaderCircle size={16} class="spin"/>{tr("Odświeżanie zapisanych decyzji…")}</p>{/if}
         {#if selected}<ModelLicenseReview ready={canReview && (!loading || reconciling)} repoId={selected} onbusychange={busyChanged} onchanged={decisionChanged} onreviewed={reviewed}/>{/if}
-      {:else}<div class="welcome"><h2>Twoje decyzje, zapisane lokalnie</h2><p>Studio odczyta wymagania aktywnego silnika i pokaże modele, które potrzebują Twojego potwierdzenia. Możesz odłożyć ten krok i wrócić do niego w Ustawienia → Modele i silnik.</p><p class="hint">Przycisk poniżej uruchamia prywatny silnik, jeśli jest zainstalowany. Pobieranie modeli wybierasz osobno.</p><Button variant="default" disabled={locked} onclick={connect}>Sprawdź modele i warunki</Button></div>{/if}
-      {#if error}<div class="onboarding-error" role="alert"><p>{error}</p><Button variant="outline" disabled={locked} onclick={connect}>Spróbuj ponownie</Button><Button variant="ghost" disabled={writing || reconciling} onclick={setup}>Otwórz ustawienia silnika</Button></div>{/if}
+      {:else}<div class="welcome"><h2>{tr("Twoje decyzje, zapisane lokalnie")}</h2><p>{tr("Studio odczyta wymagania aktywnego silnika i pokaże modele, które potrzebują Twojego potwierdzenia. Możesz odłożyć ten krok i wrócić do niego w Ustawienia → Modele i silnik.")}</p><p class="hint">{tr("Przycisk poniżej uruchamia prywatny silnik, jeśli jest zainstalowany. Pobieranie modeli wybierasz osobno.")}</p><Button variant="default" disabled={locked} onclick={connect}>{tr("Sprawdź modele i warunki")}</Button></div>{/if}
+      {#if error}<div class="onboarding-error" role="alert"><p>{tr(String(error))}</p><Button variant="outline" disabled={locked} onclick={connect}>{tr("Spróbuj ponownie")}</Button><Button variant="ghost" disabled={writing || reconciling} onclick={setup}>{tr("Otwórz ustawienia silnika")}</Button></div>{/if}
       {#if storageNotice}<p class="hint" role="status">{storageNotice}</p>{/if}
     </div>
-    <footer><span>{writing || reconciling ? 'Zapisywanie decyzji — poczekaj na wynik.' : 'Potwierdzenia możesz później przejrzeć lub cofnąć w ustawieniach.'}</span><Button variant={finished ? 'default' : 'outline'} disabled={writing || reconciling} onclick={close}>{finished ? 'Przejdź do studia' : 'Później'}</Button></footer>
+    <footer><span>{writing || reconciling ? 'Zapisywanie decyzji — poczekaj na wynik.' : tr("Potwierdzenia możesz później przejrzeć lub cofnąć w ustawieniach.")}</span><Button variant={finished ? 'default' : 'outline'} disabled={writing || reconciling} onclick={close}>{finished ? tr("Przejdź do studia") : tr("Później")}</Button></footer>
   </dialog>
 {/if}
 

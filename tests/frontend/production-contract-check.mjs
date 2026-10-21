@@ -1,10 +1,11 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
 const helpersSource = await readFile(new URL('../../src/lib/tools/production/production-segments.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(helpersSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-const helpers = {}; new Function('exports', code)(helpers);
+const helpers = {}; new Function('exports','require',code)(helpers,i18nRequire);
 const segment = { id: 'qa', start: 0, end: 3.4, text: 'Cześć.', direction: 'calm', speed: 0.8, gain: 0.7 };
 assert.doesNotThrow(() => helpers.validateDubSegments([segment], 'voice'));
 for (const change of [{ start: -1 }, { end: 0 }, { end: NaN }, { text: ' ' }, { speed: 0 }]) assert.throws(() => helpers.validateDubSegments([{ ...segment, ...change }], 'voice'));
@@ -52,7 +53,7 @@ const dependencies = { $state: value => value, $derived: value => value, $props:
   productionLanguages: [{ value: 'pl', tts: 'Polish' }],
   productionStream: async (_path, _options, listener) => { emit = listener; await stream; },
 };
-const component = new Function(...Object.keys(dependencies), componentCode)(...Object.values(dependencies));
+const component = new Function(...Object.keys({...i18nDeps,...dependencies}), componentCode)(...Object.values({...i18nDeps,...dependencies}));
 component.setFixture(); const render = component.generateDub();
 for (let i = 0; i < 8; i++) await Promise.resolve();
 await component.stopProduction(); await render;
@@ -80,7 +81,7 @@ const bookDependencies = { ...dependencies, $props: bookProps, profiles: async (
     await new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true }));
   },
 };
-const book = new Function(...Object.keys(bookDependencies), componentCode)(...Object.values(bookDependencies));
+const book = new Function(...Object.keys({...i18nDeps,...bookDependencies}), componentCode)(...Object.values({...i18nDeps,...bookDependencies}));
 book.setFixture(); const bookRendering = book.renderBook();
 for (let i = 0; i < 8; i++) await Promise.resolve();
 await book.stopProduction(); await bookRendering;

@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { AlignLeft, AlignCenter, AlignRight, List, LayoutGrid, RotateCcw } from '@lucide/svelte'
   import Button from '../ui/Button.svelte'
   import ButtonGroup from '../ui/ButtonGroup.svelte'
@@ -27,26 +32,26 @@
 </script>
 
 <section class="group-filter-section" id="control-15">
-  <div class="heading"><span>15</span><h2>Grupy przycisków i filtry</h2><code>ButtonGroup / FilterChip</code></div>
-  <p>Połączone przyciski, wybór pojedynczy i wielokrotny. Strzałki, Home i End przenoszą focus; Spacja lub Enter aktywuje przycisk.</p>
+  <div class="heading"><span>15</span><h2>{tr("Grupy przycisków i filtry")}</h2><code>{tr("ButtonGroup / FilterChip")}</code></div>
+  <p>{tr("Połączone przyciski, wybór pojedynczy i wielokrotny. Strzałki, Home i End przenoszą focus; Spacja lub Enter aktywuje przycisk.")}</p>
   <div class="group-samples">
-    <div><span class="sample-label">Zwykła grupa działań</span><ButtonGroup label="Filtruj wyniki według języka" items={[{value:'all',label:'Wszystkie'},{value:'pl',label:'Polskie'},{value:'en',label:'Angielskie'}]} onactivate={value=>{language=value==='all'?'':value;action=`Zmieniono filtr języka: ${value==='all'?'wszystkie':value==='pl'?'polskie':'angielskie'}.`}}/></div>
-    <div><span class="sample-label">Widok wyników — wybór pojedynczy</span><ButtonGroup label="Widok wyników" mode="single" bind:value={view} items={[{value:'list',label:'Lista',icon:List},{value:'grid',label:'Siatka',icon:LayoutGrid}]}/></div>
-    <div><span class="sample-label">Wyrównanie tekstu — ikony</span><ButtonGroup label="Wyrównanie przykładowego tekstu" mode="single" iconOnly bind:value={alignment} items={[{value:'left',label:'Do lewej',icon:AlignLeft},{value:'center',label:'Wyśrodkuj',icon:AlignCenter},{value:'right',label:'Do prawej',icon:AlignRight}]}/></div>
-    <div><span class="sample-label">Dodatkowy wybór statusów — wiele opcji</span><ButtonGroup label="Statusy wyników" mode="multiple" bind:value={statuses} items={statusOptions}/></div>
+    <div><span class="sample-label">{tr("Zwykła grupa działań")}</span><ButtonGroup label={tr("Filtruj wyniki według języka")} items={uiOptions([{value:'all',label:'Wszystkie'},{value:'pl',label:'Polskie'},{value:'en',label:'Angielskie'}])} onactivate={value=>{language=value==='all'?'':value;action=tr("Zmieniono filtr języka: {value0}.", {value0: (value==='all'?'wszystkie':value==='pl'?'polskie':'angielskie')})}}/></div>
+    <div><span class="sample-label">{tr("Widok wyników — wybór pojedynczy")}</span><ButtonGroup label={tr("Widok wyników")} mode="single" bind:value={view} items={uiOptions([{value:'list',label:'Lista',icon:List},{value:'grid',label:'Siatka',icon:LayoutGrid}])}/></div>
+    <div><span class="sample-label">{tr("Wyrównanie tekstu — ikony")}</span><ButtonGroup label={tr("Wyrównanie przykładowego tekstu")} mode="single" iconOnly bind:value={alignment} items={uiOptions([{value:'left',label:'Do lewej',icon:AlignLeft},{value:'center',label:'Wyśrodkuj',icon:AlignCenter},{value:'right',label:'Do prawej',icon:AlignRight}])}/></div>
+    <div><span class="sample-label">{tr("Dodatkowy wybór statusów — wiele opcji")}</span><ButtonGroup label={tr("Statusy wyników")} mode="multiple" bind:value={statuses} items={uiOptions(statusOptions)}/></div>
   </div>
   <p class="action-feedback" role="status">{action}</p>
-  <div class="filter-bar" aria-label="Filtry przykładowych projektów">
-    <FilterChip label="Utworzone przez" options={authors} bind:value={author}/>
-    <FilterChip label="Status" options={statusOptions} bind:value={status}/>
-    <FilterChip label="Model" options={models} bind:value={model}/>
-    <FilterChip label="Źródło" options={sources} bind:value={source}/>
-    <FilterChip label="Język" options={languages} bind:value={language}/>
-    <Button variant="ghost" size="compact" onclick={reset}><RotateCcw/>Wyczyść filtry</Button>
+  <div class="filter-bar" aria-label={tr("Filtry przykładowych projektów")}>
+    <FilterChip label={tr("Utworzone przez")} options={authors} bind:value={author}/>
+    <FilterChip label={tr("Status")} options={uiOptions(statusOptions)} bind:value={status}/>
+    <FilterChip label={tr("Model")} options={models} bind:value={model}/>
+    <FilterChip label={tr("Źródło")} options={uiOptions(sources)} bind:value={source}/>
+    <FilterChip label={tr("Język")} options={uiOptions(languages)} bind:value={language}/>
+    <Button variant="ghost" size="compact" onclick={reset}><RotateCcw/>{tr("Wyczyść filtry")}</Button>
   </div>
-  <p class="results-count" role="status">Wyniki: {filtered.length} z {rows.length}. Filtry działają na jawnej lokalnej liście przykładowej.</p>
+  <p class="results-count" role="status">{tr("Wyniki:")} {filtered.length} {tr("z")} {rows.length}{tr(". Filtry działają na jawnej lokalnej liście przykładowej.")}</p>
   <div class="results" class:grid={view==='grid'} style={`text-align:${textAlign}`}>
-    {#each filtered as row}<article><strong>{row.name}</strong><span>{authors.find(item=>item.value===row.author)?.label} · {statusOptions.find(item=>item.value===row.status)?.label}</span><small>{models.find(item=>item.value===row.model)?.label} · {sources.find(item=>item.value===row.source)?.label} · {languages.find(item=>item.value===row.language)?.label}</small></article>{:else}<div class="empty">Brak projektów pasujących do wybranych filtrów.</div>{/each}
+    {#each filtered as row}<article><strong>{row.name}</strong><span>{authors.find(item=>item.value===row.author)?.label} · {statusOptions.find(item=>item.value===row.status)?.label}</span><small>{models.find(item=>item.value===row.model)?.label} · {sources.find(item=>item.value===row.source)?.label} · {languages.find(item=>item.value===row.language)?.label}</small></article>{:else}<div class="empty">{tr("Brak projektów pasujących do wybranych filtrów.")}</div>{/each}
   </div>
 </section>
 

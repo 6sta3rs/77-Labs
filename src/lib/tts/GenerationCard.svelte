@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from '../i18n'
+  const tr = $derived(createUiTranslator($uiLanguage))
   import Button from '../ui/Button.svelte';
   import { Play, Pause, Download, ArrowUpRight, LoaderCircle, Star } from '@lucide/svelte'
   import type { Render } from '../data'
@@ -19,13 +21,13 @@
   const waiting = $derived(generating || loading)
   // Enough bars for the widest card; the row clips, so spacing stays as dense as a real waveform.
   const placeholderBars = Array.from({ length: 160 }, (_, i) => 0.3 + ((i * 37) % 11) / 16)
-  const status = $derived(generating ? generationLabel || 'Generowanie nagrania…' : state ? playbackStatusLabel(state.status) : 'Gotowe do odtwarzania')
-  const subject = $derived(title ? `„${title}”` : `nagranie ${index}`)
-  const buttonLabel = $derived(generating ? 'Trwa generowanie nagrania' : loading ? `Anuluj wczytywanie: ${subject}` : state?.status === 'playing' ? `Wstrzymaj ${subject}` : state?.status === 'paused' ? `Wznów ${subject}` : `Odtwórz ${subject}`)
+  const status = $derived(generating ? generationLabel || tr('Generowanie nagrania…') : state ? tr(playbackStatusLabel(state.status)) : tr('Gotowe do odtwarzania'))
+  const subject = $derived(title ? `„${title}”` : tr('nagranie {index}', { index }))
+  const buttonLabel = $derived(generating ? tr('Trwa generowanie nagrania') : loading ? tr('Anuluj wczytywanie: {subject}', { subject }) : state?.status === 'playing' ? tr('Wstrzymaj {subject}', { subject }) : state?.status === 'paused' ? tr('Wznów {subject}', { subject }) : tr('Odtwórz {subject}', { subject }))
 </script>
 
 <article class="generation-card" data-playback-state={generating ? 'generating' : state?.status ?? 'idle'}>
-  <span class="generation-label">{generating ? 'Nowe nagranie' : title ?? `Nagranie ${index}`}</span>
+  <span class="generation-label">{generating ? tr('Nowe nagranie') : title ?? tr('Nagranie {index}', { index })}</span>
   <div class="generation-controls">
     <button class="mini-play" aria-label={buttonLabel} disabled={generating || !recording.url} onclick={onplay}>
       {#if state?.status === 'playing'}<Pause size={14} fill="currentColor"/>{:else}<Play size={14} fill="currentColor"/>{/if}
@@ -41,18 +43,18 @@
       {/if}
       {#if onseek && !generating && duration > 0}
         <input class="generation-seek" type="range" min="0" max={duration} step="0.01" value={currentTime}
-          aria-label={`Pozycja nagrania ${index}`} aria-valuetext={`${durationLabel(currentTime)} z ${durationLabel(duration)}`}
+          aria-label={tr('Pozycja nagrania {index}', { index })} aria-valuetext={tr('{current} z {total}', { current: durationLabel(currentTime), total: durationLabel(duration) })}
           oninput={event => onseek?.(Number(event.currentTarget.value))}/>
       {/if}
     </div>
     {#if waiting}<LoaderCircle size={18} class="generation-loading generation-side-spinner" aria-hidden="true"/>{:else}<span class="generation-time">{#if state}{durationLabel(currentTime)} / {/if}{durationLabel(duration)}</span>{/if}
-    {#if onstar && !waiting}<Button variant="ghost" size="icon-xs" aria-label={`${recording.starred?'Usuń gwiazdkę':'Zachowaj'} nagrania ${index}`} aria-pressed={!!recording.starred} title="Nagrania z gwiazdką pozostają poza limitem historii" onclick={onstar}><Star size={15} fill={recording.starred?'currentColor':'none'}/></Button>{/if}
-    {#if onrestore && !waiting}<Button variant="ghost" size="icon-xs" aria-label={`Przywróć tekst i ustawienia nagrania ${index}`} onclick={onrestore}><ArrowUpRight size={15}/></Button>{/if}
-    {#if recording.url && !waiting && downloadable}<Button variant="ghost" size="icon-xs" href={recording.url} download={recording.filename || 'narracja.wav'} aria-label={`Pobierz nagranie ${index}`}><Download size={15}/></Button>{/if}
+    {#if onstar && !waiting}<Button variant="ghost" size="icon-xs" aria-label={tr('{action} nagrania {index}', { action: recording.starred ? tr('Usuń gwiazdkę') : tr('Zachowaj'), index })} aria-pressed={!!recording.starred} title={tr('Nagrania z gwiazdką pozostają poza limitem historii')} onclick={onstar}><Star size={15} fill={recording.starred?'currentColor':'none'}/></Button>{/if}
+    {#if onrestore && !waiting}<Button variant="ghost" size="icon-xs" aria-label={tr('Przywróć tekst i ustawienia nagrania {index}', { index })} onclick={onrestore}><ArrowUpRight size={15}/></Button>{/if}
+    {#if recording.url && !waiting && downloadable}<Button variant="ghost" size="icon-xs" href={recording.url} download={recording.filename || 'narracja.wav'} aria-label={tr('Pobierz nagranie {index}', { index })}><Download size={15}/></Button>{/if}
   </div>
   <div class="generation-meta"><span class="generation-status" role="status" aria-live="polite">{status}{#if generating && generationProgress !== undefined} · {Math.round(generationProgress)}%{/if}</span>{#if !generating}<span class="generation-voice-name">{recording.voice}</span>{/if}</div>
-  {#if !generating && recording.wavBits}<p class="generation-format">WAV {recording.wavBits === '32' ? '32-bit float' : `${recording.wavBits}-bit PCM`}{recording.designRecipe ? ' · szkic projektowania zapisany' : ''}</p>{/if}
-  {#if state?.error}<p class="generation-error" role="alert">{state.error}</p>{/if}
+  {#if !generating && recording.wavBits}<p class="generation-format">{tr('WAV')} {recording.wavBits === '32' ? '32-bit float' : tr('{bits}-bit PCM', { bits: recording.wavBits })}{recording.designRecipe ? ` · ${tr('szkic projektowania zapisany')}` : ''}</p>{/if}
+  {#if state?.error}<p class="generation-error" role="alert">{tr(state.error)}</p>{/if}
 </article>
 
 <style>

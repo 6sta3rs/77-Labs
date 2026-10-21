@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onDestroy } from 'svelte';
   import { createVoice, transcribe, type Profile } from '../platform/api';
   import Select from '../ui/Select.svelte';
@@ -46,17 +51,17 @@
 </script>
 
 <form class="voice-clone-form studio-tools" onsubmit={event => { event.preventDefault(); void save(); }}>
-  <p class="page-footnote">Zapisz własny głos lub głos, do którego użycia masz zgodę. Możesz wczytać plik albo nagrać próbkę mikrofonem.</p>
-  {#if !ready}<p class="tool-notice">Uruchom lokalny silnik, aby zapisać klon głosu.</p>{/if}
-  <label for={`${uid}-name`}>Nazwa głosu</label><Input id={`${uid}-name`} bind:value={name} required disabled={busy || transcribing || !!createdProfile} autocomplete="off"/>
-  <Select label="Język nagrania" value={language} onchange={value => language = value} options={profileLanguages} disabled={busy || transcribing || !!createdProfile}/>
+  <p class="page-footnote">{tr("Zapisz własny głos lub głos, do którego użycia masz zgodę. Możesz wczytać plik albo nagrać próbkę mikrofonem.")}</p>
+  {#if !ready}<p class="tool-notice">{tr("Uruchom lokalny silnik, aby zapisać klon głosu.")}</p>{/if}
+  <label for={`${uid}-name`}>{tr("Nazwa głosu")}</label><Input id={`${uid}-name`} bind:value={name} required disabled={busy || transcribing || !!createdProfile} autocomplete="off"/>
+  <Select label={tr("Język nagrania")} value={language} onchange={value => language = value} options={uiOptions(profileLanguages)} disabled={busy || transcribing || !!createdProfile}/>
   <ReferenceAudioInput disabled={busy || transcribing || !!createdProfile} onchange={next => { file = next; if (!next) reference = ''; error = ''; message = ''; }} onrecordingchange={value => recording = value}/>
-  <label for={`${uid}-text`}>Tekst wypowiedziany w próbce</label><Textarea id={`${uid}-text`} rows={3} bind:value={reference} disabled={busy || transcribing || recording || !!createdProfile} placeholder="Dokładne słowa z nagrania, bez instrukcji dla modelu."/>
+  <label for={`${uid}-text`}>{tr("Tekst wypowiedziany w próbce")}</label><Textarea id={`${uid}-text`} rows={3} bind:value={reference} disabled={busy || transcribing || recording || !!createdProfile} placeholder={tr("Dokładne słowa z nagrania, bez instrukcji dla modelu.")}/>
   <div class="tool-actions"><Button variant="outline" disabled={!ready || !file || busy || transcribing || recording || !!createdProfile} onclick={recognize}>{transcribing ? 'Rozpoznawanie mowy…' : 'Rozpoznaj tekst z nagrania'}</Button></div>
-  <p class="page-footnote">Dokładny tekst referencji pomaga zachować poprawne brzmienie. Przy pustym polu silnik spróbuje lokalnej transkrypcji podczas zapisu. Nie pobiera w tym celu brakującego modelu ASR.</p>
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}{#if message}<p class="tool-notice" role="status">{message}</p>{/if}
-  <div class="tool-actions"><Button type="submit" disabled={!ready || !name.trim() || !file || busy || transcribing || recording}>{busy ? createdProfile ? 'Odświeżanie biblioteki…' : 'Zapisywanie głosu…' : createdProfile ? 'Otwórz zapisany głos' : 'Zapisz klon głosu'}</Button><Button variant="outline" onclick={cancel}>{busy || transcribing ? 'Anuluj i wróć' : 'Anuluj'}</Button></div>
-  {#if busy}<p class="page-footnote" role="status">Przesyłanie próbki i przygotowanie profilu. Przy automatycznej transkrypcji pierwsze wykonanie może potrwać dłużej.</p>{/if}
+  <p class="page-footnote">{tr("Dokładny tekst referencji pomaga zachować poprawne brzmienie. Przy pustym polu silnik spróbuje lokalnej transkrypcji podczas zapisu. Nie pobiera w tym celu brakującego modelu ASR.")}</p>
+  {#if error}<p class="tool-error" role="alert">{tr(error)}</p>{/if}{#if message}<p class="tool-notice" role="status">{tr(message)}</p>{/if}
+  <div class="tool-actions"><Button type="submit" disabled={!ready || !name.trim() || !file || busy || transcribing || recording}>{busy ? createdProfile ? tr("Odświeżanie biblioteki…") : tr("Zapisywanie głosu…") : createdProfile ? tr("Otwórz zapisany głos") : tr("Zapisz klon głosu")}</Button><Button variant="outline" onclick={cancel}>{busy || transcribing ? tr("Anuluj i wróć") : tr("Anuluj")}</Button></div>
+  {#if busy}<p class="page-footnote" role="status">{tr("Przesyłanie próbki i przygotowanie profilu. Przy automatycznej transkrypcji pierwsze wykonanie może potrwać dłużej.")}</p>{/if}
 </form>
 
 <style>.voice-clone-form{display:grid;gap:12px;min-width:0}.voice-clone-form>p{margin:0}.voice-clone-form .page-footnote{font-size:.95em;color:var(--foreground)}.voice-clone-form .tool-actions{flex-wrap:wrap}</style>

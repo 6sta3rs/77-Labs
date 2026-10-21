@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { invoke } from '@tauri-apps/api/core'
 import { isDesktop } from '../platform/runtime'
 import { postJson, productionJson } from '../tools/production/production'
@@ -30,7 +31,7 @@ export const storageSettings = {
 }
 
 export async function pickStorageFolder(): Promise<string | undefined> {
-  if (!isDesktop()) throw new Error('Systemowy wybór folderu jest dostępny w aplikacji Windows. W podglądzie wpisz pełną ścieżkę.')
+  if (!isDesktop()) throw new Error(translateUi("Systemowy wybór folderu jest dostępny w aplikacji Windows. W podglądzie wpisz pełną ścieżkę."))
   return (await invoke<string | null>('watch_folder_pick')) || undefined
 }
 

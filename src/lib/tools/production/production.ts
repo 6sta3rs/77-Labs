@@ -1,3 +1,4 @@
+import { translateUi } from '../../i18n';
 import { request, prepareRequest } from '../../platform/api'
 import { assertModelLicenseResponse } from '../../models/model-licenses'
 
@@ -24,7 +25,7 @@ export async function productionJson<T>(path: string, options?: RequestInit): Pr
     signal?.throwIfAborted()
     let message = raw
     try { const body = JSON.parse(raw); message = typeof body.detail === 'string' ? body.detail : body.detail?.message || body.error || raw } catch { /* Plain message. */ }
-    throw new Error(message.slice(0, 350) || `Błąd ${response.status}`)
+    throw new Error(message.slice(0, 350) || translateUi("Błąd {arg0}", { arg0: String(response.status) }))
   }
   const body = await response.json()
   signal?.throwIfAborted()
@@ -43,7 +44,7 @@ export async function productionStream(path: string, options: RequestInit, onEve
     options.signal?.throwIfAborted()
     try { const body = JSON.parse(raw); throw new Error(typeof body.detail === 'string' ? body.detail : body.detail?.message || raw.slice(0, 350)) } catch (error) { if (error instanceof SyntaxError) throw new Error(raw.slice(0, 350)); throw error }
   }
-  if (!response.body) throw new Error('Silnik nie udostępnił strumienia postępu.')
+  if (!response.body) throw new Error(translateUi("Silnik nie udostępnił strumienia postępu."))
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -80,7 +81,7 @@ export async function productionStream(path: string, options: RequestInit, onEve
 export async function downloadProduction(path: string, filename: string, signal?: AbortSignal) {
   signal?.throwIfAborted()
   const response = await request(path, { signal })
-  if (!response.ok) throw new Error(`Nie można pobrać pliku (${response.status}).`)
+  if (!response.ok) throw new Error(translateUi("Nie można pobrać pliku ({arg0}).", { arg0: String(response.status) }))
   const blob = await response.blob()
   signal?.throwIfAborted()
   const url = URL.createObjectURL(blob)

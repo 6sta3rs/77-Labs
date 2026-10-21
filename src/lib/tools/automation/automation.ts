@@ -1,3 +1,4 @@
+import { translateUi } from '../../i18n';
 import { generate, request, prepareRequest } from '../../platform/api';
 import { productionJson, postJson } from '../production/production';
 import { decodeAudioFile, processAudio, encodeAudioWav, type AudioEdit } from '../audio-lab/audio-lab';
@@ -23,43 +24,43 @@ const maxBytes = 64 * 1024 * 1024;
 
 export const defaultAutomationAudioEdit = (): AutomationAudioEdit => ({ start: 0, normalize: true, targetDb: -3, gainDb: 0, fadeInMs: 0, fadeOutMs: 0 });
 function validateAudioEdit(value?: AutomationAudioEdit): AutomationAudioEdit {
-  if (value !== undefined && (!value || typeof value !== 'object' || Array.isArray(value))) throw new Error('Parametry obróbki audio muszą być obiektem ustawień.');
+  if (value !== undefined && (!value || typeof value !== 'object' || Array.isArray(value))) throw new Error(translateUi("Parametry obróbki audio muszą być obiektem ustawień."));
   const raw = { ...defaultAutomationAudioEdit(), ...value };
-  if (typeof raw.normalize !== 'boolean' || ![raw.start, raw.targetDb, raw.gainDb, raw.fadeInMs, raw.fadeOutMs].every(Number.isFinite) || raw.start < 0 || raw.start >= 300 || raw.targetDb < -24 || raw.targetDb > 0 || raw.gainDb < -60 || raw.gainDb > 24 || raw.fadeInMs < 0 || raw.fadeOutMs < 0 || raw.fadeInMs > 300_000 || raw.fadeOutMs > 300_000) throw new Error('Sprawdź zakres obróbki audio: do 5 minut, normalizacja −24–0 dBFS, głośność −60–24 dB i nieujemne wygaszanie.');
-  if (raw.end !== undefined && (!Number.isFinite(raw.end) || raw.end <= raw.start || raw.end > 300 || Math.max(raw.fadeInMs, raw.fadeOutMs) > (raw.end - raw.start) * 1000)) throw new Error('Koniec obróbki musi być po początku, do 300 s. Wygaszanie nie może przekraczać długości fragmentu.');
+  if (typeof raw.normalize !== 'boolean' || ![raw.start, raw.targetDb, raw.gainDb, raw.fadeInMs, raw.fadeOutMs].every(Number.isFinite) || raw.start < 0 || raw.start >= 300 || raw.targetDb < -24 || raw.targetDb > 0 || raw.gainDb < -60 || raw.gainDb > 24 || raw.fadeInMs < 0 || raw.fadeOutMs < 0 || raw.fadeInMs > 300_000 || raw.fadeOutMs > 300_000) throw new Error(translateUi("Sprawdź zakres obróbki audio: do 5 minut, normalizacja −24–0 dBFS, głośność −60–24 dB i nieujemne wygaszanie."));
+  if (raw.end !== undefined && (!Number.isFinite(raw.end) || raw.end <= raw.start || raw.end > 300 || Math.max(raw.fadeInMs, raw.fadeOutMs) > (raw.end - raw.start) * 1000)) throw new Error(translateUi("Koniec obróbki musi być po początku, do 300 s. Wygaszanie nie może przekraczać długości fragmentu."));
   // Rebuild the known fields instead of passing arbitrary imported options.
   return { start: raw.start, ...(raw.end === undefined ? {} : { end: raw.end }), normalize: raw.normalize, targetDb: raw.targetDb, gainDb: raw.gainDb, fadeInMs: raw.fadeInMs, fadeOutMs: raw.fadeOutMs };
 }
 
 export function validateRecipe(value: AutomationRecipe): AutomationRecipe {
-  if (value?.schema !== 1 || typeof value.id !== 'string' || !value.id || value.id.length > 100 || typeof value.name !== 'string' || !value.name.trim() || value.name.length > 120) throw new Error('Podaj nazwę receptury, maksymalnie 120 znaków.');
-  if (!['audio', 'text'].includes(value.inputKind) || !Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > 8) throw new Error('Receptura wymaga od 1 do 8 kroków i wejścia audio albo tekstowego.');
+  if (value?.schema !== 1 || typeof value.id !== 'string' || !value.id || value.id.length > 100 || typeof value.name !== 'string' || !value.name.trim() || value.name.length > 120) throw new Error(translateUi("Podaj nazwę receptury, maksymalnie 120 znaków."));
+  if (!['audio', 'text'].includes(value.inputKind) || !Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > 8) throw new Error(translateUi("Receptura wymaga od 1 do 8 kroków i wejścia audio albo tekstowego."));
   let current = value.inputKind;
   let languageKnown = false;
   const ids = new Set<string>();
   const steps = value.steps.map((step, index): AutomationStep => {
-    if (!step || !kinds.includes(step.kind) || typeof step.id !== 'string' || !step.id || ids.has(step.id)) throw new Error('Receptura zawiera nieobsługiwany lub powtórzony krok.');
+    if (!step || !kinds.includes(step.kind) || typeof step.id !== 'string' || !step.id || ids.has(step.id)) throw new Error(translateUi("Receptura zawiera nieobsługiwany lub powtórzony krok."));
     ids.add(step.id);
     if (expected[step.kind] !== current) throw new Error(`Krok ${index + 1}: „${automationLabels[step.kind]}” wymaga ${expected[step.kind] === 'text' ? 'tekstu' : 'nagrania audio'}.`);
     current = produced[step.kind];
     const result: AutomationStep = { id: step.id, kind: step.kind };
     if (step.kind === 'edit-audio') result.audioEdit = validateAudioEdit(step.audioEdit);
     if (step.kind === 'speak' || step.kind === 'convert') {
-      if (!step.voiceId || !/^[A-Za-z0-9_-]{1,100}$/.test(step.voiceId)) throw new Error(`Wybierz zapisany głos dla kroku ${index + 1}.`);
+      if (!step.voiceId || !/^[A-Za-z0-9_-]{1,100}$/.test(step.voiceId)) throw new Error(translateUi("Wybierz zapisany głos dla kroku {arg0}.", { arg0: String(index + 1) }));
       result.voiceId = step.voiceId;
     }
     if (step.kind === 'speak') {
       result.language = typeof step.language === 'string' && /^[A-Za-z-]{2,40}$/.test(step.language) ? step.language : 'Polish';
       result.speed = step.speed ?? 1;
-      if (!Number.isFinite(result.speed) || result.speed < 0.5 || result.speed > 2) throw new Error(`Tempo w kroku ${index + 1} musi wynosić od 0,5 do 2.`);
+      if (!Number.isFinite(result.speed) || result.speed < 0.5 || result.speed > 2) throw new Error(translateUi("Tempo w kroku {arg0} musi wynosić od 0,5 do 2.", { arg0: String(index + 1) }));
     }
     if (step.kind === 'translate') {
-      if (!step.language || !/^[a-z]{2,3}(?:-[A-Za-z]+)?$/.test(step.language)) throw new Error(`Wybierz język docelowy dla kroku ${index + 1}.`);
-      if (!['argos', 'nllb'].includes(step.provider || '')) throw new Error('Tłumaczenie w recepturze obsługuje wyłącznie lokalne silniki Argos i NLLB.');
+      if (!step.language || !/^[a-z]{2,3}(?:-[A-Za-z]+)?$/.test(step.language)) throw new Error(translateUi("Wybierz język docelowy dla kroku {arg0}.", { arg0: String(index + 1) }));
+      if (!['argos', 'nllb'].includes(step.provider || '')) throw new Error(translateUi("Tłumaczenie w recepturze obsługuje wyłącznie lokalne silniki Argos i NLLB."));
       result.language = step.language;
       result.sourceLanguage = step.sourceLanguage === 'auto' || !step.sourceLanguage ? 'auto' : step.sourceLanguage;
-      if (!/^(?:auto|[a-z]{2,3}(?:-[A-Za-z]+)?)$/.test(result.sourceLanguage)) throw new Error('Nieprawidłowy język źródłowy.');
-      if (result.sourceLanguage === 'auto' && !languageKnown) throw new Error(`Wybierz język źródłowy tłumaczenia w kroku ${index + 1}.`);
+      if (!/^(?:auto|[a-z]{2,3}(?:-[A-Za-z]+)?)$/.test(result.sourceLanguage)) throw new Error(translateUi("Nieprawidłowy język źródłowy."));
+      if (result.sourceLanguage === 'auto' && !languageKnown) throw new Error(translateUi("Wybierz język źródłowy tłumaczenia w kroku {arg0}.", { arg0: String(index + 1) }));
       result.provider = step.provider;
     }
     if (step.kind === 'transcribe' || step.kind === 'translate') languageKnown = true;
@@ -69,11 +70,11 @@ export function validateRecipe(value: AutomationRecipe): AutomationRecipe {
 }
 
 export function validateAutomationInput(input: AutomationValue, recipe: AutomationRecipe) {
-  if (input.kind !== recipe.inputKind) throw new Error('Rodzaj wejścia nie pasuje do receptury.');
+  if (input.kind !== recipe.inputKind) throw new Error(translateUi("Rodzaj wejścia nie pasuje do receptury."));
   if (input.kind === 'text') {
-    if (!input.text.trim() || input.text.length > 20_000) throw new Error('Wpisz tekst: od 1 do 20 000 znaków.');
+    if (!input.text.trim() || input.text.length > 20_000) throw new Error(translateUi("Wpisz tekst: od 1 do 20 000 znaków."));
   } else if (!(input.blob instanceof Blob) || input.blob.size === 0 || input.blob.size > maxBytes || !/\.(?:wav|mp3|flac|ogg|m4a|aac|opus|webm)$/i.test(input.name)) {
-    throw new Error('Wybierz plik audio WAV, MP3, FLAC, OGG, M4A, AAC, Opus lub WebM, nie większy niż 64 MB.');
+    throw new Error(translateUi("Wybierz plik audio WAV, MP3, FLAC, OGG, M4A, AAC, Opus lub WebM, nie większy niż 64 MB."));
   }
 }
 
@@ -95,8 +96,8 @@ function openAutomationDatabase(): Promise<IDBDatabase> {
       if (!opened.result.objectStoreNames.contains('watchReceipts')) opened.result.createObjectStore('watchReceipts', { keyPath: 'sourceKey' });
     };
     opened.onsuccess = () => resolve(opened.result);
-    opened.onerror = () => reject(new Error('Nie można otworzyć lokalnego magazynu automatyzacji.'));
-    opened.onblocked = () => reject(new Error('Inne okno blokuje magazyn automatyzacji. Zamknij je i spróbuj ponownie.'));
+    opened.onerror = () => reject(new Error(translateUi("Nie można otworzyć lokalnego magazynu automatyzacji.")));
+    opened.onblocked = () => reject(new Error(translateUi("Inne okno blokuje magazyn automatyzacji. Zamknij je i spróbuj ponownie.")));
   });
 }
 async function stored<T>(table: 'recipes' | 'runs', action: 'list' | 'put' | 'remove', value?: unknown): Promise<T> {
@@ -109,8 +110,8 @@ async function stored<T>(table: 'recipes' | 'runs', action: 'list' | 'put' | 're
       let result: T;
       operation.onsuccess = () => result = operation.result as T;
       transaction.oncomplete = () => resolve(result);
-      transaction.onerror = () => reject(new Error('Nie zapisano danych automatyzacji. Sprawdź wolne miejsce i dostęp do lokalnego magazynu.'));
-      transaction.onabort = () => reject(new Error('Zapis automatyzacji został przerwany. Poprzednie dane pozostały zachowane.'));
+      transaction.onerror = () => reject(new Error(translateUi("Nie zapisano danych automatyzacji. Sprawdź wolne miejsce i dostęp do lokalnego magazynu.")));
+      transaction.onabort = () => reject(new Error(translateUi("Zapis automatyzacji został przerwany. Poprzednie dane pozostały zachowane.")));
     });
   } finally { database.close(); }
 }
@@ -135,7 +136,7 @@ export const automationStore: AutomationStore = {
           }
         };
         transaction.oncomplete = () => resolve({ runId, inserted });
-        transaction.onerror = transaction.onabort = () => reject(new Error('Nie zapisano wejścia z obserwowanego folderu. Obserwacja została zatrzymana; oryginał pozostaje w folderze.'));
+        transaction.onerror = transaction.onabort = () => reject(new Error(translateUi("Nie zapisano wejścia z obserwowanego folderu. Obserwacja została zatrzymana; oryginał pozostaje w folderze.")));
       });
     } finally { database.close(); }
   },
@@ -143,18 +144,18 @@ export const automationStore: AutomationStore = {
 
 export type AutomationOperation = (input: AutomationValue, step: AutomationStep) => Promise<AutomationValue>;
 async function audioValue(response: Response, name: string): Promise<AutomationValue> {
-  if (!response.ok) throw new Error(`Silnik odrzucił operację audio (${response.status}). ${(await response.text()).slice(0, 250)}`);
+  if (!response.ok) throw new Error(translateUi("Silnik odrzucił operację audio ({arg0}). {arg1}", { arg0: String(response.status), arg1: String((await response.text()).slice(0, 250)) }));
   const blob = await response.blob();
-  if (!blob.type.startsWith('audio/') || blob.size < 44) throw new Error('Silnik nie zwrócił kompletnego pliku audio.');
+  if (!blob.type.startsWith('audio/') || blob.size < 44) throw new Error(translateUi("Silnik nie zwrócił kompletnego pliku audio."));
   if (blob.type.includes('wav')) {
     const head = new TextDecoder('ascii').decode(await blob.slice(0, 12).arrayBuffer());
-    if (!head.startsWith('RIFF') || head.slice(8) !== 'WAVE') throw new Error('Wynik silnika ma nieprawidłowy nagłówek WAV.');
+    if (!head.startsWith('RIFF') || head.slice(8) !== 'WAVE') throw new Error(translateUi("Wynik silnika ma nieprawidłowy nagłówek WAV."));
   }
   return { kind: 'audio', blob, name };
 }
 export const automationOperations: Record<AutomationKind, AutomationOperation> = {
   'edit-audio': async (input, step) => {
-    if (input.kind !== 'audio') throw new Error('Obróbka wymaga nagrania audio.');
+    if (input.kind !== 'audio') throw new Error(translateUi("Obróbka wymaga nagrania audio."));
     const settings = validateAudioEdit(step.audioEdit);
     try {
       const signal = AbortSignal.timeout(60_000);
@@ -166,25 +167,25 @@ export const automationOperations: Record<AutomationKind, AutomationOperation> =
     } catch (cause) {
       // A browser decoder TypeError is a failed local file operation, never an
       // uncertain remote mutation that might still occupy a backend/GPU.
-      throw new Error(`Nie ukończono lokalnej obróbki audio. ${cause instanceof Error ? cause.message : String(cause)}`);
+      throw new Error(translateUi("Nie ukończono lokalnej obróbki audio. {arg0}", { arg0: String(cause instanceof Error ? cause.message : String(cause)) }));
     }
   },
   transcribe: async (input) => {
     if (input.kind !== 'audio') throw new Error('Transkrypcja wymaga audio.');
     const signal = AbortSignal.timeout(15 * 60_000);
     const readiness = await productionJson<{ ready: boolean }>('/dictation/readiness?purpose=transcribe', { signal });
-    if (!readiness.ready) throw new Error('Brak gotowego lokalnego modelu ASR. Przygotuj go w ustawieniach modeli.');
+    if (!readiness.ready) throw new Error(translateUi("Brak gotowego lokalnego modelu ASR. Przygotuj go w ustawieniach modeli."));
     const body = new FormData(); body.set('audio', input.blob, input.name); body.set('mode', 'reference'); body.set('refine', 'false');
     const result = await productionJson<{ text: string; language?: string }>('/transcribe', { method: 'POST', body, signal });
-    if (!result.text?.trim()) throw new Error('Silnik nie rozpoznał tekstu.');
+    if (!result.text?.trim()) throw new Error(translateUi("Silnik nie rozpoznał tekstu."));
     return { kind: 'text', text: result.text, language: result.language };
   },
   speak: async (input, step) => {
     if (input.kind !== 'text') throw new Error('Synteza wymaga tekstu.');
-    if (!input.text.trim() || input.text.length > 20_000) throw new Error('Krok syntezy wymaga tekstu od 1 do 20 000 znaków.');
+    if (!input.text.trim() || input.text.length > 20_000) throw new Error(translateUi("Krok syntezy wymaga tekstu od 1 do 20 000 znaków."));
     const signal = AbortSignal.timeout(15 * 60_000);
     const family = await productionJson<{ active: string }>('/engines/tts', { signal });
-    if (!family.active || family.active === 'off') throw new Error('Brak aktywnego silnika syntezy.');
+    if (!family.active || family.active === 'off') throw new Error(translateUi("Brak aktywnego silnika syntezy."));
     const result = await generate({ text: input.text, profileId: step.voiceId!, language: step.language || 'Polish', speed: step.speed ?? 1, steps: 16, seed: '', effect: 'none', engine: family.active }, signal);
     return audioValue(new Response(result.blob, { headers: { 'Content-Type': result.blob.type } }), 'narracja.wav');
   },
@@ -193,18 +194,18 @@ export const automationOperations: Record<AutomationKind, AutomationOperation> =
     const signal = AbortSignal.timeout(15 * 60_000);
     const body = new FormData(); body.set('audio', input.blob, input.name); body.set('profile_id', step.voiceId!); body.set('match_duration', 'true');
     const result = await productionJson<{ audio_url: string }>('/convert', { method: 'POST', body, signal });
-    if (!/^\/audio\/[A-Za-z0-9_.%/-]+$/.test(result.audio_url) || result.audio_url.includes('..') || result.audio_url.includes('//')) throw new Error('Silnik zwrócił nieprawidłową ścieżkę wyniku.');
+    if (!/^\/audio\/[A-Za-z0-9_.%/-]+$/.test(result.audio_url) || result.audio_url.includes('..') || result.audio_url.includes('//')) throw new Error(translateUi("Silnik zwrócił nieprawidłową ścieżkę wyniku."));
     await prepareRequest(result.audio_url, signal);
     return audioValue(await request(result.audio_url, { signal }), 'zmieniony-glos.wav');
   },
   translate: async (input, step) => {
-    if (input.kind !== 'text') throw new Error('Tłumaczenie wymaga tekstu.');
-    if (!['argos', 'nllb'].includes(step.provider || '')) throw new Error('Wybierz lokalny silnik tłumaczenia Argos albo NLLB.');
+    if (input.kind !== 'text') throw new Error(translateUi("Tłumaczenie wymaga tekstu."));
+    if (!['argos', 'nllb'].includes(step.provider || '')) throw new Error(translateUi("Wybierz lokalny silnik tłumaczenia Argos albo NLLB."));
     const signal = AbortSignal.timeout(15 * 60_000);
     const source = step.sourceLanguage === 'auto' ? input.language || null : step.sourceLanguage;
     const result = await productionJson<{ translated: Array<{ id: string; text: string; error?: string }> }>('/dub/translate', postJson({ segments: [{ id: 'automation', text: input.text }], source_lang: source, target_lang: step.language, provider: step.provider, quality: 'fast', auto_glossary: false, reflect: false, condense: false }, signal));
     const item = result.translated?.find(row => row.id === 'automation');
-    if (!item?.text?.trim() || item.error) throw new Error(item?.error || 'Tłumaczenie nie zwróciło tekstu.');
+    if (!item?.text?.trim() || item.error) throw new Error(item?.error || translateUi("Tłumaczenie nie zwróciło tekstu."));
     return { kind: 'text', text: item.text, language: step.language };
   },
 };
@@ -222,7 +223,7 @@ export function createAutomationService({ store = automationStore, operations = 
       for (const recipe of savedRecipes) recipes.set(recipe.id, validateRecipe(recipe));
       for (const run of savedRuns) {
         validateRecipe(run.recipe); validateAutomationInput(run.input, run.recipe);
-        if (activeAutomationRun(run)) { run.status = 'interrupted'; run.error = 'Aplikację zamknięto przed potwierdzeniem wyniku. Sprawdź silnik przed ręcznym ponowieniem; żadne zadanie nie zostało uruchomione automatycznie.'; await store.putRun(run); }
+        if (activeAutomationRun(run)) { run.status = 'interrupted'; run.error = translateUi("Aplikację zamknięto przed potwierdzeniem wyniku. Sprawdź silnik przed ręcznym ponowieniem; żadne zadanie nie zostało uruchomione automatycznie."); await store.putRun(run); }
         runs.set(run.id, run);
       }
       notify();
@@ -251,13 +252,13 @@ export function createAutomationService({ store = automationStore, operations = 
         } catch (cause) {
           run.status = cause instanceof Error && ['TimeoutError', 'AbortError', 'TypeError'].includes(cause.name) ? 'interrupted' : 'failed';
           run.error = cause instanceof Error ? cause.message : String(cause);
-          if (run.status === 'interrupted') run.error += ' Odbieranie wyniku przerwano; silnik może kończyć bieżący krok. Sprawdź go przed ponowieniem.';
-          try { await saveRun(run); } catch { run.error += ' Wyniku nie udało się zachować w lokalnym magazynie.'; notify(); }
+          if (run.status === 'interrupted') run.error += " " + translateUi("Odbieranie wyniku przerwano; silnik może kończyć bieżący krok. Sprawdź go przed ponowieniem.");
+          try { await saveRun(run); } catch { run.error += " " + translateUi("Wyniku nie udało się zachować w lokalnym magazynie."); notify(); }
           if (run.status === 'interrupted') {
             // A disconnected mutation can still be running in the engine.
             // Do not automatically dispatch later inputs into that uncertainty.
             for (const waiting of runs.values()) if (waiting.status === 'queued') {
-              waiting.status = 'interrupted'; waiting.error = 'Kolejka zatrzymana po utracie potwierdzenia silnika. Sprawdź go i ręcznie ponów to zadanie.';
+              waiting.status = 'interrupted'; waiting.error = translateUi("Kolejka zatrzymana po utracie potwierdzenia silnika. Sprawdź go i ręcznie ponów to zadanie.");
               try { await saveRun(waiting); } catch { notify(); }
             }
             break;
@@ -279,16 +280,16 @@ export function createAutomationService({ store = automationStore, operations = 
     initialize, snapshot, enqueue,
     async enqueueWatched(recipe: AutomationRecipe, input: AutomationValue, sourceKey: string) {
       await initialize();
-      if (!/^[a-f0-9]{64}$/.test(sourceKey)) throw new Error('Nieprawidłowy identyfikator wejścia z folderu.');
+      if (!/^[a-f0-9]{64}$/.test(sourceKey)) throw new Error(translateUi("Nieprawidłowy identyfikator wejścia z folderu."));
       const validated = validateRecipe(recipe); validateAutomationInput(input, validated);
-      if (validated.inputKind !== 'audio' || !store.putWatchedRun) throw new Error('Brak trwałego magazynu wejść obserwowanego folderu.');
+      if (validated.inputKind !== 'audio' || !store.putWatchedRun) throw new Error(translateUi("Brak trwałego magazynu wejść obserwowanego folderu."));
       const runId = `watch-${sourceKey}`;
       if (runs.has(runId)) return runId;
       const run: AutomationRun = { id: runId, recipe: structuredClone(validated), input: structuredClone(input), status: 'queued', stepIndex: 0, completedSteps: 0, error: '', createdAt: now(), updatedAt: now(), attempt: 1 };
       // Receipt and Blob share one IndexedDB transaction. The receipt survives
       // deleting a history row and a crash before the native acknowledgement.
       const saved = await store.putWatchedRun(run, sourceKey);
-      if (saved.runId !== runId) throw new Error('Niespójny identyfikator potwierdzenia obserwowanego pliku.');
+      if (saved.runId !== runId) throw new Error(translateUi("Niespójny identyfikator potwierdzenia obserwowanego pliku."));
       // An existing receipt can refer to a deleted row. Never recreate it.
       if (saved.inserted && !runs.has(runId)) { runs.set(runId, run); notify(); void pump(); }
       return runId;
@@ -301,8 +302,8 @@ export function createAutomationService({ store = automationStore, operations = 
       if (run.status === 'queued') { run.status = 'cancelled'; await saveRun(run); return; }
       run.status = 'stopping'; await saveRun(run);
     },
-    async retry(runId: string) { const previous = runs.get(runId); if (!previous || activeAutomationRun(previous)) throw new Error('Zadanie nadal trwa albo nie istnieje.'); return enqueue(previous.recipe, previous.input, previous.attempt + 1); },
-    async removeRun(runId: string) { const run = runs.get(runId); if (run && activeAutomationRun(run)) throw new Error('Najpierw zakończ zadanie.'); await store.removeRun(runId); runs.delete(runId); notify(); },
+    async retry(runId: string) { const previous = runs.get(runId); if (!previous || activeAutomationRun(previous)) throw new Error(translateUi("Zadanie nadal trwa albo nie istnieje.")); return enqueue(previous.recipe, previous.input, previous.attempt + 1); },
+    async removeRun(runId: string) { const run = runs.get(runId); if (run && activeAutomationRun(run)) throw new Error(translateUi("Najpierw zakończ zadanie.")); await store.removeRun(runId); runs.delete(runId); notify(); },
   };
 }
 

@@ -1,9 +1,10 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-async function pureHelpers(filename) { const source=await readFile(sourceUrl(filename),'utf8');const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const result={};new Function('exports',code)(result);return result; }
+async function pureHelpers(filename) { const source=await readFile(sourceUrl(filename),'utf8');const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const result={};new Function('exports','require',code)(result,i18nRequire);return result; }
 const licenseContracts=await pureHelpers('model-licenses.ts'),speechContracts=await pureHelpers('speech-settings.ts');
 
 // Execute the actual TypeScript/component script with controlled transports and
@@ -38,7 +39,7 @@ async function execute(filename, dependencies = {}, exposure = '') {
   source += exposure ? `\nreturn { ${exposure} };` : '';
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const exported = {};
-  const result = new Function('exports', ...Object.keys(dependencies), code)(exported, ...Object.values(dependencies));
+  const result = new Function('exports', ...Object.keys({...i18nDeps,...dependencies}), code)(exported, ...Object.values({...i18nDeps,...dependencies}));
   return result ?? exported;
 }
 async function component(filename, deps = {}, props = {}, exposure = '') {
@@ -72,7 +73,7 @@ async function appModels(deps) {
   const code = ts.transpileModule(fixture + statements.map(node => node.getText(parsed)).join('\n') + exposure,
     { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const values = { notify() {}, productionJson:async()=>undefined, resetPresetForEngine:value=>value,preferredSpeechLanguage:speechContracts.preferredSpeechLanguage,scheduleProjectSave(){}, ...deps };
-  return new Function(...Object.keys(values), code)(...Object.values(values));
+  return new Function(...Object.keys({...i18nDeps,...values}), code)(...Object.values({...i18nDeps,...values}));
 }
 
 const checks = [];

@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
@@ -6,7 +7,7 @@ import * as reactivity from 'svelte/internal/client';
 
 const source = await readFile(new URL('../../src/lib/models/model-licenses.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-const helpers = {}; new Function('exports', code)(helpers);
+const helpers = {}; new Function('exports','require',code)(helpers,i18nRequire);
 const repo = 'qa-public/fixture-model', fingerprint = 'v2:' + 'a'.repeat(64), nextFingerprint = 'v2:' + 'b'.repeat(64);
 const detail = { repo_id: repo, info: { license: 'NOASSERTION', license_category: 'unknown', notes: 'Public fixture; no rights assertion.', variants: [], source_url: 'https://example.org/model', evidence_url: 'https://example.org/terms' }, acceptance: { repo_id: repo, license: 'NOASSERTION', category: 'unknown', required: true, accepted: false, state: 'not_accepted', fingerprint }, history: [] };
 assert.equal(helpers.validModelRepo(repo), true);
@@ -65,7 +66,7 @@ function fixture(termsChange = false, hooks = {}) {
     if (path === '/models/licenses/revoke') { current = { ...current, acceptance: { ...current.acceptance, accepted: false, state: 'withdrawn' } }; return Response.json(current.acceptance); }
     throw new Error('Unexpected fixture request');
   } };
-  const component = new Function(...Object.keys(dependencies), componentCode)(...Object.values(dependencies));
+  const component = new Function(...Object.keys({...i18nDeps,...dependencies}), componentCode)(...Object.values({...i18nDeps,...dependencies}));
   return { component, requests, changedDetails, reviewedDetails, busyChanges, destroy: () => destroy(), get changedNotifications() { return changedNotifications; } };
 }
 const review = fixture(); await review.component.load();
@@ -157,7 +158,8 @@ const otherDetail = { ...structuredClone(detail), repo_id: otherRepo, acceptance
 const transitionCalls = [], firstRead = deferred(), nextRead = deferred(), parentChanged = deferred(), parentFinished = deferred();
 let transitionCurrent = structuredClone(detail), transitionReview, transitionDestroy;
 const transitionProps = reactivity.proxy({ ready: true, repoId: repo, onreviewed(value) { if (value.repo_id === otherRepo) nextRead.resolve(value); else firstRead.resolve(value); }, onchanged() { transitionProps.repoId = otherRepo; reactivity.flush(); parentChanged.resolve(); return parentFinished.promise; } });
-const compiledDependencies = { ...helpers, $: reactivity, $$props: transitionProps, untrack: reactivity.untrack, onDestroy(callback) { transitionDestroy = callback; }, prepareRequest: async () => {}, request: async (path, options) => {
+const { $uiLanguage: _unusedStoreValue, ...i18nStoreDeps } = i18nDeps; // compiled Svelte declares $uiLanguage itself
+const compiledDependencies = { ...i18nStoreDeps, ...helpers, $: reactivity, $$props: transitionProps, untrack: reactivity.untrack, onDestroy(callback) { transitionDestroy = callback; }, prepareRequest: async () => {}, request: async (path, options) => {
   transitionCalls.push({ path, method: options?.method || 'GET' });
   if (path === `/models/licenses/details/${encodeURIComponent(repo)}`) return Response.json(transitionCurrent);
   if (path === `/models/licenses/details/${encodeURIComponent(otherRepo)}`) return Response.json(otherDetail);

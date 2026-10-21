@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { productionJson, postJson } from '../tools/production/production'
 import { redactDiagnosticText } from '../platform/runtime-diagnostics'
 
@@ -32,29 +33,29 @@ export const gpuEngineLabels: Record<string, string> = { gpu: 'GPU', gpu_caveat:
 export const gpuOptionLabels: Record<string, string> = { vulkan_engines: 'Można użyć silników obsługujących Vulkan.', rocm_windows_manual: 'ROCm na Windows wymaga zgodnej ręcznej konfiguracji runtime.', rocm_variant_linux: 'Można przygotować zgodny wariant ROCm dla Linux.', rocm_device_access: 'Sprawdź uprawnienia dostępu do urządzenia ROCm.', reinstall_cuda_torch: 'Wybierz oddzielny runtime CUDA w instalatorze aplikacji.', update_nvidia_driver: 'Sprawdź sterownik karty NVIDIA.' }
 
 export function settingsError(cause: unknown) {
-  return cause instanceof Error && cause.name === 'TimeoutError' ? 'Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.' : redactDiagnosticText(cause instanceof Error ? cause.message : cause).slice(0, 900)
+  return cause instanceof Error && cause.name === 'TimeoutError' ? translateUi("Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.") : redactDiagnosticText(cause instanceof Error ? cause.message : cause).slice(0, 900)
 }
 export function putSettings<T>(path: string, body: unknown, signal?: AbortSignal) { return productionJson<T>(path, { ...postJson(body, signal), method: 'PUT' }) }
 export function hfMirrorAddress(value: string): string {
   const address = value.trim().replace(/\/+$/, '')
   if (!address) return ''
   let parsed: URL
-  try { parsed = new URL(address) } catch { throw new Error('Podaj prawidłowy adres źródła modeli, zaczynający się od https://.') }
+  try { parsed = new URL(address) } catch { throw new Error(translateUi("Podaj prawidłowy adres źródła modeli, zaczynający się od https://.")) }
   const host = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase()
-  if (/[\s\\\u0000-\u001f\u007f]/.test(address) || !host || !['https:', 'http:'].includes(parsed.protocol)) throw new Error('Podaj prawidłowy adres HTTPS bez spacji i znaków sterujących.')
-  if (parsed.username || parsed.password || address.includes('?') || address.includes('#')) throw new Error('Adres źródła nie może zawierać loginu, hasła, parametrów ani fragmentu.')
-  if (parsed.protocol === 'http:' && !['localhost', '127.0.0.1', '::1'].includes(host)) throw new Error('Połączenie HTTP jest dozwolone wyłącznie dla lokalnego serwera localhost.')
+  if (/[\s\\\u0000-\u001f\u007f]/.test(address) || !host || !['https:', 'http:'].includes(parsed.protocol)) throw new Error(translateUi("Podaj prawidłowy adres HTTPS bez spacji i znaków sterujących."))
+  if (parsed.username || parsed.password || address.includes('?') || address.includes('#')) throw new Error(translateUi("Adres źródła nie może zawierać loginu, hasła, parametrów ani fragmentu."))
+  if (parsed.protocol === 'http:' && !['localhost', '127.0.0.1', '::1'].includes(host)) throw new Error(translateUi("Połączenie HTTP jest dozwolone wyłącznie dla lokalnego serwera localhost."))
   return address
 }
 export function settingsPort(value: string | number): number {
-  if (String(value).trim() === '') throw new Error('Podaj port od 1024 do 65535.')
+  if (String(value).trim() === '') throw new Error(translateUi('Podaj port od 1024 do 65535.'))
   const port = Number(value)
-  if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Podaj port od 1024 do 65535.')
+  if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error(translateUi('Podaj port od 1024 do 65535.'))
   return port
 }
 export function settingsTimeout(value: string | number): number {
   const seconds = Number(value)
-  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 21600) throw new Error('Limit musi być większy od 0 i wynosić najwyżej 21600 sekund.')
+  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 21600) throw new Error(translateUi("Limit musi być większy od 0 i wynosić najwyżej 21600 sekund."))
   return seconds
 }
 export function durationLabel(value: number): string {

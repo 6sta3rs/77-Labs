@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onMount, tick } from 'svelte'
   import { Play, Pause, Upload, AudioLines, LoaderCircle } from '@lucide/svelte'
   import Player from '../playback/Player.svelte'
@@ -137,57 +142,57 @@
 </script>
 
 <section class="audio-examples" id="control-14" aria-labelledby={`${uid}-heading`}>
-  <header class="audio-heading"><span class="audio-number">14</span><h2 id={`${uid}-heading`}>Audio i kula głosu</h2><span class="audio-type">Player · GenerationCard · VoiceOrb</span></header>
-  <p class="audio-intro">Odtwarzanie sygnałów demonstracyjnych i własnego pliku. Fala pochodzi z nagrania, a kula reaguje na jego rzeczywisty poziom i pasma dźwięku.</p>
-  {#if loading}<p class="audio-message" role="status">Przygotowywanie lokalnych próbek audio…</p>{/if}
+  <header class="audio-heading"><span class="audio-number">14</span><h2 id={`${uid}-heading`}>{tr("Audio i kula głosu")}</h2><span class="audio-type">{tr("Player · GenerationCard · VoiceOrb")}</span></header>
+  <p class="audio-intro">{tr("Odtwarzanie sygnałów demonstracyjnych i własnego pliku. Fala pochodzi z nagrania, a kula reaguje na jego rzeczywisty poziom i pasma dźwięku.")}</p>
+  {#if loading}<p class="audio-message" role="status">{tr("Przygotowywanie lokalnych próbek audio…")}</p>{/if}
   <div class="audio-layout">
     <div class="audio-samples">
       {#each recordings as row, index (row.url)}
         <div class="audio-sample" class:chosen={selectedId === row.id}>
           <div class="audio-sample-heading"><Button variant={selectedId === row.id ? 'secondary' : 'ghost'} size="sm" aria-pressed={selectedId === row.id} onclick={() => choose(row)}>{row.title}</Button>{#if selectedId === row.id}<span class="audio-active">{playbackStatusLabel(playback.status)}</span>{/if}</div>
           <GenerationCard recording={row} index={index + 1} state={selectedId === row.id ? playback : undefined} onplay={() => toggleRecording(row)} onseek={seconds => { void choose(row).then(() => player?.seek(seconds)) }} />
-          <p class="audio-source">{row.id === 'example-speech' ? 'Syntetyczny sygnał demonstracyjny z repozytorium.' : row.id === 'example-tone' ? 'Lokalny ton 440 Hz z przerwami ciszy · 5 s. To sygnał testowy.' : 'Plik wybrany na tym urządzeniu. Nie jest wysyłany do serwera.'}</p>
+          <p class="audio-source">{row.id === 'example-speech' ? tr("Syntetyczny sygnał demonstracyjny z repozytorium.") : row.id === 'example-tone' ? tr("Lokalny ton 440 Hz z przerwami ciszy · 5 s. To sygnał testowy.") : tr("Plik wybrany na tym urządzeniu. Nie jest wysyłany do serwera.")}</p>
         </div>
       {/each}
       {#if recordings.find(row => row.id === 'example-tone')?.url}{@const tone = recordings.find(row => row.id === 'example-tone')!}
-        <div class="audio-sample"><span class="audio-active">AudioPreview · samodzielny odtwarzacz</span><AudioPreview src={tone.url!} title="Wynik obróbki audio" meta="Sygnał testowy" filename="ton-testowy.wav"/><p class="audio-source">Zastępuje natywne &lt;audio controls&gt; w całej aplikacji: sam wczytuje plik, liczy falę i płynnie przesuwa postęp.</p></div>
-        <div class="audio-sample"><span class="audio-active">Wczytywanie i generowanie</span><GenerationCard recording={{ ...tone, peaks: undefined }} index={3} generating generationLabel="Generowanie nagrania…" onplay={() => {}}/><p class="audio-source">Słupki falują, dopóki nagranie się wczytuje lub generuje.</p></div>
+        <div class="audio-sample"><span class="audio-active">{tr("AudioPreview · samodzielny odtwarzacz")}</span><AudioPreview src={tone.url!} title={tr("Wynik obróbki audio")} meta={tr("Sygnał testowy")} filename="ton-testowy.wav"/><p class="audio-source">{tr("Zastępuje natywne <audio controls> w całej aplikacji: sam wczytuje plik, liczy falę i płynnie przesuwa postęp.")}</p></div>
+        <div class="audio-sample"><span class="audio-active">{tr("Wczytywanie i generowanie")}</span><GenerationCard recording={{ ...tone, peaks: undefined }} index={3} generating generationLabel="Generowanie nagrania…" onplay={() => {}}/><p class="audio-source">{tr("Słupki falują, dopóki nagranie się wczytuje lub generuje.")}</p></div>
       {/if}
       <div class="audio-import" bind:this={fileInputContainer}>
-        <label for={`${uid}-file`}><Upload size={14} />Własne nagranie</label>
-        <Button variant="outline" size="sm" disabled={loading || importing} onclick={chooseFile} aria-describedby={`${uid}-file-hint`}><Upload size={15}/>{importing ? 'Wczytywanie…' : 'Wybierz plik audio'}</Button>
+        <label for={`${uid}-file`}><Upload size={14} />{tr("Własne nagranie")}</label>
+        <Button variant="outline" size="sm" disabled={loading || importing} onclick={chooseFile} aria-describedby={`${uid}-file-hint`}><Upload size={15}/>{importing ? tr("Wczytywanie…") : 'Wybierz plik audio'}</Button>
         <Input hidden id={`${uid}-file`} type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac" disabled={loading || importing} onchange={importFile} aria-describedby={`${uid}-file-hint`} />
-        <p id={`${uid}-file-hint`} class="audio-source">Do 50 MB. Wczytanie nie rozpoczyna odtwarzania.</p>
+        <p id={`${uid}-file-hint`} class="audio-source">{tr("Do 50 MB. Wczytanie nie rozpoczyna odtwarzania.")}</p>
       </div>
     </div>
     <div class="audio-orb-panel">
       <div class="audio-orb-stage" class:landing={variant === 'landing'}>
         <VoiceOrb voiceId={selected?.id ?? 'example-speech'} size={variant === 'landing' ? 256 : 190} ring={variant !== 'landing'} {variant} features={activity.features} orbAudio={activity.orbAudio} level={activity.level} bands={activity.bands} playing={activity.playing} />
-        <Button class="audio-orb-play" variant="secondary" size="icon" disabled={!selected} aria-label={`${playback.status === 'loading' ? 'Anuluj wczytywanie' : playback.status === 'playing' ? 'Wstrzymaj' : 'Odtwórz'}: ${selected?.title ?? 'próbkę'}`} onclick={() => player?.toggle()}>{#if playback.status === 'loading'}<LoaderCircle size={18} />{:else if playback.status === 'playing'}<Pause size={18} fill="currentColor" />{:else}<Play size={18} fill="currentColor" />{/if}</Button>
+        <Button class="audio-orb-play" variant="secondary" size="icon" disabled={!selected} aria-label={`${playback.status === 'loading' ? 'Anuluj wczytywanie' : playback.status === 'playing' ? tr("Wstrzymaj") : tr("Odtwórz")}: ${selected?.title ?? tr("próbkę")}`} onclick={() => player?.toggle()}>{#if playback.status === 'loading'}<LoaderCircle size={18} />{:else if playback.status === 'playing'}<Pause size={18} fill="currentColor" />{:else}<Play size={18} fill="currentColor" />{/if}</Button>
       </div>
       <strong>{selected?.voice ?? 'Próbka audio'}</strong>
       <span class="audio-orb-state" aria-live="polite">{playbackStatusLabel(playback.status)}</span>
-      <div class="audio-signal"><AudioLines size={14} /><span>{activity.available ? `Poziom sygnału: ${Math.round(activity.level * 100)}%` : 'Pomiar sygnału po uruchomieniu audio'}</span></div>
-      <p class="audio-source">{variant === 'landing' ? 'Płynąca powierzchnia z ziarnem w kolorach wybranej palety. Reaguje na wybraną próbkę powyżej.' : 'Po pauzie pomiar wraca do zera, a ruch łagodnie wraca do spokojnego dryfu. Ograniczenie animacji zachowuje działanie audio.'}</p>
+      <div class="audio-signal"><AudioLines size={14} /><span>{activity.available ? tr("Poziom sygnału: {value0}%", {value0: (Math.round(activity.level * 100))}) : tr("Pomiar sygnału po uruchomieniu audio")}</span></div>
+      <p class="audio-source">{variant === 'landing' ? tr("Płynąca powierzchnia z ziarnem w kolorach wybranej palety. Reaguje na wybraną próbkę powyżej.") : tr("Po pauzie pomiar wraca do zera, a ruch łagodnie wraca do spokojnego dryfu. Ograniczenie animacji zachowuje działanie audio.")}</p>
     </div>
   </div>
   <div class="audio-variants">
-    <h3>Warianty kuli głosu</h3>
-    <ButtonGroup label="Wariant kuli głosu" mode="single" value={variant} items={orbVariants.map(value => ({value,label:variantNames[value]}))} onchange={value => variant = value as OrbVariant}/>
+    <h3>{tr("Warianty kuli głosu")}</h3>
+    <ButtonGroup label={tr("Wariant kuli głosu")} mode="single" value={variant} items={uiOptions(orbVariants.map(value => ({value,label:variantNames[value]})))} onchange={value => variant = value as OrbVariant}/>
     <div class="orb-comparison">{#each orbVariants as item}<button class:selected={variant === item} aria-pressed={variant === item} onclick={() => variant = item}>
       <VoiceOrb voiceId={selected?.id ?? 'example-speech'} size={110} variant={item} features={activity.features} orbAudio={activity.orbAudio} level={activity.level} bands={activity.bands} playing={activity.playing}/><strong>{variantNames[item]}</strong>
     </button>{/each}</div>
-    <h3>Kolor kuli</h3>
-    <ButtonGroup label="Kolor kuli głosu" mode="single" value={palette} items={[{ value: 'voice', label: 'Z głosu' }, ...orbPalettes.map(item => ({ value: item.id, label: item.label }))]} onchange={value => { palette = String(value); setOrbPalette(palette) }}/>
-    <p class="audio-source">Wszystkie kule korzystają z tego samego nagrania i tej samej palety. „Z głosu” daje każdemu głosowi jego stały kolor. Burza pozostaje dynamiczna również przy stałym tonie: głośność podtrzymuje jej siłę, a wysokość tonu zmienia tempo i wiry. To nie jest rozpoznawanie emocji.</p>
-    <p class="audio-features">{activity.features?.pitchHz ? `Ton: ${Math.round(activity.features.pitchHz)} Hz` : 'Brak stabilnego tonu'} · Zmienność: {Math.round((activity.features?.turbulence ?? 0) * 100)}%</p>
+    <h3>{tr("Kolor kuli")}</h3>
+    <ButtonGroup label={tr("Kolor kuli głosu")} mode="single" value={palette} items={uiOptions([{ value: 'voice', label: 'Z głosu' }, ...orbPalettes.map(item => ({ value: item.id, label: item.label }))])} onchange={value => { palette = String(value); setOrbPalette(palette) }}/>
+    <p class="audio-source">{tr("Wszystkie kule korzystają z tego samego nagrania i tej samej palety. „Z głosu” daje każdemu głosowi jego stały kolor. Burza pozostaje dynamiczna również przy stałym tonie: głośność podtrzymuje jej siłę, a wysokość tonu zmienia tempo i wiry. To nie jest rozpoznawanie emocji.")}</p>
+    <p class="audio-features">{activity.features?.pitchHz ? `Ton: ${Math.round(activity.features.pitchHz)} Hz` : tr("Brak stabilnego tonu")} {tr("· Zmienność:")} {Math.round((activity.features?.turbulence ?? 0) * 100)}%</p>
   </div>
-  <div class="generation-demo"><Button variant="outline" size="sm" onclick={() => generationDemo = !generationDemo}>{generationDemo ? 'Zakończ podgląd stanu' : 'Pokaż stan generowania'}</Button><p class="audio-source">Podgląd stanu — nie uruchamia modelu. W Studio karta jest widoczna przez cały czas rzeczywistego generowania.</p>{#if generationDemo}<GenerationCard recording={generationExample} index={1} generating generationLabel="Model generuje audio…" onplay={() => {}}/>{/if}</div>
+  <div class="generation-demo"><Button variant="outline" size="sm" onclick={() => generationDemo = !generationDemo}>{generationDemo ? tr("Zakończ podgląd stanu") : tr("Pokaż stan generowania")}</Button><p class="audio-source">{tr("Podgląd stanu — nie uruchamia modelu. W Studio karta jest widoczna przez cały czas rzeczywistego generowania.")}</p>{#if generationDemo}<GenerationCard recording={generationExample} index={1} generating generationLabel="Model generuje audio…" onplay={() => {}}/>{/if}</div>
   <div class="audio-player" bind:this={playerHost}><Player bind:this={player} recording={selected} orbVariant={variant} onstate={value => playback = value} onimport={chooseFile} onactivity={value => activity = value} /></div>
-  {#if importing}<p class="audio-message" role="status">Odczytywanie nagrania…</p>{/if}
-  {#if error}<p class="audio-error" role="alert">{error}</p>{/if}
+  {#if importing}<p class="audio-message" role="status">{tr("Odczytywanie nagrania…")}</p>{/if}
+  {#if error}<p class="audio-error" role="alert">{tr(error)}</p>{/if}
   {#if notice}<p class="audio-message" role="status">{notice}</p>{/if}
-  <p class="audio-source audio-footer">Przykłady działają lokalnie i bez automatycznego odtwarzania. Nie uruchamiają syntezy, mikrofonu ani usług zewnętrznych.</p>
+  <p class="audio-source audio-footer">{tr("Przykłady działają lokalnie i bez automatycznego odtwarzania. Nie uruchamiają syntezy, mikrofonu ani usług zewnętrznych.")}</p>
 </section>
 
 <style>

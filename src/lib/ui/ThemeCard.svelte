@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { Copy, Download, Moon, Pencil, Sun, Trash2 } from '@lucide/svelte'
   import { getThemeColorsForAppearance, type ThemeAppearance, type ThemeDefinition } from '../themes/t3-palettes'
   import { themeSwatch } from '../themes/library'
@@ -19,24 +22,24 @@
       {@const colors = getThemeColorsForAppearance(theme, mode)}
       {@const selected = mode === 'light' ? lightSelected : darkSelected}
       {#if colors}
-        <Tooltip content={`Użyj tylko w trybie ${mode === 'light' ? 'jasnym' : 'ciemnym'}`} {disabled}>
+        <Tooltip content={mode === 'light' ? tr('Użyj tylko w trybie jasnym') : tr('Użyj tylko w trybie ciemnym')} {disabled}>
           <button type="button" class="theme-orb" class:assigned={selected} style={`background:${themeSwatch(colors)}`} {disabled}
-            aria-label={`${theme.label}: użyj w trybie ${mode === 'light' ? 'jasnym' : 'ciemnym'}`} aria-pressed={selected} onclick={() => onselect(mode)}>
+            aria-label={tr(mode === 'light' ? '{name}: użyj w trybie jasnym' : '{name}: użyj w trybie ciemnym', { name: theme.label })} aria-pressed={selected} onclick={() => onselect(mode)}>
             {#if selected}<span class="variant-badge">{#if mode === 'light'}<Sun size={10}/>{:else}<Moon size={10}/>{/if}</span>{/if}
           </button>
         </Tooltip>
       {:else}
-        <span class="theme-orb unavailable" title={`Brak wariantu ${mode === 'light' ? 'jasnego' : 'ciemnego'}`} aria-label={`Brak wariantu ${mode === 'light' ? 'jasnego' : 'ciemnego'}`}></span>
+        <span class="theme-orb unavailable" title={tr(mode === 'light' ? 'Brak wariantu jasnego' : 'Brak wariantu ciemnego')} aria-label={tr(mode === 'light' ? 'Brak wariantu jasnego' : 'Brak wariantu ciemnego')}></span>
       {/if}
     {/each}
   </div>
   <div class="theme-caption">
-    <Tooltip content="Użyj dostępnych wariantów" {disabled}><button type="button" class="theme-name" {disabled} onclick={onuse}>{theme.label}</button></Tooltip>
+    <Tooltip content={tr("Użyj dostępnych wariantów")} {disabled}><button type="button" class="theme-name" {disabled} onclick={onuse}>{theme.label}</button></Tooltip>
     <div class="card-actions">
-      {#if onduplicate}<Tooltip content="Utwórz edytowalną kopię" {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={`Kopiuj motyw ${theme.label}`} onclick={onduplicate}><Copy/></Button></Tooltip>{/if}
-      {#if onedit}<Tooltip content="Edytuj motyw" {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={`Edytuj motyw ${theme.label}`} onclick={onedit}><Pencil/></Button></Tooltip>{/if}
-      {#if ondownload}<Tooltip content="Eksportuj JSON" {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={`Eksportuj motyw ${theme.label}`} onclick={ondownload}><Download/></Button></Tooltip>{/if}
-      {#if onremove}<Tooltip content="Usuń motyw" {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={`Usuń motyw ${theme.label}`} onclick={onremove}><Trash2/></Button></Tooltip>{/if}
+      {#if onduplicate}<Tooltip content={tr("Utwórz edytowalną kopię")} {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={tr('Kopiuj motyw {name}', { name: theme.label })} onclick={onduplicate}><Copy/></Button></Tooltip>{/if}
+      {#if onedit}<Tooltip content={tr("Edytuj motyw")} {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={tr('Edytuj motyw {name}', { name: theme.label })} onclick={onedit}><Pencil/></Button></Tooltip>{/if}
+      {#if ondownload}<Tooltip content={tr("Eksportuj JSON")} {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={tr('Eksportuj motyw {name}', { name: theme.label })} onclick={ondownload}><Download/></Button></Tooltip>{/if}
+      {#if onremove}<Tooltip content={tr("Usuń motyw")} {disabled}><Button variant="ghost" size="icon-xs" {disabled} aria-label={tr('Usuń motyw {name}', { name: theme.label })} onclick={onremove}><Trash2/></Button></Tooltip>{/if}
     </div>
   </div>
 </div>

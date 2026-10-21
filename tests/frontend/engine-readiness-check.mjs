@@ -1,3 +1,4 @@
+import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
@@ -10,6 +11,7 @@ function compile(text, dependencies = {}) {
   const exports = {};
   const code = ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   new Function('exports', 'require', code)(exports, name => {
+    if (/\/i18n$/.test(name)) return i18nRequire(name);
     assert.ok(name in dependencies, `Unexpected dependency ${name}`); return dependencies[name];
   });
   return exports;
@@ -69,7 +71,7 @@ function componentScript(text, props, dependencies = {}, exposure = 'select') {
   const values = { $props: Object.assign(() => props, { id: () => 'readiness' }), $state: value => value,
     $derived: Object.assign(value => value, { by: compute => compute() }),
     $bindable: value => value, $effect() {}, untrack: fn => fn(), onDestroy() {}, ...picker, ...dependencies };
-  return new Function(...Object.keys(values), code)(...Object.values(values));
+  return new Function(...Object.keys({...i18nDeps,...values}), code)(...Object.values({...i18nDeps,...values}));
 }
 await test('Active metadata-only model performs stock POST selection, preserving caller signal', async () => {
   const requests = [], timeouts = [];
@@ -92,7 +94,7 @@ await test('Active metadata-only model performs stock POST selection, preserving
   const appCode = ts.transpileModule(appFixture, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const deps = { family: family(), item, selectEngine: tools.selectEngine, engineCatalog: tools.engineCatalog,
     resetPresetForEngine: value => value, scheduleProjectSave() {}, preferredSpeechLanguage: () => 'Polish' };
-  const app = new Function(...Object.keys(deps), appCode)(...Object.values(deps));
+  const app = new Function(...Object.keys({...i18nDeps,...deps}), appCode)(...Object.values({...i18nDeps,...deps}));
   let closes = 0;
   const subject = componentScript(await source('lib/models/ModelPicker.svelte'), { models: [item], selectedId: 'qa', onselect: app.chooseInstalledModel, onclose: () => closes++ });
   const original = AbortSignal.timeout;

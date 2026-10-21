@@ -1,3 +1,4 @@
+import { translateUi } from '../../i18n';
 import type { DubSegment, ResumableBook } from './production';
 
 export type LongformActivity = {
@@ -19,7 +20,7 @@ export function bookJobsBusy(jobs: ResumableBook[]) {
 }
 
 export function bookJobStatus(status: string) {
-  return ({ queued: 'w kolejce', pending: 'oczekuje', running: 'w trakcie generowania', processing: 'przetwarzanie', cancelling: 'zatrzymywanie', cancelled: 'zatrzymane', failed: 'zakończone błędem', interrupted: 'przerwane', done: 'ukończone' } as Record<string, string>)[status] || 'stan nieustalony';
+  return ({ queued: 'w kolejce', pending: 'oczekuje', running: 'w trakcie generowania', processing: 'przetwarzanie', cancelling: 'zatrzymywanie', cancelled: 'zatrzymane', failed: translateUi("zakończone błędem"), interrupted: 'przerwane', done: translateUi("ukończone") } as Record<string, string>)[status] || 'stan nieustalony';
 }
 
 /** The ownership marker is used only for this probe. Never store or report it. */
@@ -52,15 +53,15 @@ export function bookDrainState(jobs: ResumableBook[], activity: LongformActivity
 
 /** Reject invalid timing before a request can replace an existing rendered track. */
 export function validateDubSegments(segments: DubSegment[], defaultVoice: string) {
-  if (!segments.length) throw new Error('Dodaj co najmniej jeden segment.');
+  if (!segments.length) throw new Error(translateUi("Dodaj co najmniej jeden segment."));
   let previousEnd = 0;
   for (const [index, segment] of segments.entries()) {
     const label = `Segment ${index + 1}`;
-    if (!Number.isFinite(segment.start) || !Number.isFinite(segment.end) || segment.start < 0 || segment.end <= segment.start) throw new Error(`${label}: koniec musi być późniejszy niż początek, a czas nie może być ujemny.`);
-    if (segment.start < previousEnd - 0.001) throw new Error(`${label}: segmenty nie mogą się nakładać. Popraw początek lub koniec.`);
-    if (!segment.text.trim()) throw new Error(`${label}: wpisz tekst do nagrania.`);
-    if (!(segment.profile_id || defaultVoice)) throw new Error(`${label}: wybierz głos.`);
-    if (segment.speed !== undefined && (!Number.isFinite(segment.speed) || segment.speed < 0.5 || segment.speed > 2)) throw new Error(`${label}: szybkość musi mieścić się w zakresie 0,5–2.`);
+    if (!Number.isFinite(segment.start) || !Number.isFinite(segment.end) || segment.start < 0 || segment.end <= segment.start) throw new Error(translateUi("{arg0}: koniec musi być późniejszy niż początek, a czas nie może być ujemny.", { arg0: String(label) }));
+    if (segment.start < previousEnd - 0.001) throw new Error(translateUi("{arg0}: segmenty nie mogą się nakładać. Popraw początek lub koniec.", { arg0: String(label) }));
+    if (!segment.text.trim()) throw new Error(translateUi("{arg0}: wpisz tekst do nagrania.", { arg0: String(label) }));
+    if (!(segment.profile_id || defaultVoice)) throw new Error(translateUi("{arg0}: wybierz głos.", { arg0: String(label) }));
+    if (segment.speed !== undefined && (!Number.isFinite(segment.speed) || segment.speed < 0.5 || segment.speed > 2)) throw new Error(translateUi("{arg0}: szybkość musi mieścić się w zakresie 0,5–2.", { arg0: String(label) }));
     previousEnd = segment.end;
   }
 }

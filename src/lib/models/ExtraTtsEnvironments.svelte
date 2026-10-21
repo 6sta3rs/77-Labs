@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onMount, onDestroy } from 'svelte'
   import { productionJson, postJson } from '../tools/production/production'
   import Button from '../ui/Button.svelte'
@@ -37,13 +40,13 @@
   onDestroy(()=>{disposed=true;controller?.abort();clearTimeout(timer)})
 </script>
 
-<section class="extra-tts" aria-label="Dodatkowe silniki TTS">
-  <header><div><h2>Dodatkowe modele TTS</h2><p>Biblioteki każdego silnika są przygotowywane osobno. Wagi pobierzesz w katalogu poniżej.</p></div><Button variant="ghost" size="sm" disabled={busy} onclick={()=>void refresh()}>Odśwież stan</Button></header>
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
+<section class="extra-tts" aria-label={tr("Dodatkowe silniki TTS")}>
+  <header><div><h2>{tr("Dodatkowe modele TTS")}</h2><p>{tr("Biblioteki każdego silnika są przygotowywane osobno. Wagi pobierzesz w katalogu poniżej.")}</p></div><Button variant="ghost" size="sm" disabled={busy} onclick={()=>void refresh()}>{tr("Odśwież stan")}</Button></header>
+  {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
   {#if engines.length}
-    <div class="device"><Select label="Obliczenia dla nowych środowisk" ariaLabel="Obliczenia dodatkowych modeli" bind:value={device} options={[{value:'cpu',label:'Procesor (CPU)'},{value:'cuda',label:'Karta NVIDIA (CUDA)'}]}/><p>Kokoro i KittenTTS 0.8 działają na CPU. Fish korzysta z własnej usługi Linux/WSL.</p></div>
-    <div class="environment-list">{#each engines as engine}<article><div><strong>{engine.name}</strong><p>{engine.dependencies_ready?'Biblioteki gotowe':'Brak bibliotek'} · {engine.weights_ready?'Wagi lokalne':'Brak kompletnych wag'}</p>{#if engine.setup&&['creating','installing','checking','failed'].includes(engine.setup.state)}<p role="status">{engine.setup.message}</p>{/if}{#if !engine.configured}<p>{engine.reason}</p>{/if}</div><Button variant="outline" size="sm" disabled={busy||installing||engine.dependencies_ready} onclick={()=>void prepare(engine.id)}>{engine.dependencies_ready?'Przygotowano':'Przygotuj biblioteki'}</Button></article>{/each}</div>
-    <details><summary>Połączenie z Fish S2 Pro</summary><p>Uruchom własną usługę S2 Pro w Linux/WSL. Adres musi wskazywać ten komputer. Odpowiedź health potwierdza transport; model wskazujesz na podstawie konfiguracji swojej usługi.</p><label>Adres lokalnej usługi<input class="text-input" bind:value={fishUrl}/></label><label class="tool-checkbox"><input type="checkbox" bind:checked={fishConfirmed}/> Usługa korzysta z fishaudio/s2-pro, rewizja 1de9996b6be38b745688de084d87a5633f714e4e.</label><Button variant="outline" size="sm" disabled={!fishConfirmed||busy} onclick={()=>void configureFish()}>Zapisz połączenie Fish</Button></details>
+    <div class="device"><Select label={tr("Obliczenia dla nowych środowisk")} ariaLabel="Obliczenia dodatkowych modeli" bind:value={device} options={[{value:'cpu',label:'Procesor (CPU)'},{value:'cuda',label:'Karta NVIDIA (CUDA)'}]}/><p>{tr("Kokoro i KittenTTS 0.8 działają na CPU. Fish korzysta z własnej usługi Linux/WSL.")}</p></div>
+    <div class="environment-list">{#each engines as engine}<article><div><strong>{engine.name}</strong><p>{engine.dependencies_ready?tr("Biblioteki gotowe"):tr("Brak bibliotek")} · {engine.weights_ready?tr("Wagi lokalne"):tr("Brak kompletnych wag")}</p>{#if engine.setup&&['creating','installing','checking','failed'].includes(engine.setup.state)}<p role="status">{tr(String(engine.setup.message))}</p>{/if}{#if !engine.configured}<p>{tr(String(engine.reason))}</p>{/if}</div><Button variant="outline" size="sm" disabled={busy||installing||engine.dependencies_ready} onclick={()=>void prepare(engine.id)}>{engine.dependencies_ready?'Przygotowano':'Przygotuj biblioteki'}</Button></article>{/each}</div>
+    <details><summary>{tr("Połączenie z Fish S2 Pro")}</summary><p>{tr("Uruchom własną usługę S2 Pro w Linux/WSL. Adres musi wskazywać ten komputer. Odpowiedź health potwierdza transport; model wskazujesz na podstawie konfiguracji swojej usługi.")}</p><label>{tr("Adres lokalnej usługi")}<input class="text-input" bind:value={fishUrl}/></label><label class="tool-checkbox"><input type="checkbox" bind:checked={fishConfirmed}/> {tr("Usługa korzysta z fishaudio/s2-pro, rewizja 1de9996b6be38b745688de084d87a5633f714e4e.")}</label><Button variant="outline" size="sm" disabled={!fishConfirmed||busy} onclick={()=>void configureFish()}>{tr("Zapisz połączenie Fish")}</Button></details>
   {/if}
 </section>
 

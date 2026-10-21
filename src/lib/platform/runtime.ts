@@ -1,3 +1,4 @@
+import { translateUi } from '../i18n';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 
 export type RuntimeStatus = {
@@ -39,7 +40,7 @@ export class RuntimeStartupDeadline {
   observe(status: RuntimeStatus, now = startupNow()) {
     const progress = status.startup;
     if (!progress || typeof progress.runId !== 'string' || !progress.runId || progress.runId.length > 128) return;
-    if (this.runId && this.runId !== progress.runId) throw new Error('Sesja uruchamiania silnika zmieniła się. Ponów zadanie w aktualnej sesji.');
+    if (this.runId && this.runId !== progress.runId) throw new Error(translateUi("Sesja uruchamiania silnika zmieniła się. Ponów zadanie w aktualnej sesji."));
     this.runId = progress.runId;
     if (this.complete || !safeCounter(progress.revision) || !safeCounter(progress.copiedPages) || !safeCounter(progress.copiedBytes)) return;
     const totalPages = progress.totalPages, totalBytes = progress.totalBytes;
@@ -159,7 +160,7 @@ async function waitForReady(initial: RuntimeStatus): Promise<RuntimeStatus> {
     deadline.observe(status);
     await new Promise(resolve => setTimeout(resolve, 500));
   }
-  throw new Error('Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Modele i silnik.');
+  throw new Error(translateUi("Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Modele i silnik."));
 }
 
 /** A Rust-owned lease protects startup/request dispatch against idle shutdown. */

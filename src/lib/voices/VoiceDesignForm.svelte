@@ -1,4 +1,9 @@
 <script lang="ts">
+  function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
+
+  import { uiLanguage, createUiTranslator } from "../i18n"
+  const tr = $derived(createUiTranslator($uiLanguage))
+
   import { onDestroy } from 'svelte';
   import { Save, WandSparkles } from '@lucide/svelte';
   import type { Profile } from '../platform/api';
@@ -66,17 +71,17 @@
 </script>
 
 <form class="voice-design-form studio-tools" onsubmit={event => { event.preventDefault(); save(); }}>
-  <p class="page-footnote">Nadaj głosowi nazwę i wybierz cechy brzmienia. Nagranie referencyjne nie jest potrzebne.</p>
-  {#if !ready}<p class="tool-notice">Uruchom lokalny silnik, aby utworzyć projektowany głos.</p>{/if}
-  <div class="design-field"><label for={`${uid}-name`}>Nazwa głosu</label><Input id={`${uid}-name`} bind:value={name} required maxlength={120} disabled={!!busy || !!createdProfile} autocomplete="off" placeholder="Np. Ciepły głos narratora"/></div>
-  <Select label="Język głosu" value={language} onchange={value => language = value} options={profileLanguages} disabled={!!busy || !!createdProfile}/>
-  <div class="design-features">{#each categories as category}<Select label={category.label} value={attrs[category.key] || 'Auto'} onchange={value => attrs = { ...attrs, [category.key]: value }} options={category.values.map((value, i) => ({ value, label: category.labels[i] }))} disabled={!!busy || !!createdProfile}/>{/each}</div>
-  <details class="design-description"><summary>Dobierz cechy z opisu</summary><div class="design-description-body"><label for={`${uid}-description`}>Opis brzmienia po angielsku</label><Textarea id={`${uid}-description`} bind:value={description} rows={3} placeholder="A warm female voice with low pitch" disabled={!!busy || !!createdProfile}/><p class="page-footnote">Lokalny słownik zamienia obsługiwane określenia na cechy powyżej. Pozostałe słowa pokaże w komunikacie.</p><Button variant="outline" disabled={!ready || !!busy || !!createdProfile || !description.trim()} onclick={describe}><WandSparkles size={16}/>{busy === 'describe' ? 'Dobieranie cech…' : 'Dobierz cechy'}</Button></div></details>
-  <p class="page-footnote">Silnik przygotuje próbkę, jeśli lokalny model jest gotowy. W przeciwnym razie zapisze profil, a próbkę będzie można przygotować przy pierwszym odsłuchu lub użyciu.</p>
-  {#if error}<p class="tool-error" role="alert">{error}</p>{/if}
-  {#if message}<p class="tool-notice" role="status">{message}</p>{/if}
-  <div class="tool-actions"><Button type="submit" disabled={!ready || !!busy || !name.trim()}><Save size={16}/>{busy === 'save' ? createdProfile ? 'Odświeżanie biblioteki…' : 'Zapisywanie głosu…' : createdProfile ? 'Otwórz zapisany głos' : 'Utwórz głos'}</Button><Button variant="outline" onclick={cancel}>{busy ? 'Anuluj i wróć' : 'Anuluj'}</Button></div>
-  {#if busy === 'save' && !createdProfile}<p class="page-footnote" role="status">Przygotowanie profilu i próbki. Pierwsze wczytanie lokalnego modelu może potrwać dłużej.</p>{/if}
+  <p class="page-footnote">{tr("Nadaj głosowi nazwę i wybierz cechy brzmienia. Nagranie referencyjne nie jest potrzebne.")}</p>
+  {#if !ready}<p class="tool-notice">{tr("Uruchom lokalny silnik, aby utworzyć projektowany głos.")}</p>{/if}
+  <div class="design-field"><label for={`${uid}-name`}>{tr("Nazwa głosu")}</label><Input id={`${uid}-name`} bind:value={name} required maxlength={120} disabled={!!busy || !!createdProfile} autocomplete="off" placeholder={tr("Np. Ciepły głos narratora")}/></div>
+  <Select label={tr("Język głosu")} value={language} onchange={value => language = value} options={uiOptions(profileLanguages)} disabled={!!busy || !!createdProfile}/>
+  <div class="design-features">{#each categories as category}<Select label={category.label} value={attrs[category.key] || 'Auto'} onchange={value => attrs = { ...attrs, [category.key]: value }} options={uiOptions(category.values.map((value, i) => ({ value, label: category.labels[i] })))} disabled={!!busy || !!createdProfile}/>{/each}</div>
+  <details class="design-description"><summary>{tr("Dobierz cechy z opisu")}</summary><div class="design-description-body"><label for={`${uid}-description`}>{tr("Opis brzmienia po angielsku")}</label><Textarea id={`${uid}-description`} bind:value={description} rows={3} placeholder={tr("A warm female voice with low pitch")} disabled={!!busy || !!createdProfile}/><p class="page-footnote">{tr("Lokalny słownik zamienia obsługiwane określenia na cechy powyżej. Pozostałe słowa pokaże w komunikacie.")}</p><Button variant="outline" disabled={!ready || !!busy || !!createdProfile || !description.trim()} onclick={describe}><WandSparkles size={16}/>{busy === 'describe' ? 'Dobieranie cech…' : 'Dobierz cechy'}</Button></div></details>
+  <p class="page-footnote">{tr("Silnik przygotuje próbkę, jeśli lokalny model jest gotowy. W przeciwnym razie zapisze profil, a próbkę będzie można przygotować przy pierwszym odsłuchu lub użyciu.")}</p>
+  {#if error}<p class="tool-error" role="alert">{tr(error)}</p>{/if}
+  {#if message}<p class="tool-notice" role="status">{tr(message)}</p>{/if}
+  <div class="tool-actions"><Button type="submit" disabled={!ready || !!busy || !name.trim()}><Save size={16}/>{busy === 'save' ? createdProfile ? tr("Odświeżanie biblioteki…") : tr("Zapisywanie głosu…") : createdProfile ? tr("Otwórz zapisany głos") : tr("Utwórz głos")}</Button><Button variant="outline" onclick={cancel}>{busy ? tr("Anuluj i wróć") : tr("Anuluj")}</Button></div>
+  {#if busy === 'save' && !createdProfile}<p class="page-footnote" role="status">{tr("Przygotowanie profilu i próbki. Pierwsze wczytanie lokalnego modelu może potrwać dłużej.")}</p>{/if}
 </form>
 
 <style>
