@@ -2,7 +2,7 @@
   import { ChevronRight } from '@lucide/svelte'
   import ModelIcon from './ModelIcon.svelte'
   import type { HTMLButtonAttributes } from 'svelte/elements'
-  import '../model-picker.css'
+  import '../models/model-picker.css'
 
   type Props = Omit<HTMLButtonAttributes, 'type' | 'children'> & {
     name?: string

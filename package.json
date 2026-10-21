@@ -7,14 +7,15 @@
     "dev": "vite --host 127.0.0.1 --port 4310 --strictPort",
     "build": "vite build",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "test:buttons": "node scripts/button-system-check.mjs",
-    "test:styles": "node scripts/ui-colors-check.mjs && node scripts/focus-intent-check.mjs && node scripts/ui-overlay-check.mjs",
-    "test:ui": "node scripts/button-system-check.mjs && node scripts/theme-compatibility-check.mjs && node scripts/tag-check.mjs && node scripts/history-view-check.mjs && node scripts/ui-data-performance-check.mjs && node scripts/async-ui-check.mjs && node scripts/orb-motion-check.mjs && node scripts/shared-voice-orb-check.mjs && node scripts/voice-orb-renderer-check.mjs && node scripts/orb-preview-motion-check.mjs && node scripts/orb-reactivity-check.mjs --summary && node scripts/voice-language-check.mjs && node scripts/voice-catalog-check.mjs && node scripts/voice-folders-check.mjs && node scripts/neutral-selection-check.mjs && npm run test:styles",
-    "qa:ui": "node scripts/ui-performance-preview.mjs",
-    "qa:editor": "node scripts/editor-performance-preview.mjs",
+    "test:buttons": "node tests/frontend/button-system-check.mjs",
+    "test:styles": "node tests/frontend/ui-colors-check.mjs && node tests/frontend/focus-intent-check.mjs && node tests/frontend/ui-overlay-check.mjs",
+    "test:ui": "node tests/frontend/button-system-check.mjs && node tests/frontend/theme-compatibility-check.mjs && node tests/frontend/tag-check.mjs && node tests/frontend/history-view-check.mjs && node tests/frontend/ui-data-performance-check.mjs && node tests/frontend/async-ui-check.mjs && node tests/frontend/orb-motion-check.mjs && node tests/frontend/shared-voice-orb-check.mjs && node tests/frontend/voice-orb-renderer-check.mjs && node tests/frontend/orb-preview-motion-check.mjs && node tests/frontend/orb-reactivity-check.mjs --summary && node tests/frontend/voice-language-check.mjs && node tests/frontend/voice-catalog-check.mjs && node tests/frontend/voice-folders-check.mjs && node tests/frontend/neutral-selection-check.mjs && npm run test:styles",
+    "qa:ui": "node scripts/preview/ui-performance-preview.mjs",
+    "qa:editor": "node scripts/preview/editor-performance-preview.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4310 --strictPort",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build --no-bundle"
+    "desktop:build": "tauri build --no-bundle",
+    "test:structure": "node scripts/dev/check-structure.mjs"
   },
   "dependencies": {
     "@lucide/svelte": "1.59.0",

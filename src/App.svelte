@@ -3,80 +3,81 @@
   import { mountModal, visibleFocusTarget } from './lib/ui/overlay';
   import { onMount, tick } from 'svelte';
   import { AudioLines, BookOpen, Check, ChevronDown, ChevronRight, Clock3, Cpu, Download, Ellipsis, FileText, Film, Folder, Globe2, LoaderCircle, Mic2, Palette, PanelLeft, Plus, Search, Settings2, SlidersHorizontal, Smile, Sparkles, Square, Upload, X, RotateCcw, Play, Pause, Copy, ArrowUpRight, Info, Undo2 } from '@lucide/svelte';
-  import SpeechEditor from './lib/SpeechEditor.svelte';
-  import VoicePicker from './lib/VoicePicker.svelte';
-  import { engineCatalogSnapshot } from './lib/engine-catalog-state';
-  import NavigationSidebar from './lib/NavigationSidebar.svelte';
-  import Dashboard from './lib/Dashboard.svelte';
-  import ShellTopbar from './lib/ShellTopbar.svelte';
-  import './lib/shell.css';
-  import SettingsShell from './lib/SettingsShell.svelte';
-  import DictationDesktopSettings from './lib/DictationDesktopSettings.svelte';
-  import type { SettingsSection } from './lib/navigation';
-  import './lib/navigation-layout.css';
-  import Player from './lib/Player.svelte';
+  import SpeechEditor from './lib/tts/SpeechEditor.svelte';
+  import VoicePicker from './lib/voices/VoicePicker.svelte';
+  import { engineCatalogSnapshot } from './lib/models/engine-catalog-state';
+  import NavigationSidebar from './lib/shell/NavigationSidebar.svelte';
+  import Dashboard from './lib/shell/Dashboard.svelte';
+  import ShellTopbar from './lib/shell/ShellTopbar.svelte';
+  import './lib/shell/shell.css';
+  import SettingsShell from './lib/settings/SettingsShell.svelte';
+  import DictationDesktopSettings from './lib/tools/dictation/DictationDesktopSettings.svelte';
+  import type { SettingsSection } from './lib/shell/navigation';
+  import './lib/shell/navigation-layout.css';
+  import Player from './lib/playback/Player.svelte';
   import VoiceAvatar from './lib/ui/VoiceAvatar.svelte';
-  import { VoicePortraits } from './lib/voice-portraits';
-  import { idlePlaybackState, type PlaybackState } from './lib/playback-state';
-  import VoiceOrb from './lib/VoiceOrb.svelte';
-  import { playbackVoiceId } from './lib/playback-visual';
-  import { quietActivity, type PlaybackActivity } from './lib/playback-meter';
-  import './lib/voice-orb.css';
-  import GenerationCard from './lib/GenerationCard.svelte';
-  import InspectorSection from './lib/InspectorSection.svelte';
-  import GenerationHistory from './lib/GenerationHistory.svelte';
-  import './lib/tts-inspector.css';
-  import Appearance from './lib/Appearance.svelte';
-  import AISettings from './lib/AISettings.svelte';
-  import './lib/ai.css';
-  import { enhanceDialogue } from './lib/ai';
-  import { validateTaggedTexts } from './lib/ai-validation';
-  import ProductionWorkspace from './lib/ProductionWorkspace.svelte';
-  import StoriesWorkspace from './lib/StoriesWorkspace.svelte';
-  import TranscriptionWorkspace from './lib/TranscriptionWorkspace.svelte';
-  import DictationWorkspace from './lib/DictationWorkspace.svelte';
-  import StudioTools from './lib/StudioTools.svelte';
-  import AutomationWorkspace from './lib/AutomationWorkspace.svelte';
-  import AudioLab from './lib/AudioLab.svelte';
-  import RuntimeDiagnostics from './lib/RuntimeDiagnostics.svelte';
-  import ModelLicenseOnboarding from './lib/ModelLicenseOnboarding.svelte';
-  import IntegrationSettings from './lib/IntegrationSettings.svelte';
-  import ApiReference from './lib/ApiReference.svelte';
-  import GeneralSettings from './lib/GeneralSettings.svelte';
-  import DictionarySettings from './lib/DictionarySettings.svelte';
-  import UpdateSettings from './lib/UpdateSettings.svelte';
-  import StorageSettings from './lib/StorageSettings.svelte';
-  import PreviewCacheSettings from './lib/PreviewCacheSettings.svelte';
-  import { storageSettings } from './lib/storage-settings';
-  import SystemSettings from './lib/SystemSettings.svelte';
-  import RemoteBackendSettings from './lib/RemoteBackendSettings.svelte';
-  import { remoteBackendState } from './lib/remote-state';
-  import EngineCatalog from './lib/EngineCatalog.svelte';
-  import EngineRuntimeInstaller from './lib/EngineRuntimeInstaller.svelte';
-  import RuntimeInstaller from './lib/RuntimeInstaller.svelte';
-  import VoiceManager from './lib/VoiceManager.svelte';
-  import VoiceCreatePage from './lib/VoiceCreatePage.svelte';
-  import { profileVoiceMetadata } from './lib/voice-metadata';
-  import VoiceLibraryTools from './lib/VoiceLibraryTools.svelte';
-  import { engineCatalog, selectEngine, type EngineFamily } from './lib/studio-tools';
+  import { VoicePortraits } from './lib/voices/voice-portraits';
+  import { idlePlaybackState, type PlaybackState } from './lib/playback/playback-state';
+  import VoiceOrb from './lib/playback/VoiceOrb.svelte';
+  import { playbackVoiceId } from './lib/playback/playback-visual';
+  import { quietActivity, type PlaybackActivity } from './lib/playback/playback-meter';
+  import './lib/playback/voice-orb.css';
+  import GenerationCard from './lib/tts/GenerationCard.svelte';
+  import InspectorSection from './lib/tts/InspectorSection.svelte';
+  import GenerationHistory from './lib/projects/GenerationHistory.svelte';
+  import './lib/tts/tts-inspector.css';
+  import Appearance from './lib/settings/Appearance.svelte';
+  import AISettings from './lib/tts/AISettings.svelte';
+  import './lib/tts/ai.css';
+  import { enhanceDialogue } from './lib/tts/ai';
+  import { validateTaggedTexts } from './lib/tts/ai-validation';
+  import ProductionWorkspace from './lib/tools/production/ProductionWorkspace.svelte';
+  import StoriesWorkspace from './lib/tools/stories/StoriesWorkspace.svelte';
+  import TranscriptionWorkspace from './lib/tools/transcription/TranscriptionWorkspace.svelte';
+  import DictationWorkspace from './lib/tools/dictation/DictationWorkspace.svelte';
+  import StudioTools from './lib/tools/StudioTools.svelte';
+  import AutomationWorkspace from './lib/tools/automation/AutomationWorkspace.svelte';
+  import AudioLab from './lib/tools/audio-lab/AudioLab.svelte';
+  import RuntimeDiagnostics from './lib/platform/RuntimeDiagnostics.svelte';
+  import ModelLicenseOnboarding from './lib/models/ModelLicenseOnboarding.svelte';
+  import EngineRuntimeInstaller from './lib/models/EngineRuntimeInstaller.svelte';
+  import IntegrationSettings from './lib/platform/IntegrationSettings.svelte';
+  import ApiReference from './lib/platform/ApiReference.svelte';
+  import GeneralSettings from './lib/settings/GeneralSettings.svelte';
+  import DictionarySettings from './lib/settings/DictionarySettings.svelte';
+  import UpdateSettings from './lib/settings/UpdateSettings.svelte';
+  import StorageSettings from './lib/settings/StorageSettings.svelte';
+  import PreviewCacheSettings from './lib/playback/PreviewCacheSettings.svelte';
+  import { storageSettings } from './lib/settings/storage-settings';
+  import SystemSettings from './lib/settings/SystemSettings.svelte';
+  import RemoteBackendSettings from './lib/platform/RemoteBackendSettings.svelte';
+  import { remoteBackendState } from './lib/platform/remote-state';
+  import EngineCatalog from './lib/models/EngineCatalog.svelte';
+  import RuntimeInstaller from './lib/platform/RuntimeInstaller.svelte';
+  import VoiceManager from './lib/voices/VoiceManager.svelte';
+  import VoiceCreatePage from './lib/voices/VoiceCreatePage.svelte';
+  import { profileVoiceMetadata } from './lib/voices/voice-metadata';
+  import VoiceLibraryTools from './lib/voices/VoiceLibraryTools.svelte';
+  import { engineCatalog, selectEngine, type EngineFamily } from './lib/tools/studio-tools';
   import Select from './lib/ui/Select.svelte';
   import Slider from './lib/ui/Slider.svelte';
   import ActionBar from './lib/ui/ActionBar.svelte';
+  import { sheetDrag } from './lib/ui/sheet-drag';
   import ModelTrigger from './lib/ui/ModelTrigger.svelte';
-  import ModelPicker from './lib/ModelPicker.svelte';
-  import AdvancedSpeechSettings from './lib/AdvancedSpeechSettings.svelte';
-  import { cloneSpeechSettings, defaultSpeechSettings, preferredSpeechLanguage, readStoredSpeechSettings, resetPresetForEngine, serializeSpeechSettings, speechLanguageChoices, speechLanguageLabel, type SpeechSettings } from './lib/speech-settings';
-  import { assertModelLicenseResponse, requiredLicenseRepos } from './lib/model-licenses';
-  import { productionJson } from './lib/production';
-  import type { IntegrationState } from './lib/integrations';
-  import { normalizeTtsModels } from './lib/model-picker';
-  import { loadAppearance, applyAppearance, saveAppearance, defaultAppearance, type AppearanceSettings } from './lib/appearance';
+  import ModelPicker from './lib/models/ModelPicker.svelte';
+  import AdvancedSpeechSettings from './lib/tts/AdvancedSpeechSettings.svelte';
+  import { cloneSpeechSettings, defaultSpeechSettings, preferredSpeechLanguage, readStoredSpeechSettings, resetPresetForEngine, serializeSpeechSettings, speechLanguageChoices, speechLanguageLabel, type SpeechSettings } from './lib/tts/speech-settings';
+  import { assertModelLicenseResponse, requiredLicenseRepos } from './lib/models/model-licenses';
+  import { productionJson } from './lib/tools/production/production';
+  import type { IntegrationState } from './lib/platform/integrations';
+  import { normalizeTtsModels } from './lib/models/model-picker';
+  import { loadAppearance, applyAppearance, saveAppearance, defaultAppearance, type AppearanceSettings } from './lib/settings/appearance';
   import { voices as previewVoices, durationLabel, type Voice, type Render, type Page, type Project } from './lib/data';
-  import { autoTagText, type SpeechBlock } from './lib/tags';
-  import { audioPeaks, loadRecordings, saveRecording } from './lib/library';
-  import { decodeWave, joinSpeech } from './lib/audio';
-  import * as api from './lib/api';
-  import { getRuntimeStatus, ensureRuntime, stopRuntime, isDesktop as detectDesktop } from './lib/runtime';
+  import { autoTagText, type SpeechBlock } from './lib/tts/tags';
+  import { audioPeaks, loadRecordings, saveRecording } from './lib/projects/library';
+  import { joinSpeechWave } from './lib/playback/audio';
+  import * as api from './lib/platform/api';
+  import { getRuntimeStatus, ensureRuntime, stopRuntime, isDesktop as detectDesktop } from './lib/platform/runtime';
 
   const demoMode=new URLSearchParams(location.search).get('demo')==='tts'&&!detectDesktop();
   const isDesktop=detectDesktop();
@@ -134,7 +135,7 @@
   let engineDetails=$state<Record<string,unknown>>({});let projectDraftName=$state('');
   const pageNames:Record<Page,string>={dashboard:'Pulpit',studio:'Tekst na mowę',voices:'Głosy','voice-create':'Dodaj głos',projects:'Projekty',history:'Nagrania',transcription:'Mowa na tekst',dictation:'Dyktowanie na żywo',models:'Modele i silnik',appearance:'Wygląd','ai-settings':'AI i subskrypcja',dubbing:'Dubbing',audiobooks:'Audiobooki',stories:'Historie',pronunciation:'Słownik wymowy',batch:'Kolejka dubbingu',conversion:'Konwersja głosu',automation:'Automatyzacja',tools:'Narzędzia audio','audio-lab':'Obróbka audio','engine-history':'Historia silnika'};
   const mainNav=[{id:'studio' as Page,label:'Tekst na mowę',icon:AudioLines},{id:'voices' as Page,label:'Głosy',icon:Mic2},{id:'projects' as Page,label:'Projekty',icon:Folder}];
-  const toolNav=[{id:'dubbing' as Page,label:'Dubbing',icon:Film},{id:'audiobooks' as Page,label:'Audiobooki',icon:BookOpen},{id:'stories' as Page,label:'Historie',icon:BookOpen},{id:'dictation' as Page,label:'Dyktowanie na żywo',icon:Mic2},{id:'transcription' as Page,label:'Mowa na tekst',icon:FileText},{id:'history' as Page,label:'Nagrania',icon:Clock3},{id:'engine-history' as Page,label:'Historia silnika',icon:Clock3},{id:'conversion' as Page,label:'Konwersja głosu',icon:Mic2},{id:'batch' as Page,label:'Kolejka dubbingu',icon:Film},{id:'pronunciation' as Page,label:'Słownik wymowy',icon:BookOpen},{id:'automation' as Page,label:'Automatyzacja',icon:SlidersHorizontal},{id:'tools' as Page,label:'Narzędzia audio',icon:SlidersHorizontal},{id:'audio-lab' as Page,label:'Obróbka audio',icon:AudioLines}];
+  const toolNav=[{id:'dubbing' as Page,label:'Dubbing',icon:Film},{id:'audiobooks' as Page,label:'Audiobooki',icon:BookOpen},{id:'stories' as Page,label:'Historie',icon:BookOpen},{id:'dictation' as Page,label:'Dyktowanie na żywo',icon:Mic2},{id:'transcription' as Page,label:'Mowa na tekst',icon:FileText},{id:'history' as Page,label:'Nagrania',icon:Clock3},{id:'engine-history' as Page,label:'Historia silnika',icon:Clock3},{id:'voice-create' as Page,label:'Klonowanie głosu',icon:Mic2},{id:'conversion' as Page,label:'Konwersja głosu',icon:Mic2},{id:'batch' as Page,label:'Kolejka dubbingu',icon:Film},{id:'pronunciation' as Page,label:'Słownik wymowy',icon:BookOpen},{id:'automation' as Page,label:'Automatyzacja',icon:SlidersHorizontal},{id:'tools' as Page,label:'Narzędzia audio',icon:SlidersHorizontal},{id:'audio-lab' as Page,label:'Obróbka audio',icon:AudioLines}];
   let totalText=$derived(blocks.map(block=>block.text).join('\n\n'));
   let charCount=$derived(totalText.length);
   let canUndoAI=$derived(aiResultMarker!=='' && aiResultMarker===`${projectId}:${JSON.stringify(blocks)}`);
@@ -252,9 +253,9 @@
         outputs.push(result.blob);duration+=result.duration||0;
       }
       generationStage='Łączenie nagrań…';
-      const blob=await joinSpeech(outputs,effectiveSpeech.wav_bits);
+      const joined=await joinSpeechWave(outputs,effectiveSpeech.wav_bits);const blob=joined.blob;
       controller.signal.throwIfAborted();
-      const wave=decodeWave(await blob.arrayBuffer());duration=wave.frames/wave.sampleRate;
+      duration=joined.duration;
       generationStage='Analiza audio…';const peaks=await audioPeaks(blob);
       controller.signal.throwIfAborted();
       const row:Render={id:crypto.randomUUID(),title,projectId:renderProjectId,text:snapshot.map(block=>block.text).join('\n\n'),voice:!usesSavedVoice?`${generationModelName} · ${effectiveSpeech.preset_voice||'głos silnika'}`:snapshot.length>1?`${snapshot.length} mówców`:voices.find(voice=>voice.id===snapshot[0].voiceId)!.name,created:new Date().toISOString(),kind:'audio',source:'generation',modelId:generationSettings.engine,modelName:generationModelName,voiceId:usesSavedVoice&&snapshot.length===1?snapshot[0].voiceId:undefined,blob,url:URL.createObjectURL(blob),filename:`${title.replace(/[^\p{L}\p{N} _-]/gu,'').slice(0,70)||'narracja'}.wav`,duration:duration||undefined,peaks,blocks:snapshot,speechSettings:effectiveSpeech,wavBits:effectiveSpeech.wav_bits,presetVoice:effectiveSpeech.preset_voice,designRecipe:effectiveSpeech.design_recipe};
@@ -360,7 +361,7 @@
   }
   async function showModels(){openSettings('models');if(runtime.state==='ready')try{engineDetails=await api.modelStatus();}catch{}}
   function restore(row:Render){if(row.blocks)changeBlocks(row.blocks.map(block=>({...block})));else if(row.text)changeBlocks([{id:crypto.randomUUID(),voiceId:primaryVoice.id,text:row.text}]);speechSettings=readStoredSpeechSettings(row.speechSettings||{...defaultSpeechSettings(),wav_bits:row.wavBits||'16',preset_voice:row.presetVoice,design_recipe:row.designRecipe});scheduleProjectSave();goToPage('studio');if(row.modelId&&generationEngine&&row.modelId!==generationEngine)notify(`Nagranie używało silnika ${row.modelId}. Wybierz go przed ponownym renderem, aby zachować jego brzmienie.`);}
-  function keys(event:KeyboardEvent){if(event.defaultPrevented)return;if(event.key==='Escape'&&modal){event.preventDefault();modal=null;return;}if(settingsOpen){if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();openSearch();}return;}if(event.key==='Escape'){modal=null;inspector=false;}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();modal=modal==='search'?null:'search';query='';}if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!modal&&page==='studio'){event.preventDefault();void generate();}}
+  function keys(event:KeyboardEvent){if(event.defaultPrevented)return;if(event.key==='Escape'&&modal){event.preventDefault();modal=null;return;}if(event.key==='Escape'&&inspector){event.preventDefault();inspector=false;return;}if(settingsOpen){if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();openSearch();}return;}if(event.key==='Escape'){modal=null;inspector=false;}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();modal=modal==='search'?null:'search';query='';}if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!modal&&page==='studio'){event.preventDefault();void generate();}}
   function mountAppModal(node: HTMLDialogElement) {
     return mountModal(node, { initialFocus: 'input:not([type=file]),textarea', returnFocus: '.settings-shell .sidebar-search,.app-shell .sidebar-search,.mobile-inspector' })
   }
@@ -384,7 +385,7 @@
     if(demoMode){
       let disposed=false;
       runtime={state:'stopped',message:'Dane przykładowe · bez silnika',port:4312,managed:false};page='studio';
-      void import('./lib/tts-demo').then(async fixture=>{
+      void import('./lib/gallery/tts-demo').then(async fixture=>{
         if(disposed)return;
         voices=fixture.demoVoices.map(voice=>({...voice}));openLinkedVoice();ttsFamily=fixture.demoFamily();projects=fixture.demoProjects();
         projectId=projects[0].id;projectName=projects[0].name;blocks=projects[0].blocks.map(block=>({...block}));loaded=true;
@@ -394,7 +395,9 @@
       }).catch(error=>{if(!disposed)notify('Nie można przygotować danych demonstracyjnych: '+(error as Error).message);});
       return()=>{disposed=true;disposeModelRequests();clearTimeout(projectSaveTimer);clearTimeout(projectSaveDeadline);clearTimeout(noticeTimer);history.forEach(row=>row.url&&URL.revokeObjectURL(row.url));};
     }
-    try{const stored=JSON.parse(localStorage.getItem('voicestudio.projects.v2')||'[]');if(Array.isArray(stored))projects=stored.filter(item=>typeof item.id==='string'&&typeof item.name==='string'&&Array.isArray(item.blocks)&&item.blocks.length&&item.blocks.every((block:SpeechBlock)=>typeof block.text==='string'&&typeof block.voiceId==='string'&&typeof block.id==='string'));const current=projects.find(item=>item.id===localStorage.getItem('voicestudio.activeProject.v2'))||projects[0];if(current){projectId=current.id;projectName=current.name;blocks=current.blocks;speechSettings=readStoredSpeechSettings(current.speechSettings);}}catch{/* Retain an empty project. */}
+    const raw=localStorage.getItem('voicestudio.projects.v2')||'';let lost=false;
+    try{const stored=JSON.parse(raw||'[]');if(Array.isArray(stored)){projects=stored.filter(item=>typeof item.id==='string'&&typeof item.name==='string'&&Array.isArray(item.blocks)&&item.blocks.length&&item.blocks.every((block:SpeechBlock)=>typeof block.text==='string'&&typeof block.voiceId==='string'&&typeof block.id==='string'));lost=projects.length!==stored.length;}else lost=true;const current=projects.find(item=>item.id===localStorage.getItem('voicestudio.activeProject.v2'))||projects[0];if(current){projectId=current.id;projectName=current.name;blocks=current.blocks;speechSettings=readStoredSpeechSettings(current.speechSettings);}}catch{lost=true;/* Retain an empty project. */}
+    if(lost&&raw){let kept=false;try{localStorage.setItem('voicestudio.projects.v2.backup',raw);kept=true;}catch{}notify(kept?'Część zapisanych projektów była uszkodzona i została pominięta. Kopię surowych danych zachowano w pamięci przeglądarki.':'Część zapisanych projektów była uszkodzona i została pominięta. Nie udało się zachować ich kopii.');}
     loaded=true;persistProject();
     const flushHidden=()=>{if(document.hidden)flushProjectSave();};
     window.addEventListener('pagehide',flushProjectSave);
@@ -416,13 +419,13 @@
 
 <div class="app-shell" class:sidebar-hidden={!sidebar} class:settings-underlay={settingsOpen} inert={settingsOpen}>
   <NavigationSidebar items={[...mainNav,...toolNav]} active={page} {projects} {projectId} runtimeState={runtime.state} onnavigate={navigate} onnew={newProject} onproject={openProject} onsettings={section=>section==='models'?void showModels():openSettings()} onnotify={notify} onaddvoice={openVoiceCreate} onsearch={openSearch} onback={backPage} backLabel={pageNames[navigationTrail.at(-1)||'dashboard']} backDisabled={!navigationTrail.length&&page==='dashboard'} onrefresh={refreshStudio} {refreshing}/>
-  <main class="main"><ShellTopbar title={pageNames[page]} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>{#snippet children()}{#if page==='studio'}<span class="breadcrumb-divider">/</span><button class="project-name" onclick={()=>{projectDraftName=projectName;modal='project';}}>{projectName}<ChevronDown size={12}/></button>{/if}{/snippet}{#snippet actions()}{#if $remoteBackendState.active}<button class="remote-mode-status" title={$remoteBackendState.url} onclick={()=>openSettings('remote-workers')}>{$remoteBackendState.error?'Zdalny silnik wymaga uwagi':'Zdalny silnik'}</button>{/if}{#if page==='studio'}<Button variant="ghost" size="icon" class=" mobile-inspector" data-model-dialog-return aria-label="Ustawienia głosu" onclick={()=>inspector=!inspector}><SlidersHorizontal size={18}/></Button>{/if}{/snippet}</ShellTopbar>
+  <main class="main"><ShellTopbar title={pageNames[page]} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>{#snippet children()}{#if page==='studio'}<span class="breadcrumb-divider">/</span><button class="project-name" onclick={()=>{projectDraftName=projectName;modal='project';}}>{projectName}<ChevronDown size={12}/></button>{/if}{/snippet}{#snippet actions()}{#if $remoteBackendState.active}<button class="remote-mode-status" title={$remoteBackendState.url} onclick={()=>openSettings('remote-workers')}>{$remoteBackendState.error?'Zdalny silnik wymaga uwagi':'Zdalny silnik'}</button>{/if}{#if page==='studio'}{/if}{/snippet}</ShellTopbar>
     <div class="workspace" class:full-width={page!=='studio'}>
       <section class="content" class:tts-demo-content={demoMode&&page==='studio'} aria-label={pageNames[page]}>
         {#if demoMode}<div class="tts-demo-notice" role="note"><strong>Dane przykładowe</strong><span>Fikcyjne głosy i projekty. Audio to syntetyczny ton bez mowy.</span><a href="/">Wyjdź z podglądu</a></div>{/if}
         {#if page==='dashboard'}<Dashboard voiceId={activeOrbVoiceId} orbVariant={appearance.orbVariant} orbSyncGroup="global-playback" orbSuspended={settingsOpen} level={playbackActivity.level} bands={playbackActivity.bands} orbAudio={playbackActivity.orbAudio} features={playbackActivity.features} playing={playbackActivity.playing} {voices} {projects} recordings={history} ready={isDesktop||runtime.state==='ready'} onnavigate={navigate} onnew={newProject} onproject={openProject} onvoice={voice=>{voiceBlockId=blocks[0].id;chooseVoice(voice);goToPage('studio');}} onplay={play}/>
         {:else if page==='studio'}
-          <div class="speech-workspace"><div class="speech-scroll"><div class="speech-column"><SpeechEditor bind:this={speechEditor} {blocks} {voices} onblockschange={changeBlocks} onchoosevoice={(id)=>{voiceBlockId=id;query='';voiceFilter='all';modal='voices';}} disabled={running||tagging} hideToolbar={true}/></div></div><div class="studio-bottom"><div class="generation-grid">{#if generatingPreview}<GenerationCard recording={generatingPreview} index={history.length+1} generating generationLabel={generationStage} onplay={()=>{}}/>{/if}{#each currentRecordings as row,index}<GenerationCard recording={row} index={history.length-index} state={recording?.id===row.id?playbackState:undefined} onseek={recording?.id===row.id?seconds=>player?.seek(seconds):undefined} onplay={()=>play(row)} onrestore={()=>restore(row)} onstar={()=>toggleRecordingStar(row)}/>{/each}</div><div class="composer-actions"><div class="composer-tools"><Button variant="ghost" size="icon" aria-label="Wczytaj tekst" onclick={()=>textInput.click()}><Upload size={16}/></Button><Button variant="ghost" size="icon" aria-label="Pobierz tekst" disabled={!totalText.trim()} onclick={downloadText}><Download size={16}/></Button><span class="character-count" class:over-limit={charCount>10000}>{charCount.toLocaleString('pl-PL')} <span>/ 10 000</span></span></div><div class="composer-submit">{#if canUndoAI}<div class="ai-result-actions" aria-label="Wynik tagowania AI"><Button variant="ghost" onclick={undoAITags}>Cofnij</Button><Button variant="ghost" onclick={keepAITags}>Zachowaj</Button></div>{/if}<ActionBar generateLabel={demoMode?'Dodaj przykład':'Wygeneruj mowę'} tagLabel={demoMode?'Dodaj pauzy':'Automatyczne tagowanie'} {tagging} {running} tagDisabled={!totalText.trim()||charCount>10000} generateDisabled={!canGenerate} progressLabel={generationStage} ontag={tagWithAI} ontags={()=>speechEditor?.toggleTags()} ongenerate={generate} oncancel={cancel}/></div></div></div></div>
+          <div class="speech-workspace"><div class="speech-scroll"><div class="speech-column"><SpeechEditor bind:this={speechEditor} {blocks} {voices} onblockschange={changeBlocks} onchoosevoice={(id)=>{voiceBlockId=id;query='';voiceFilter='all';modal='voices';}} disabled={running||tagging} hideToolbar={true}/></div></div><div class="studio-bottom"><div class="generation-grid">{#if generatingPreview}<GenerationCard recording={generatingPreview} index={history.length+1} generating generationLabel={generationStage} onplay={()=>{}}/>{/if}{#each currentRecordings as row,index}<GenerationCard recording={row} index={history.length-index} state={recording?.id===row.id?playbackState:undefined} onseek={recording?.id===row.id?seconds=>player?.seek(seconds):undefined} onplay={()=>play(row)} onrestore={()=>restore(row)} onstar={()=>toggleRecordingStar(row)}/>{/each}</div><div class="composer-actions"><div class="composer-tools"><Button variant="ghost" size="icon" aria-label="Wczytaj tekst" onclick={()=>textInput.click()}><Upload size={16}/></Button><Button variant="ghost" size="icon" aria-label="Pobierz tekst" disabled={!totalText.trim()} onclick={downloadText}><Download size={16}/></Button><span class="character-count" class:over-limit={charCount>10000}>{charCount.toLocaleString('pl-PL')} <span>/ 10 000</span></span></div><div class="composer-submit">{#if canUndoAI}<div class="ai-result-actions" aria-label="Wynik tagowania AI"><Button variant="ghost" onclick={undoAITags}>Cofnij</Button><Button variant="ghost" onclick={keepAITags}>Zachowaj</Button></div>{/if}<ActionBar generateLabel={demoMode?'Dodaj przykład':'Wygeneruj mowę'} tagLabel={demoMode?'Dodaj pauzy':'Automatyczne tagowanie'} {tagging} {running} tagDisabled={!totalText.trim()||charCount>10000} generateDisabled={!canGenerate} progressLabel={generationStage} ontag={tagWithAI} ontags={()=>speechEditor?.toggleTags()} ongenerate={generate} oncancel={cancel} onsettings={()=>{panelTab='settings';inspector=true;}} onhistory={()=>{panelTab='history';inspector=true;}}/></div></div></div></div>
         {:else if page==='dubbing'||page==='audiobooks'}{#key page}<ProductionWorkspace kind={page} ready={isDesktop||runtime.state==='ready'} onnotify={notify}/>{/key}
         {:else if page==='stories'}<StoriesWorkspace ready={isDesktop||runtime.state==='ready'} onnotify={notify}/>
         {:else if page==='audio-lab'}<div class="page-body"><AudioLab ready={runtime.state==='ready'} onresult={async result=>{const peaks=await audioPeaks(result.blob);await storeAudio({id:crypto.randomUUID(),title:result.title,text:'',voice:'Obróbka audio',created:new Date().toISOString(),kind:'audio',source:'import',blob:result.blob,url:URL.createObjectURL(result.blob),filename:result.filename,duration:result.duration,peaks});}}/></div>
@@ -437,7 +440,7 @@
 
         {:else}<div class="page-body"><h1>{pageNames[page]}</h1></div>{/if}
       </section>
-      {#if page==='studio'}<aside class="inspector tts-inspector" class:mobile-open={inspector} aria-label="Ustawienia generowania">
+      {#if page==='studio'}{#if inspector}<div class="sheet-backdrop" aria-hidden="true" onclick={()=>inspector=false}></div>{/if}<aside class="inspector tts-inspector" class:mobile-open={inspector} data-sheet aria-label="Ustawienia generowania"><div class="sheet-handle" aria-hidden="true" use:sheetDrag={()=>inspector=false}></div>
 {#if choosingModel}<ModelPicker models={ttsModelItems} selectedId={generationEngine} loading={modelLoading} error={modelError} onrefresh={loadPickerModels} onselect={chooseInstalledModel} onclose={closeModelPicker}/>{:else}
 <div class="panel-tabs" role="tablist" tabindex="-1" aria-label="Panel generowania" onkeydown={panelKeys}>
   <button id="generation-settings-tab" role="tab" aria-selected={panelTab==='settings'} tabindex={panelTab==='settings'?0:-1} aria-controls="generation-settings-panel" class:chosen={panelTab==='settings'} onclick={()=>panelTab='settings'}>Ustawienia</button>

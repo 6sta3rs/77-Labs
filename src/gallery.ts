@@ -1,11 +1,11 @@
 import { mount } from 'svelte';
-import ControlGallery from './lib/ControlGallery.svelte';
+import ControlGallery from './lib/gallery/ControlGallery.svelte';
 import './styles.css';
-import './lib/ui.css';
+import './lib/styles/ui.css';
 import './lib/ui/product-controls.css';
 import './lib/ui/overlays.css';
 import './lib/ui/focus-intent.css';
-import { installFocusIntent } from './lib/focus-intent';
+import { installFocusIntent } from './lib/styles/focus-intent';
 const disposeFocusIntent = installFocusIntent(document);
 import.meta.hot?.dispose(disposeFocusIntent);
 document.documentElement.dataset.page = 'controls';

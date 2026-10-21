@@ -1,0 +1,94 @@
+// Run only against tests/acceptance/feature-smoke.py --hold (disposable data).
+const checks = [];
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const wait = async predicate => { for (let i = 0; i < 400; i++) { if (predicate()) return; await delay(25); } throw new Error('UI check timeout'); };
+const check = (name, passed) => { checks.push({ name, passed: Boolean(passed) }); if (!passed) throw new Error(name); };
+const button = text => [...document.querySelectorAll('button')].find(node => node.textContent.trim() === text);
+const fill = (selector, value) => { const node = document.querySelector(selector); if (!node) throw new Error(selector); node.value = value; node.dispatchEvent(new Event('input', { bubbles: true })); };
+const navigate = async name => {
+  if (document.querySelector('.settings-shell .settings-back')) { document.querySelector('.settings-shell .settings-back').click(); await delay(40); }
+  if (name === 'Modele i silnik') { document.querySelector('.settings-trigger').click(); await delay(40); }
+  if (!button(name)) { document.querySelector('.more-tools').click(); await delay(40); }
+  await wait(() => Boolean(button(name))); button(name).click(); await delay(100);
+};
+try {
+  const health = await fetch('/backend/health');
+  check('Disposable backend marker', health.headers.get('x-voicestudio-next') === 'next-feature-smoke');
+  await navigate('Słownik wymowy');
+  check('Dictionary uses Polish title', document.querySelector('h1').textContent === 'Słownik wymowy');
+  check('Empty dictionary form cannot submit', button('Zapisz wpis').disabled);
+  const term = `UI${Date.now()}`;
+  fill('[aria-label="Słowo lub skrót"]', term); fill('[aria-label="Jak przeczytać"]', 'czytelna wymowa');
+  await delay(30); button('Zapisz wpis').click();
+  await wait(() => document.querySelector('.tool-list').innerText.includes(term) && !document.querySelector('.tool-progress'));
+  check('UI saves real dictionary entry', document.querySelector('.tool-list').innerText.includes('czytelna wymowa'));
+  fill('textarea', `Sprawdź ${term}.`); await delay(30); button('Sprawdź podstawienia').click();
+  await wait(() => document.querySelector('.tool-output')?.innerText.includes('czytelna wymowa'));
+  check('UI previews actual pronunciation', document.querySelector('.tool-output').innerText.includes('czytelna wymowa'));
+  const row = [...document.querySelectorAll('.tool-list article')].find(node => node.innerText.includes(term));
+  row.querySelector('.button-quiet').click(); await delay(30);
+  check('Edit restores saved term', document.querySelector('[aria-label="Słowo lub skrót"]').value === term);
+  fill('[aria-label="Jak przeczytać"]', 'poprawiona wymowa'); await delay(30); button('Zapisz wpis').click();
+  await wait(() => row.innerText.includes('poprawiona wymowa') && !document.querySelector('.tool-progress'));
+  check('UI edits real dictionary entry', row.innerText.includes('poprawiona wymowa'));
+  row.querySelector('[aria-label^="Usuń"]').click(); await delay(20); button('Zachowaj').click(); await delay(20);
+  check('Cancel deletion preserves entry', document.querySelector('.tool-list').innerText.includes(term));
+  row.querySelector('[aria-label^="Usuń"]').click(); await delay(20); button('Usuń wpis').click();
+  await wait(() => !document.querySelector('.tool-list').innerText.includes(term));
+  check('Confirmed deletion removes only test entry', !document.querySelector('.tool-list').innerText.includes(term));
+  await navigate('Kolejka dubbingu');
+  check('Batch requires source file', button('Dodaj do kolejki').disabled);
+  check('Batch exposes target languages', [...document.querySelectorAll('fieldset input')].length === 6);
+  await navigate('Konwersja głosu');
+  check('Conversion cannot run without a source', button('Wygeneruj nowym głosem').disabled);
+  check('Conversion exposes duration matching', Boolean(document.querySelector('[aria-label="Dopasuj długość nagrania"]')));
+  await navigate('Historia silnika');
+  check('History exposes search and favorites', Boolean(document.querySelector('[aria-label="Szukaj nagrania silnika"]')) && document.querySelector('.tool-checkbox').innerText.includes('Tylko ulubione'));
+  await navigate('Narzędzia audio');
+  check('Empty direction is blocked', button('Przygotuj').disabled);
+  fill('textarea', 'urgent'); await delay(30); button('Przygotuj').click();
+  await wait(() => Boolean(document.querySelector('.tool-output')));
+  check('Direction shows real result', Boolean(document.querySelector('.tool-output').innerText.trim()));
+  await navigate('Modele i silnik');
+  await wait(() => Boolean(document.querySelector('[aria-label="Katalog silników i modeli"] .tool-list article')));
+  check('Catalog reads real engine families', Boolean(button('Synteza mowy')) && Boolean(button('Rozpoznawanie mowy')) && Boolean(button('Modele językowe')));
+  check('Sidebar keeps overflow tools in More without scrolling', getComputedStyle(document.querySelector('.sidebar')).overflowY === 'hidden');
+  check('Page has no horizontal overflow', document.documentElement.scrollWidth === innerWidth);
+  await navigate('Głosy');
+  check('Voice design exposes six trait categories', document.querySelectorAll('[aria-label="Projektowanie i zarządzanie głosami"] .tool-columns button[aria-haspopup="listbox"]').length === 6);
+  const manager = document.querySelector('[aria-label="Projektowanie i zarządzanie głosami"]');
+  const description = [...manager.querySelectorAll('textarea')][0]; description.value = 'female elderly low pitch'; description.dispatchEvent(new Event('input', { bubbles: true }));
+  await delay(30); button('Dobierz cechy z opisu').click();
+  await wait(() => manager.innerText.includes('Żeńska') && manager.innerText.includes('Starszy'));
+  check('Description maps actual engine traits', manager.innerText.includes('Niska'));
+  const fixture = await (await fetch('/demo/interface-tone.wav')).blob();
+  const form = new FormData(); form.append('name', 'QA profil testowy'); form.append('kind', 'clone'); form.append('language', 'Polish'); form.append('ref_audio', new File([fixture], 'test.wav', { type: 'audio/wav' })); form.append('ref_text', 'Cześć. To jest test nowego studia głosu.');
+  const created = await fetch('/backend/profiles', { method: 'POST', body: form }); const profile = await created.json();
+  check('Real clone fixture can be saved without inference', created.ok && Boolean(profile.id));
+  [...manager.querySelectorAll('button')].find(b => b.textContent.trim() === 'Odśwież').click(); await delay(200);
+  manager.querySelector('[aria-label="Profil do edycji"]').click(); await delay(30);
+  await wait(() => [...document.querySelectorAll('[role="option"]')].some(option => option.textContent.includes('QA profil testowy')));
+  [...document.querySelectorAll('[role="option"]')].find(option => option.textContent.includes('QA profil testowy')).click(); await delay(30);
+  check('Voice editor restores real profile', manager.querySelector('[aria-label="Nazwa projektowanego głosu"]').value === 'QA profil testowy');
+  fill('[aria-label="Nazwa projektowanego głosu"]', 'QA profil po edycji'); await delay(30); button('Zapisz zmiany głosu').click();
+  await wait(() => manager.innerText.includes('Zapisano profil głosu.'));
+  const updated = await (await fetch(`/backend/profiles/${profile.id}`)).json();
+  check('Voice edit is persisted by backend', updated.name === 'QA profil po edycji');
+  button('Wczytaj próbkę głosu').click();
+  await wait(() => manager.querySelector('audio')?.duration > 0);
+  check('Voice preview returns playable real audio', manager.querySelector('audio').duration > 0);
+  button('Wczytaj ujęcia')?.click();
+  await wait(() => manager.innerText.includes('Brak nagrań w historii silnika.'));
+  check('Take locking does not invent missing history', !button('Utrwal wybrane ujęcie'));
+  button('Usuń profil głosu').click(); await delay(30); button('Zachowaj profil').click(); await delay(30);
+  check('Voice delete requires confirmation', Boolean(button('Usuń profil głosu')) && !button('Potwierdź usunięcie profilu'));
+  button('Usuń profil głosu').click(); await delay(30); button('Potwierdź usunięcie profilu').click();
+  await wait(() => manager.innerText.includes('Usunięto profil.'));
+  check('Confirmed profile removal is persisted', (await fetch(`/backend/profiles/${profile.id}`)).status === 404);
+  window.__featureChecks = checks;
+  console.log('FEATURE_UI_CHECKS_PASS', JSON.stringify(checks));
+} catch (cause) {
+  window.__featureChecks = checks;
+  console.error('FEATURE_UI_CHECKS_FAIL', cause);
+  throw cause;
+}

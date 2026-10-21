@@ -2,7 +2,7 @@
   import { tick, untrack } from 'svelte'
   import { fade } from 'svelte/transition'
   import { ChevronRight } from '@lucide/svelte'
-  import '../ui.css'
+  import '../styles/ui.css'
   let { value, min = 0, max = 100, step = 1, onchange, label, valueLabel, startLabel, endLabel,
     disabled = false, collapsible = false, defaultOpen = true, size = 'default', valueDisplay = 'both' }: {
     value: number; min?: number; max?: number; step?: number; onchange: (value: number) => void

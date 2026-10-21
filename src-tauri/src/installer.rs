@@ -11,10 +11,10 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-const ENGINE: &[u8] = include_bytes!("../../scripts/runtime/engine.zip");
-const BOOTSTRAP: &str = include_str!("../../scripts/runtime/bootstrap.py");
-const WINDOWS_RUNTIME_PATHS: &str = include_str!("../../scripts/runtime/windows_runtime_paths.py");
-const PROVENANCE: &str = include_str!("../../scripts/runtime/bootstrap-provenance.json");
+const ENGINE: &[u8] = include_bytes!("../../scripts/runtime/vendor/engine.zip");
+const BOOTSTRAP: &str = include_str!("../../scripts/runtime/install/bootstrap.py");
+const WINDOWS_RUNTIME_PATHS: &str = include_str!("../../scripts/runtime/install/windows_runtime_paths.py");
+const PROVENANCE: &str = include_str!("../../scripts/runtime/vendor/bootstrap-provenance.json");
 const OWNER: &str = "Seventy Seven Labs runtime installer v1";
 
 #[derive(Clone, Serialize, Deserialize)]

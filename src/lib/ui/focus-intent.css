@@ -6,3 +6,5 @@
 /* A compound search has one outer border, including its automatic-focus state. */
 :root[data-focus-policy] .search-field :is(.vs-input,.text-input)[data-focus-passive]{border-color:transparent;box-shadow:none;outline:none}
 :root[data-focus-policy] .tools-search:has(input[data-focus-passive]){outline:none}
+/* File inputs wrapped in a Button: a click must not paint the button ring. */
+:root[data-focus-policy] .vs-button:has(input[data-focus-passive]){outline:none}

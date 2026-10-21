@@ -17,7 +17,7 @@ Development version **0.2.0**, with a **Polish-language application interface** 
 - Workflows for dubbing, audiobooks, and automation recipes.
 - CPU/CUDA environment setup, model weights and terms, and appearance settings.
 
-Synthesis and recognition require a configured engine and the appropriate weights. Full dubbing, long audiobooks, every model combination, and installation on a clean Windows machine still need further acceptance testing. The [PRD](docs/PRD.md) defines scope and criteria; the [verification record](docs/weryfikacja.md) documents checks performed on the public release.
+Synthesis and recognition require a configured engine and the appropriate weights. Full dubbing, long audiobooks, every model combination, and installation on a clean Windows machine still need further acceptance testing. The [PRD](docs/PRD.md) defines scope and criteria; the [verification record](docs/verification/weryfikacja.md) documents checks performed on the public release.
 
 ## Preview without models
 
@@ -30,7 +30,7 @@ npm run dev
 
 Open **http://127.0.0.1:4310/?demo=tts**. This preview uses fictional voices, dialogues, and history. Every audio example plays the same procedural tone without human speech. It demonstrates the interface, not the output of the listed models. Demo data stays in memory.
 
-Component gallery: **http://127.0.0.1:4310/inputy.html**. [Demo details](docs/tts-demo.md).
+Component gallery: **http://127.0.0.1:4310/inputy.html**. [Demo details](docs/features/tts-demo.md).
 
 ![Library of fictional voices](docs/screenshots/voices.png)
 
@@ -45,7 +45,7 @@ npm run desktop:build
 
 The build produces an EXE without an installer: `src-tauri/target/release/seventy-seven-labs.exe`.
 
-The window opens without loading models. Under **Ustawienia → Modele i silnik** (Settings → Models and engine), set up a CPU or NVIDIA CUDA environment and download a model separately. Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/instalacja-runtime.md) and [engine operation](docs/runtime.md).
+The window opens without loading models. Under **Ustawienia → Modele i silnik** (Settings → Models and engine), set up a CPU or NVIDIA CUDA environment and download a model separately. Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/features/instalacja-runtime.md) and [engine operation](docs/architecture/runtime.md). The engine starts on demand and stops after the inactivity time set in **Ustawienia → Ogólne** (Settings → General; 5–60 minutes, default 15).
 
 The browser displays the UI but does not start the Tauri supervisor. Synthesis in web development mode requires a separately running backend at `127.0.0.1:4312`.
 
@@ -65,31 +65,31 @@ Network integrations are optional. Downloading models and using a selected langu
 npm run check
 npm run build
 npm run test:ui
-python scripts/publication_check.py
+python scripts/dev/publication_check.py --deny-file <private-list-outside-repo>.json
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 
 The publication check examines files, the nested engine archive, approved audio, and all Git objects, including unreachable objects. Local QA reports go into the ignored `.tmp/qa` directory. Speech tests require your own explicitly selected reference; the demo tone is for player and UI testing.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/kontekst-projektu.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/architecture/kontekst-projektu.md) and the [project structure](docs/architecture/struktura-projektu.md).
 
 ### Where do I change something?
 
 | Area | File |
 | --- | --- |
 | Navigation and application composition | `src/App.svelte` |
-| Editor and tags | `src/lib/SpeechEditor.svelte`, `src/lib/tags.ts` |
-| Voice/model selection | `src/lib/VoicePicker.svelte`, `src/lib/ModelPicker.svelte` |
-| Persistent recordings | `src/lib/library.ts` |
-| Player and visualization | `src/lib/Player.svelte`, `src/lib/VoiceOrb.svelte` |
-| Controls and themes | `src/lib/ui/`, `src/lib/appearance.ts`, `src/styles.css` |
-| Demo data | `src/lib/tts-demo.ts`, `public/demo/` |
-| API and supervision | `src/lib/api.ts`, `src-tauri/src/runtime.rs` |
-| Python startup and installation | `scripts/runtime/launcher.py`, `scripts/runtime/bootstrap.py` |
+| Editor and tags | `src/lib/tts/SpeechEditor.svelte`, `src/lib/tts/tags.ts` |
+| Voice/model selection | `src/lib/voices/VoicePicker.svelte`, `src/lib/models/ModelPicker.svelte` |
+| Persistent recordings | `src/lib/projects/library.ts` |
+| Player and visualization | `src/lib/playback/Player.svelte`, `src/lib/playback/VoiceOrb.svelte` |
+| Controls and themes | `src/lib/ui/`, `src/lib/settings/appearance.ts`, `src/styles.css` |
+| Demo data | `src/lib/gallery/tts-demo.ts`, `public/demo/` |
+| API and supervision | `src/lib/platform/api.ts`, `src-tauri/src/runtime.rs` |
+| Python startup and installation | `scripts/runtime/app/launcher.py`, `scripts/runtime/install/bootstrap.py` |
 | Product requirements | `docs/PRD.md` |
 
 ## License and provenance
 
 Seventy Seven Labs code is licensed under **AGPL-3.0-only** — see [LICENSE](LICENSE). Imported engine code, palettes, control styles, and language flags retain their applicable licenses and attribution. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) records their origins, authors, versions, and license boundaries.
 
-Model weights have separate terms; the application license does not grant rights to every model. Backend source and SHA-256 information are in `scripts/runtime/engine-provenance.json`.
+Model weights have separate terms; the application license does not grant rights to every model. Backend source and SHA-256 information are in `scripts/runtime/vendor/engine-provenance.json`.

@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { Tags, ChevronDown, LoaderCircle, Square } from '@lucide/svelte'
+  import { Tags, ChevronDown, LoaderCircle, Square, Settings2, History } from '@lucide/svelte'
   import Button from './Button.svelte'
   let { tagging = false, running = false, tagDisabled = false, generateDisabled = false,
     tagLabel = 'Automatyczne tagowanie', generateLabel = 'Wygeneruj mowę', progressLabel = 'Przerwij generowanie',
-    ontag, ontags, ongenerate, oncancel }: {
+    ontag, ontags, ongenerate, oncancel, onsettings, onhistory }: {
     tagging?: boolean; running?: boolean; tagDisabled?: boolean; generateDisabled?: boolean
     tagLabel?: string; generateLabel?: string; progressLabel?: string
     ontag: () => void | Promise<void>; ontags: () => void; ongenerate: () => void | Promise<void>; oncancel?: () => void
+    /** Narrow windows only: open the side panel as a bottom sheet. */
+    onsettings?: () => void; onhistory?: () => void
   } = $props()
 </script>
 <div class="studio-actions" aria-label="Akcje narracji">
@@ -16,6 +18,7 @@
     </Button>
     <Button variant="ghost" class="studio-action-menu" aria-label="Wybierz tag audio" data-speech-tag-trigger disabled={running || tagging} onclick={ontags}><ChevronDown/></Button>
   </div>
+  {#if onsettings || onhistory}<div class="studio-panel-buttons">{#if onsettings}<Button variant="outline" size="icon" aria-label="Ustawienia generowania" onclick={onsettings}><Settings2/></Button>{/if}{#if onhistory}<Button variant="outline" size="icon" aria-label="Historia generowania" onclick={onhistory}><History/></Button>{/if}</div>{/if}
   <Button class="studio-action-generate" disabled={!running && (generateDisabled || tagging)} onclick={()=>running ? oncancel?.() : void ongenerate()}>
     {#if running}<Square size={12} fill="currentColor"/>{/if}{running ? progressLabel : generateLabel}
   </Button>
@@ -29,5 +32,7 @@
   .studio-actions :global(.studio-action-generate){min-width:126px;padding-inline:14px}
   .studio-actions :global(.vs-button::after){display:none}
   .studio-action-split:has(:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+.studio-panel-buttons{display:none;gap:8px;margin-left:auto}.studio-panel-buttons :global(.vs-button){width:36px;padding:0}
+  @media(max-width:980px){.studio-panel-buttons{display:flex}.studio-actions :global(.studio-action-generate){flex:1 0 100%}}
   @media(max-width:520px){.studio-actions{gap:8px}.studio-action-split :global(.studio-action-tag){padding-inline:8px}.studio-actions :global(.studio-action-generate){min-width:115px;padding-inline:10px}}
 </style>

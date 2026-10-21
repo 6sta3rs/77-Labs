@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Globe2 } from '@lucide/svelte'
-  import { voiceLanguageCode } from '../voice-picker'
+  import { voiceLanguageCode } from '../voices/voice-picker'
 
   let { language }: { language: string } = $props()
   // Build-time local assets only. A flag identifies the language visually; it

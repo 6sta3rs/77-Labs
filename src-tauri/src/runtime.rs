@@ -12,37 +12,41 @@ use std::{
 };
 
 const PORT: u16 = 4312;
-const STARTUP_BUDGET: Duration = Duration::from_secs(180);
+const STARTUP_BUDGET: Duration = Duration::from_secs(300);
+// Graceful exit for a loaded engine (CUDA models need time); startup-only children hold nothing.
+const STOP_GRACE: Duration = Duration::from_secs(15);
+const STARTUP_STOP_GRACE: Duration = Duration::from_secs(3);
+const UNRESPONSIVE_STOP: Duration = Duration::from_secs(90);
 const BACKUP_LOG_BYTES_PER_POLL: u64 = 64 * 1024;
 const BACKUP_LOG_LINE_BYTES: usize = 8 * 1024;
 const BACKUP_EVENT: &str = "NEXT_BACKUP_EVENT ";
 const STORAGE_EVENT: &str = "NEXT_STORAGE_EVENT ";
 const MAX_SAFE_COUNTER: u64 = 9_007_199_254_740_991;
-const LAUNCHER: &str = include_str!("../../scripts/runtime/launcher.py");
-const AUDIOBOOK_STREAMING: &str = include_str!("../../scripts/runtime/audiobook_streaming.py");
-const AI_TAGGING: &str = include_str!("../../scripts/runtime/ai_tagging.py");
-const ACTIVITY: &str = include_str!("../../scripts/runtime/activity.py");
-const MODEL_MANAGEMENT: &str = include_str!("../../scripts/runtime/model_management.py");
-const INTEGRATION_SETTINGS: &str = include_str!("../../scripts/runtime/integration_settings.py");
-const STORAGE_SETTINGS: &str = include_str!("../../scripts/runtime/storage_settings.py");
-const SYSTEM_SETTINGS: &str = include_str!("../../scripts/runtime/system_settings.py");
-const GENERAL_SETTINGS: &str = include_str!("../../scripts/runtime/general_settings.py");
-const REMOTE_BACKEND: &str = include_str!("../../scripts/runtime/remote_backend.py");
-const PREVIEW_CACHE: &str = include_str!("../../scripts/runtime/preview_cache.py");
-const PRIVATE_ENVIRONMENT: &str = include_str!("../../scripts/runtime/private_environment.py");
-const ENGINE_INSTALLATION: &str = include_str!("../../scripts/runtime/engine_installation.py");
-const DISTRIBUTION_MANIFEST: &str = include_str!("../../scripts/runtime/bootstrap-provenance.json");
-const WINDOWS_RUNTIME_PATHS: &str = include_str!("../../scripts/runtime/windows_runtime_paths.py");
-const ENGINE_PROVENANCE: &str = include_str!("../../scripts/runtime/engine-provenance.json");
-const RUNTIME_BACKUP: &str = include_str!("../../scripts/runtime/runtime_backup.py");
-const ENGINE_CATALOGUE_METADATA: &str = include_str!("../../scripts/runtime/engine_catalogue_metadata.py");
+const LAUNCHER: &str = include_str!("../../scripts/runtime/app/launcher.py");
+const AUDIOBOOK_STREAMING: &str = include_str!("../../scripts/runtime/app/audiobook_streaming.py");
+const AI_TAGGING: &str = include_str!("../../scripts/runtime/app/ai_tagging.py");
+const ACTIVITY: &str = include_str!("../../scripts/runtime/app/activity.py");
+const MODEL_MANAGEMENT: &str = include_str!("../../scripts/runtime/app/model_management.py");
+const INTEGRATION_SETTINGS: &str = include_str!("../../scripts/runtime/app/integration_settings.py");
+const STORAGE_SETTINGS: &str = include_str!("../../scripts/runtime/app/storage_settings.py");
+const SYSTEM_SETTINGS: &str = include_str!("../../scripts/runtime/app/system_settings.py");
+const GENERAL_SETTINGS: &str = include_str!("../../scripts/runtime/app/general_settings.py");
+const REMOTE_BACKEND: &str = include_str!("../../scripts/runtime/app/remote_backend.py");
+const PREVIEW_CACHE: &str = include_str!("../../scripts/runtime/app/preview_cache.py");
+const PRIVATE_ENVIRONMENT: &str = include_str!("../../scripts/runtime/install/private_environment.py");
+const ENGINE_INSTALLATION: &str = include_str!("../../scripts/runtime/install/engine_installation.py");
+const DISTRIBUTION_MANIFEST: &str = include_str!("../../scripts/runtime/vendor/bootstrap-provenance.json");
+const WINDOWS_RUNTIME_PATHS: &str = include_str!("../../scripts/runtime/install/windows_runtime_paths.py");
+const ENGINE_PROVENANCE: &str = include_str!("../../scripts/runtime/vendor/engine-provenance.json");
+const RUNTIME_BACKUP: &str = include_str!("../../scripts/runtime/app/runtime_backup.py");
+const ENGINE_CATALOGUE_METADATA: &str = include_str!("../../scripts/runtime/app/engine_catalogue_metadata.py");
 const TTS_EXTENSIONS: &[(&str, &str)] = &[
-    ("tts_catalog.py", include_str!("../../scripts/runtime/tts_catalog.py")),
-    ("tts_extensions.py", include_str!("../../scripts/runtime/tts_extensions.py")),
-    ("tts_worker.py", include_str!("../../scripts/runtime/tts_worker.py")),
-    ("prepare_tts.py", include_str!("../../scripts/runtime/prepare_tts.py")),
+    ("tts_catalog.py", include_str!("../../scripts/runtime/app/tts_catalog.py")),
+    ("tts_extensions.py", include_str!("../../scripts/runtime/app/tts_extensions.py")),
+    ("tts_worker.py", include_str!("../../scripts/runtime/app/tts_worker.py")),
+    ("prepare_tts.py", include_str!("../../scripts/runtime/install/prepare_tts.py")),
 ];
-const ENGINE: &[u8] = include_bytes!("../../scripts/runtime/engine.zip");
+const ENGINE: &[u8] = include_bytes!("../../scripts/runtime/vendor/engine.zip");
 
 fn embedded_archive(root: &Path) -> Result<PathBuf, String> {
     // Keep the environment installer's original archive and evidence intact.
@@ -301,6 +305,7 @@ struct Process {
     child: Child,
     token: String,
     ready: bool,
+    unresponsive_since: Option<Instant>,
     startup: StartupClock,
     startup_log: StartupLog,
 }
@@ -319,7 +324,7 @@ impl Drop for Inner {
         if let Some(mut process) = self.process.take() {
             // Only this launcher's child handle is ever terminated. The
             // backend stdin watchdog also handles an unexpected shell exit.
-            stop_owned_child(&mut process);
+            stop_owned_child(&mut process, STOP_GRACE);
         }
     }
 }
@@ -335,7 +340,7 @@ impl Default for Runtime {
             leases: HashMap::new(),
             next_lease: 0,
             last_use: Instant::now(),
-            idle_timeout: Duration::from_secs(300),
+            idle_timeout: Duration::from_secs(900),
         })))
     }
 }
@@ -455,11 +460,20 @@ impl Runtime {
         if activity.busy || activity.keep_alive || activity.idle_seconds < inner.idle_timeout.as_secs_f64() {
             return false;
         }
-        stop_process(&mut inner);
+        let minutes = inner.idle_timeout.as_secs() / 60;
+        stop_process(&mut inner, STOP_GRACE);
         inner.status.message =
-            "Silnik uśpiony po 5 minutach bezczynności. Uruchomi się przy następnym zadaniu."
-                .into();
+            format!("Silnik uśpiony po {minutes} min bezczynności. Uruchomi się przy następnym zadaniu.");
         true
+    }
+
+    /// Only the fixed UI choices are accepted; the idle monitor reads the new budget on its next tick.
+    fn set_idle_minutes(&self, minutes: u64) -> Result<u64, String> {
+        if !matches!(minutes, 5 | 15 | 30 | 60) {
+            return Err("Nieobsługiwany czas bezczynności silnika. Wybierz 5, 15, 30 lub 60 minut.".into());
+        }
+        self.0.lock().unwrap_or_else(|e| e.into_inner()).idle_timeout = Duration::from_secs(minutes * 60);
+        Ok(minutes)
     }
 
     fn acquire(&self, keep_warm: bool) -> RuntimeLease {
@@ -494,7 +508,7 @@ impl Runtime {
         if cancel_startup && removed == Some(true)
             && !inner.leases.values().any(|keep_warm| *keep_warm)
             && inner.process.as_ref().is_some_and(|process| !process.ready) {
-            stop_process(&mut inner);
+            stop_process(&mut inner, STARTUP_STOP_GRACE);
             inner.status.message = "Zatrzymano uruchamianie prywatnego silnika. Niedokończona kopia pozostaje do sprawdzenia; dane źródłowe nie są usuwane.".into();
         }
     }
@@ -527,6 +541,7 @@ impl Runtime {
                     }
                     if owns_healthy_listener(&process.token) {
                         process.ready = true;
+                        process.unresponsive_since = None;
                         inner.status.state = "ready".into();
                         if let Ok(data) = active_data_dir() { inner.status.data_dir = Some(data.to_string_lossy().into()); }
                         inner.status.startup = None;
@@ -535,7 +550,7 @@ impl Runtime {
                         } else { "Silnik lokalny jest gotowy".into() };
                     } else if !process.ready && process.startup.expired(now) {
                         let (message, startup) = process.startup.failed(process.startup.timeout_message());
-                        stop_owned_child(process);
+                        stop_owned_child(process, STARTUP_STOP_GRACE);
                         inner.process = None;
                         inner.status.state = "error".into();
                         inner.status.managed = false;
@@ -543,7 +558,10 @@ impl Runtime {
                         inner.status.startup = Some(startup);
                     } else {
                         let message = if process.ready {
-                            "Silnik chwilowo nie odpowiada; sprawdzanie gotowości…".into()
+                            let secs = now.duration_since(*process.unresponsive_since.get_or_insert(now)).as_secs();
+                            if secs >= UNRESPONSIVE_STOP.as_secs() {
+                                format!("Silnik nie odpowiada od {secs} s. Możesz go zatrzymać i uruchomić ponownie.")
+                            } else { "Silnik chwilowo nie odpowiada; sprawdzanie gotowości…".into() }
                         } else { process.startup.message() };
                         inner.status.startup = if process.ready { None } else { Some(process.startup.progress.clone()) };
                         inner.status.state = "starting".into();
@@ -649,6 +667,7 @@ impl Runtime {
                     child,
                     token,
                     ready: false,
+                    unresponsive_since: None,
                     startup,
                     startup_log,
                 },
@@ -670,7 +689,7 @@ impl Runtime {
 
     pub fn stop(&self) -> RuntimeStatus {
         let mut inner = self.0.lock().unwrap_or_else(|error| error.into_inner());
-        stop_process(&mut inner);
+        stop_process(&mut inner, STOP_GRACE);
         inner.status.clone()
     }
 
@@ -682,18 +701,21 @@ impl Runtime {
             return Err("Poczekaj na zakończenie zadań silnika.".into());
         }
         if let Some(process) = inner.process.as_ref() {
-            if !process.ready || backend_activity(&process.token).is_none_or(|a| a.busy) {
+            // A ready engine that has not answered for UNRESPONSIVE_STOP may be stopped
+            // manually (never automatically). A busy answer always blocks.
+            let stale = process.unresponsive_since.is_some_and(|since| since.elapsed() >= UNRESPONSIVE_STOP);
+            if !process.ready || match backend_activity(&process.token) { Some(activity) => activity.busy, None => !stale } {
                 return Err("Silnik pracuje lub nie potwierdził bezczynności. Spróbuj po zakończeniu zadania.".into());
             }
         }
-        stop_process(&mut inner);
+        stop_process(&mut inner, STOP_GRACE);
         Ok(inner.status.clone())
     }
 }
 
-fn stop_process(inner: &mut Inner) {
+fn stop_process(inner: &mut Inner, grace: Duration) {
     if let Some(mut process) = inner.process.take() {
-        stop_owned_child(&mut process);
+        stop_owned_child(&mut process, grace);
     }
     inner.status.state = "stopped".into();
     inner.status.managed = false;
@@ -702,11 +724,11 @@ fn stop_process(inner: &mut Inner) {
         "Silnik lokalny jest zatrzymany. Uruchomi się przy następnym zadaniu.".into();
 }
 
-fn stop_owned_child(process: &mut Process) {
+fn stop_owned_child(process: &mut Process, grace: Duration) {
     // On Windows the venv executable can be a redirector supervising another
     // Python process. Let stdin EOF reach that process before killing its parent.
     drop(process.child.stdin.take());
-    let deadline = Instant::now() + Duration::from_secs(3);
+    let deadline = Instant::now() + grace;
     loop {
         match process.child.try_wait() {
             Ok(Some(_)) => return,
@@ -786,6 +808,11 @@ pub async fn runtime_acquire(
 }
 
 #[tauri::command]
+pub fn runtime_set_idle_minutes(runtime: tauri::State<'_, Runtime>, minutes: u64) -> Result<u64, String> {
+    runtime.set_idle_minutes(minutes)
+}
+
+#[tauri::command]
 pub fn runtime_release(runtime: tauri::State<'_, Runtime>, lease: u64, cancel_startup: Option<bool>) {
     runtime.release_with_cancel(lease, cancel_startup.unwrap_or(false));
 }
@@ -835,6 +862,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn idle_minutes_accept_only_fixed_choices() {
+        let runtime = Runtime::default();
+        assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::from_secs(900), "Default keep-warm is 15 minutes");
+        for minutes in [5, 15, 30, 60] {
+            assert_eq!(runtime.set_idle_minutes(minutes), Ok(minutes));
+            assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::from_secs(minutes * 60));
+        }
+        for minutes in [0, 1, 10, 45, 61, 900] {
+            assert!(runtime.set_idle_minutes(minutes).is_err(), "{minutes} minutes must be rejected");
+        }
+        assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::from_secs(3600), "Rejected values keep the previous budget");
+    }
+
+    #[test]
     fn relocation_progress_renews_only_for_new_copied_data_and_resets_before_backup() {
         let start = Instant::now();
         let mut clock = StartupClock::new("owned".into(), "archive".into(), start);
@@ -843,7 +884,7 @@ mod tests {
         assert!(!clock.expired(start + Duration::from_secs(200)));
         assert_eq!(clock.progress.phase, "relocation_files");
         clock.observe_storage(&progress, start + Duration::from_secs(300));
-        assert!(clock.expired(start + Duration::from_secs(351)));
+        assert!(clock.expired(start + Duration::from_secs(170) + STARTUP_BUDGET));
         clock.observe_storage(&serde_json::json!({"phase":"relocation_complete","revision":2}), start + Duration::from_secs(340));
         assert_eq!(clock.progress.copied_bytes, 0);
         assert!(!clock.progress.backup_complete);
@@ -882,12 +923,12 @@ mod tests {
             serde_json::json!({"phase":"untrusted_keepalive","copied_bytes":100,"total_bytes":100}),
         ] { clock.observe(&event, start + Duration::from_secs(340)); }
         assert_eq!(clock.progress.revision, 1);
-        assert!(clock.expired(start + Duration::from_secs(350)), "Duplicates, changing totals, malformed data and chatter must stall");
+        assert!(clock.expired(start + Duration::from_secs(170) + STARTUP_BUDGET), "Duplicates, changing totals, malformed data and chatter must stall");
         clock.observe(&serde_json::json!({"phase":"backup_database","copied_pages":10,"total_pages":10}), start + Duration::from_secs(340));
         clock.observe(&serde_json::json!({"phase":"backup_files","copied_bytes":40,"total_bytes":80}), start + Duration::from_secs(500));
         assert!(!clock.expired(start + Duration::from_secs(679)));
         clock.observe(&serde_json::json!({"phase":"backup_files","copied_bytes":40,"total_bytes":80}), start + Duration::from_secs(675));
-        assert!(clock.expired(start + Duration::from_secs(680)));
+        assert!(clock.expired(start + Duration::from_secs(500) + STARTUP_BUDGET));
         assert!(clock.message().contains("40 / 80"));
     }
 
@@ -909,7 +950,7 @@ mod tests {
         assert_eq!(clock.progress.copied_bytes, 200, "Completion includes SQLite bytes too");
         assert!(!clock.expired(start + Duration::from_secs(354)));
         clock.observe(&complete, start + Duration::from_secs(350));
-        assert!(clock.expired(start + Duration::from_secs(355)), "A replayed receipt cannot renew backend startup");
+        assert!(clock.expired(start + Duration::from_secs(175) + STARTUP_BUDGET), "A replayed receipt cannot renew backend startup");
         assert_eq!(clock.failed("fixture".into()).1.phase, "startup_failed");
     }
 
@@ -942,7 +983,7 @@ mod tests {
         log.poll(&mut clock, start + Duration::from_secs(175)).unwrap();
         assert_eq!(clock.progress.copied_pages, 8);
         log.poll(&mut clock, start + Duration::from_secs(350)).unwrap();
-        assert!(clock.expired(start + Duration::from_secs(355)), "Rereading without new bytes is not progress");
+        assert!(clock.expired(start + Duration::from_secs(175) + STARTUP_BUDGET), "Rereading without new bytes is not progress");
         drop(log);
         fs::remove_file(path).unwrap();
     }
@@ -992,7 +1033,7 @@ mod tests {
         {
             let mut inner = runtime.0.lock().unwrap();
             inner.status = RuntimeStatus::new("starting", "fixture");
-            inner.process = Some(Process { child: command.spawn().unwrap(), token: "fixture-not-auth".into(), ready: false, startup: backup_clock(Instant::now()), startup_log: log });
+            inner.process = Some(Process { child: command.spawn().unwrap(), token: "fixture-not-auth".into(), ready: false, unresponsive_since: None, startup: backup_clock(Instant::now()), startup_log: log });
             inner.leases.insert(1, true);
             inner.leases.insert(2, true);
             inner.leases.insert(3, false);
@@ -1132,6 +1173,19 @@ mod tests {
         runtime.stop(); drop(runtime); fs::remove_file(path).unwrap();
     }
 
+    #[test]
+    fn unresponsive_ready_engine_is_stoppable_only_after_grace() {
+        let _port = ACTIVITY_TEST_PORT.lock().unwrap();
+        let (runtime, path) = ready_monitor_fixture();
+        runtime.0.lock().unwrap().process.as_mut().unwrap().unresponsive_since = Some(Instant::now() - Duration::from_secs(10));
+        assert!(runtime.request_stop().is_err(), "A short health gap is not yet an unresponsive engine");
+        runtime.0.lock().unwrap().process.as_mut().unwrap().unresponsive_since = Some(Instant::now() - Duration::from_secs(91));
+        assert!(runtime.status().message.contains("nie odpowiada od"));
+        assert!(runtime.request_stop().is_ok(), "A stale unresponsive ready engine may be stopped manually");
+        assert!(runtime.0.lock().unwrap().process.is_none());
+        drop(runtime); fs::remove_file(path).unwrap();
+    }
+
     fn http(path: &str, body: Option<&str>) -> Vec<u8> {
         let mut stream = TcpStream::connect(("127.0.0.1", PORT)).unwrap();
         stream
@@ -1162,7 +1216,7 @@ mod tests {
         println!("COLD_LIBRARY count={}, python_processes=0", profiles.len());
         let lease = runtime.acquire(true);
         assert_eq!(lease.status.state, "starting", "{}", lease.status.message);
-        let deadline = Instant::now() + Duration::from_secs(185);
+        let deadline = Instant::now() + Duration::from_secs(305);
         while runtime.status().state != "ready" {
             assert!(Instant::now() < deadline, "Backend start timed out");
             std::thread::sleep(Duration::from_millis(500));

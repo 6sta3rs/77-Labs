@@ -1,7 +1,7 @@
 # Contributing to Seventy Seven Labs
 
 Start with the [README](README.md), [product requirements](docs/PRD.md),
-[project context](docs/kontekst-projektu.md), and [AGENTS.md](AGENTS.md).
+[project context](docs/architecture/kontekst-projektu.md), and [AGENTS.md](AGENTS.md).
 Keep the application interface in Polish and public release documentation
 in English. Preserve actual Polish UI labels when referring to controls,
 with an English explanation where useful. The product name is
@@ -32,8 +32,8 @@ npm run desktop:build
 
 Synthesis requires a dedicated Python environment and model weights.
 Start setup explicitly in **Ustawienia > Modele i silnik**
-(Settings > Models and engine). See [runtime installation](docs/instalacja-runtime.md)
-and the [engine contract](docs/runtime.md). Do not copy a private database,
+(Settings > Models and engine). See [runtime installation](docs/features/instalacja-runtime.md)
+and the [engine contract](docs/architecture/runtime.md). Do not copy a private database,
 profiles, or terms acknowledgments from another installation.
 
 ## Scope and validation

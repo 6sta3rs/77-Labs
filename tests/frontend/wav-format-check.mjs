@@ -1,0 +1,37 @@
+import { mkdir as ensureQaDirectory } from 'node:fs/promises';
+await ensureQaDirectory(new URL('../../.tmp/qa/', import.meta.url), { recursive: true });
+import assert from 'node:assert/strict';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import ts from 'typescript';
+const source=await readFile(new URL('../../src/lib/playback/audio.ts',import.meta.url),'utf8');
+const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const audio={};new Function('exports',code)(audio);
+const frames=64,sampleRate=48000,channels=2;
+const samples=Float32Array.from({length:frames*channels},(_,index)=>Math.sin(index/13)*0.7);
+const part={sampleRate,channels,frames,bits:32,float:true,samples};
+const directory=new URL('../../.tmp/qa/wav-fixture/',import.meta.url);await mkdir(directory,{recursive:true});
+const report=[];
+for(const precision of ['16','24','32']){
+ const first=audio.encodeSpeechWave([part],precision),second=audio.encodeSpeechWave([part],precision);
+ const result=await audio.joinSpeech([first,second],precision),bytes=await result.arrayBuffer(),decoded=audio.decodeWave(bytes);
+ assert.equal(decoded.bits,Number(precision));assert.equal(decoded.float,precision==='32');assert.equal(decoded.sampleRate,sampleRate);assert.equal(decoded.channels,channels);
+ assert.equal(decoded.frames,frames*2+sampleRate*0.2);
+ assert.equal((await audio.joinSpeechWave([first,second],precision)).duration,decoded.frames/sampleRate,'Joined duration matches the written frames, gaps included.');
+ assert.equal((await audio.joinSpeechWave([first],precision)).duration,frames/sampleRate);
+ assert.deepEqual(decoded.samples.slice(0,samples.length),audio.decodeWave(await first.arrayBuffer()).samples,'Concatenation preserves every decoded PCM/float sample without extra quantization.');
+ assert.ok(Math.abs(decoded.samples[16]-samples[16])<(precision==='16'?0.00005:0.000001));
+ assert.equal(decoded.samples[frames*channels+120],0,'Gap is silence in every channel.');
+ assert.equal(decoded.samples[(frames+sampleRate*0.2)*channels+16],decoded.samples[16]);
+ assert.equal(await audio.joinSpeech([first],precision),first,'A matching single take preserves exact original bytes.');
+ const filename=`joined-${precision==='32'?'float32':'pcm'+precision}.wav`;await writeFile(new URL(filename,directory),new Uint8Array(bytes));
+ report.push({filename,bytes:bytes.byteLength,bits:decoded.bits,float:decoded.float,sample_rate:decoded.sampleRate,channels:decoded.channels,frames:decoded.frames});
+}
+const odd={...part,channels:1,frames:1,samples:new Float32Array([-0.5])};
+assert.equal(audio.decodeWave(await audio.encodeSpeechWave([odd],'24').arrayBuffer()).samples[0],-0.5);
+assert.equal(audio.decodeWave(await audio.encodeSpeechWave([{...odd,samples:new Float32Array([1.5])}],'32').arrayBuffer()).samples[0],1.5,'Float output preserves finite headroom.');
+assert.throws(()=>audio.encodeSpeechWave([part,{...part,sampleRate:24000}],'24'),/różne/);
+assert.throws(()=>audio.encodeSpeechWave([{...part,samples:Float32Array.from(samples,()=>NaN)}],'32'),/próbki/);
+await assert.rejects(audio.joinSpeech([], '16'),/Brak/);
+const truncated=(await audio.encodeSpeechWave([part],'16').arrayBuffer()).slice(0,45);assert.throws(()=>audio.decodeWave(truncated),/niekompletne/);
+await writeFile(new URL('../../.tmp/qa/wav-format-fixture.json',import.meta.url),JSON.stringify({date:'2026-10-20',scope:'Real WAV files from deterministic sample fixture; no ML',javascript_result:'PASS',files:report,independent_decoder:'Pending SoundFile/FFprobe verification'},null,2)+'\n');
+console.log('WAV formats PASS: real PCM16/PCM24/IEEE-float32 files, multi-block precision, 48k stereo preservation, exact single-take bytes, silence gaps, RIFF padding and invalid input rejection.');

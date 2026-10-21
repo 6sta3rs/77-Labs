@@ -19,7 +19,7 @@ components and the scope of their licenses. It does not modify their terms.
 The Seventy Seven Labs engine incorporates the imported backend sources above
 and local extensions in `scripts/runtime`. The application provides a separate
 Svelte/Tauri interface. The launcher prepares its own copy of the backend and
-applies documented adapters. The [runtime](docs/runtime.md) document explains
+applies documented adapters. The [runtime](docs/architecture/runtime.md) document explains
 startup behavior. The product name does not change the imported source's
 authorship or license. This is not an official VoiceStudio release or a product
 of its authors.
@@ -51,7 +51,7 @@ Copyright (c) 2026 T3 Tools Inc. License: **MIT**; the full text remains in
   `89424d9fa01c6bd24664315c7ccda8d6cb1eab61`,
   [apps/web/src/components/ui](https://github.com/pingdotgg/t3code/tree/89424d9fa01c6bd24664315c7ccda8d6cb1eab61/apps/web/src/components/ui).
 - Components and behavior are adapted to Svelte and the local studio.
-  Details: [themes](docs/motywy-t3-code.md), [controls](docs/t3-controls.md).
+  Details: [themes](docs/features/motywy-t3-code.md), [controls](docs/features/t3-controls.md).
 
 The application displays two of these palette families as **Labs** and
 **Róża** (Rose). These product labels do not change source attribution or

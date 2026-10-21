@@ -1,8 +1,8 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import type { HTMLButtonAttributes } from 'svelte/elements'
-  import '../ui.css'
-  import '../ui-fields.css'
+  import '../styles/ui.css'
+  import '../styles/ui-fields.css'
   type Props = Omit<HTMLButtonAttributes, 'type' | 'onclick' | 'onchange' | 'value'> & {
     checked?: boolean; onchange?: (value: boolean) => void; label: string
     size?: 'default' | 'sm' | 'lg'; name?: string; value?: string; required?: boolean

@@ -4,13 +4,13 @@
   import type { HTMLButtonAttributes } from 'svelte/elements'
   import { Check, ChevronDown, ChevronUp } from '@lucide/svelte'
   import LanguageFlag from './LanguageFlag.svelte'
-  import '../ui.css'
-  import '../ui-fields.css'
+  import '../styles/ui.css'
+  import '../styles/ui-fields.css'
 
   type Props = Omit<HTMLButtonAttributes, 'value' | 'onchange' | 'onclick' | 'onkeydown' | 'type'> & {
     value?: string; onchange?: (value: string) => void
     options: Array<{ value: string; label: string; description?: string; disabled?: boolean; group?: string }>
-    label?: string; ariaLabel?: string; size?: 'compact' | 'sm' | 'default' | 'lg' | 'xs'
+    label?: string; ariaLabel?: string; size?: 'default' | 'lg'
     variant?: 'default' | 'ghost'; name?: string; required?: boolean; placeholder?: string
     alignItemWithTrigger?: boolean
     language?: boolean
@@ -112,12 +112,25 @@
       const actualHeight = Math.min(height, maxHeight)
       const row = list.querySelector<HTMLElement>(`[data-option="${active}"]`)
       const rowOffset = row ? row.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop : 0
-      const desiredTop = alignItemWithTrigger && row
-        ? rect.top + rect.height / 2 - row.offsetHeight / 2 - rowOffset - 1
-        : upward ? rect.top - actualHeight - 5 : rect.bottom + 5
+      const minTop = 8, maxTop = window.innerHeight - actualHeight - 8
+      const clamp = (value: number, low: number, high: number) => Math.max(low, Math.min(high, value))
+      let desiredTop = upward ? rect.top - actualHeight - 5 : rect.bottom + 5
+      if (alignItemWithTrigger && row) {
+        // Screen y where the selected row must sit to cover the trigger.
+        const rowTop = rect.top + rect.height / 2 - row.offsetHeight / 2 - 1
+        // Its offset inside the popup: prefer no scrolling, but a deep row is scrolled
+        // into view instead of pushing the popup off-screen, away from the trigger.
+        const maxScroll = Math.max(0, list.scrollHeight - (actualHeight - 2))
+        let inside = rowTop - clamp(rowTop - rowOffset, minTop, maxTop)
+        inside = clamp(inside, Math.max(0, rowOffset - maxScroll), rowOffset)
+        // Keep clear of the 28 px scroll-arrow bands (list scroll-padding), or scrollActive() shifts the row.
+        const band = maxScroll > 0 ? 28 : 0
+        inside = clamp(inside, Math.min(rowOffset, band), Math.max(0, actualHeight - row.offsetHeight - 2 - band))
+        desiredTop = rowTop - inside
+      }
       position = {
         left: Math.max(8, Math.min(rect.left, window.innerWidth - popup.offsetWidth - 8)),
-        top: Math.max(8, Math.min(desiredTop, window.innerHeight - actualHeight - 8)),
+        top: clamp(desiredTop, minTop, maxTop),
         width: rect.width,
         maxHeight: Math.max(0, maxHeight),
       }

@@ -27,6 +27,7 @@ fn main() {
             runtime::runtime_stop,
             runtime::runtime_acquire,
             runtime::runtime_release,
+            runtime::runtime_set_idle_minutes,
             installer::installer_status,
             installer::installer_start,
             installer::installer_cancel,

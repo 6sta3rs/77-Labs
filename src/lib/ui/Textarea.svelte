@@ -1,8 +1,8 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import type { HTMLTextareaAttributes } from 'svelte/elements'
-  import '../ui.css'
-  import '../ui-fields.css'
+  import '../styles/ui.css'
+  import '../styles/ui-fields.css'
 
   type Props = Omit<HTMLTextareaAttributes, 'value'> & {
     value?: string

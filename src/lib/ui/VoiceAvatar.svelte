@@ -1,5 +1,5 @@
 <script lang="ts">
-  import VoiceOrb from '../VoiceOrb.svelte'
+  import VoiceOrb from '../playback/VoiceOrb.svelte'
   let { portraitSrc, voiceId, name = 'Głos', size = 32, decorative = true }: {
     portraitSrc?: string; voiceId: string; name?: string; size?: number | string; decorative?: boolean
   } = $props()

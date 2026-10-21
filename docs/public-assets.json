@@ -2,12 +2,12 @@
   "audio": {
     "public/demo/interface-tone.wav": {
       "sha256": "2047dbd0da9719ebcd49e00d6d0424a22538b8363b4ecfe9489d9e4651048302",
-      "source": "scripts/generate_demo_tone.py",
+      "source": "scripts/dev/generate_demo_tone.py",
       "purpose": "Procedural playback test; no human speech or voice model"
     }
   },
   "upstreamArchive": {
-    "path": "scripts/runtime/engine.zip",
+    "path": "scripts/runtime/vendor/engine.zip",
     "sha256": "2b511d70698a79ff015e8b566f1879b00b55219089cd433d1d9220f56691aac6",
     "source": "https://github.com/debpalash/VoiceStudio/tree/7a6c8980bb9c04db145357a8190a37a0e9f462da",
     "purpose": "Pinned licensed source archive, including original upstream examples; no private studio data"
@@ -15,17 +15,17 @@
   "screenshots": {
     "docs/screenshots/appearance.png": {
       "sha256": "5e840dd0ae69e13c6f52c4d3f66e81c628a5d5529d18923c50a4334b31e54764",
-      "source": "scripts/capture_screenshots.py",
+      "source": "scripts/preview/capture_screenshots.py",
       "content": "Fictional demo data, isolated browser profile"
     },
     "docs/screenshots/studio.png": {
       "sha256": "2d84434c7d582ca99e39d18f5844320af6d8d27563780c3a2c1d5136f6d9a7f8",
-      "source": "scripts/capture_screenshots.py",
+      "source": "scripts/preview/capture_screenshots.py",
       "content": "Fictional demo data, isolated browser profile"
     },
     "docs/screenshots/voices.png": {
       "sha256": "19ef185899773fecf10a2c9404877170f78ac941ca41eb7198dbef19826b0e37",
-      "source": "scripts/capture_screenshots.py",
+      "source": "scripts/preview/capture_screenshots.py",
       "content": "Fictional demo data, isolated browser profile"
     }
   }

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { aiDevelopmentServer } from './scripts/ai-dev.ts';
+import { aiDevelopmentServer } from './scripts/dev/ai-dev.ts';
 
 export default defineConfig({
   plugins: [svelte(), aiDevelopmentServer()],

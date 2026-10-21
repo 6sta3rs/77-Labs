@@ -9,17 +9,24 @@
 .vs-button-group>.vs-group-button[aria-pressed=true]:hover{background:var(--neutral-selected-hover)}
 .vs-button-group>.vs-group-button:hover,.vs-button-group>.vs-group-button:focus-visible{z-index:2}
 .vs-button-group>.vs-group-button:active{scale:1}
-.vs-filter-chip{display:inline-flex;align-items:center;min-width:0;max-width:100%;border:1px solid var(--input-border,var(--border));border-radius:7px;background:var(--control-background,var(--surface));color:var(--foreground);box-shadow:0 1px 2px #0000000d;font-family:var(--font-ui);vertical-align:middle}
+/* Filter chip (ElevenLabs-style): 24 px pill; active = inverted colours, the „+” turns into „×”. */
+.vs-filter-chip{display:inline-flex;align-items:center;gap:2px;height:24px;min-width:0;max-width:100%;padding:0 4px;border:1px solid var(--input-border,var(--border));border-radius:8px;background:transparent;color:var(--muted);font-family:var(--font-ui);font-size:var(--ui-text-12);font-weight:500;white-space:nowrap;vertical-align:middle;transition:background-color 200ms ease,color 200ms ease,border-color 200ms ease}
+.vs-filter-chip:hover{background:var(--surface-hover);color:var(--foreground)}
+.vs-filter-chip-active{border-color:var(--foreground);background:var(--foreground);color:var(--background)}
+.vs-filter-chip-active:hover{background:color-mix(in srgb,var(--foreground) 86%,var(--background));color:var(--background)}
 .vs-filter-chip>.vs-select{width:auto;max-width:100%;min-width:0}
-.vs-filter-chip .vs-select-trigger.vs-chip-select{gap:6px;min-height:28px;height:auto;padding:0 8px;border:0;background:transparent;box-shadow:none;white-space:nowrap;font-size:var(--ui-text-12);border-radius:6px}
-.vs-filter-chip .vs-select-trigger.vs-chip-select>svg{width:14px;height:14px;margin:0;flex-shrink:0;color:var(--icon-muted,var(--muted))}
-.vs-filter-chip .vs-select-trigger.vs-chip-select:hover,.vs-filter-clear:hover:not(:disabled){background:var(--neutral-selected-hover);color:var(--neutral-selected-foreground)}
+.vs-filter-chip .vs-select-trigger.vs-chip-select{display:flex;align-items:center;gap:0;min-height:0;height:22px;padding:0 2px 0 2px;border:0;border-radius:6px;background:transparent;box-shadow:none;color:inherit;font:inherit;white-space:nowrap}
+.vs-filter-chip .vs-select-trigger.vs-chip-select:hover,.vs-filter-chip .vs-select-trigger.vs-chip-select[aria-expanded=true]{background:transparent;color:inherit}
 .vs-filter-chip .vs-select-trigger:focus-visible,.vs-filter-clear:focus-visible{outline:2px solid var(--focus);outline-offset:1px;z-index:1}
-.vs-filter-chip .vs-select-trigger>span{flex:none}
-.vs-filter-value{max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--foreground)}
-.vs-filter-separator{height:14px;width:1px;background:var(--border);margin:0 1px;flex:none}
-.vs-filter-clear{align-self:stretch;display:grid;place-items:center;min-width:28px;flex-shrink:0;padding:0;border:0;border-radius:6px 0 0 6px;background:transparent;color:var(--icon-muted,var(--muted));cursor:pointer;outline:none}
+.vs-filter-label{flex:none;padding:0 4px 0 2px}
+.vs-filter-value-group{display:flex;align-items:center;gap:4px;min-width:0;margin-left:4px;padding:0 4px 0 8px;border-left:1px solid color-mix(in srgb,var(--background) 40%,var(--foreground))}
+.vs-filter-value{max-width:192px;overflow:hidden;text-overflow:ellipsis}
+.vs-filter-chip .language-flag{width:14px;height:14px;flex-basis:14px}
+.vs-filter-clear{position:relative;display:grid;place-items:center;width:16px;height:16px;flex:none;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;outline:none}
+.vs-filter-clear svg{transition:transform 200ms ease}
+.vs-filter-chip-active .vs-filter-clear svg{transform:rotate(45deg)}
+.vs-filter-chip-active .vs-filter-clear:hover:not(:disabled){background:color-mix(in srgb,var(--background) 12%,transparent)}
 .vs-filter-clear:disabled{cursor:not-allowed}
-.vs-filter-chip-disabled{opacity:.64}.vs-filter-chip-disabled .vs-select-trigger:disabled{opacity:1}
-.vs-filter-chip-active .vs-select-trigger.vs-chip-select{border-radius:0 6px 6px 0;padding-left:3px}
-@media(pointer:coarse){.vs-filter-chip .vs-select-trigger.vs-chip-select{min-height:44px}.vs-filter-clear{min-width:44px}}
+.vs-filter-chip-disabled{opacity:.64;pointer-events:none}.vs-filter-chip-disabled .vs-select-trigger:disabled{opacity:1}
+@media(prefers-reduced-motion:reduce){.vs-filter-chip,.vs-filter-clear svg{transition:none}}
+@media(pointer:coarse){.vs-filter-chip{height:36px}.vs-filter-chip .vs-select-trigger.vs-chip-select{height:34px}.vs-filter-clear{width:28px;height:28px}}
