@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: Sieć i dostęp and Integracje ported
+
+Sieć i dostęp has tabs Udostępnianie (LAN share with confirm, PIN, addresses, base port, Tailscale Serve), Zdalny silnik (former "Dostęp zdalny" and "Zdalne procesy robocze", one copy; opened directly from the remote-engine pill) and Serwer proxy. Integracje: OpenAI-compatible API test, MCP settings/test/client config, voice bindings for MCP clients, API reference (search, method filter, safe GET send, export). The watermark moved to Prywatność and engine provenance to Aktualizacje.
+
+Checks: `svelte-check` 0/0; `remote-routing-check.mjs` and `integrations-check.mjs` pass; screenshots against the prototype through a mocked-response harness (`.tmp/qa/settings-port/network|integrations/`) and the not-ready state in the real app. Not verified against a live engine, Tailscale, a remote engine or a real MCP client.
+
+Limitations: the engine does not report whether Tailscale Serve is on, so "Włączony" reflects actions in the current visit; no hostname address (the engine returns IPs only); the API reference no longer shows parameter/schema detail.
+
 ## 22 October 2026 — settings: Aplikacja pages ported
 
 Ported from the approved prototype: Ogólne (UI language, dubbing review, default translation mode), Wygląd (the real `Appearance` component inside the new page frame, reset with a 4 s confirm), Słownik wymowy (`/pronunciation` add/edit/delete/toggle, test, JSON export/import with confirm), Skróty i mikrofon (shortcut list, desktop dictation hotkey, microphone permission state, test and Windows settings link), Aktualizacje (app version, engine provenance from `/next/settings/update-source`, GitHub release check, changelog). Results are toasts; with the engine stopped each page shows one notice.
