@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: Aplikacja pages ported
+
+Ported from the approved prototype: Ogólne (UI language, dubbing review, default translation mode), Wygląd (the real `Appearance` component inside the new page frame, reset with a 4 s confirm), Słownik wymowy (`/pronunciation` add/edit/delete/toggle, test, JSON export/import with confirm), Skróty i mikrofon (shortcut list, desktop dictation hotkey, microphone permission state, test and Windows settings link), Aktualizacje (app version, engine provenance from `/next/settings/update-source`, GitHub release check, changelog). Results are toasts; with the engine stopped each page shows one notice.
+
+Checks: `svelte-check` 0/0; screenshots of all five pages next to the prototype at 1280 and 900 px in `.tmp/qa/settings-port/app/` (engine not running, so the not-ready state only). Not verified: ready state of Słownik and Aktualizacje against a live engine, the Tauri dictation hotkey, real microphone access.
+
+Limitations: the dictionary test cannot highlight replaced words (`/pronunciation/test` returns only the whole text); the per-release notes list from the old check was dropped as in the prototype.
+
 ## 22 October 2026 — settings: new navigation and shared page pieces
 
 User request: move the approved settings prototype (`.tmp/settings-redesign`, reviewed 2026-10-22) into the app without omissions. This commit adds the frame; pages are ported in the following commits.
