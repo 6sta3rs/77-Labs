@@ -1,5 +1,11 @@
 # Public project progress
 
+## 22 October 2026 — settings: one search field
+
+From the prototype review: the settings sidebar had two searches (the "Szukaj… Ctrl K" button that opens the global palette and a separate "Filtruj ustawienia…" field). Now there is one field in the "Szukaj…" button style with the magnifier, which filters the 12 settings pages by name (empty result: „Brak pasujących ustawień.”); the Ctrl K hint and the second field are gone. The rest of the app keeps the real `SidebarHeader` (button opening the palette).
+
+Checks: `npm run check` 0/0; in the dev UI typing „sie” leaves only „Sieć i dostęp” under its group, compared with the prototype screenshot (`.tmp/qa/settings-port/final/`). Limitation: the filter matches page names, not the settings inside pages (same as the prototype); Ctrl+K inside Settings still opens the global palette.
+
 ## 22 October 2026 — docs follow the new settings structure
 
 README, PRD, `kontekst-projektu.md` (new short settings-structure note), `struktura-projektu.md`, `runtime.md` and nine feature docs now use the new paths (for example Ustawienia → Silnik → Środowiska, Sieć i dostęp → Zdalny silnik, Prywatność i użycie → Znak wodny). Corrected an older error: the engine idle time is set in Silnik → Stan, not Ogólne.
