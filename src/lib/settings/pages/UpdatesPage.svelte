@@ -1,7 +1,8 @@
 <script lang="ts">
-  // "Aktualizacje": app version, pinned engine provenance, public upstream releases and the bundled changelog.
+  // "Aktualizacje": app self-update from GitHub Releases, pinned engine provenance, public upstream releases and the bundled changelog.
   import { onDestroy, onMount, untrack } from 'svelte';
-  import { Copy, Check, RefreshCw, ExternalLink } from '@lucide/svelte';
+  import { Copy, Check, RefreshCw, ExternalLink, Download } from '@lucide/svelte';
+  import { findAppUpdate, installAppUpdate, type Update } from '../../platform/app-update';
   import { getVersion } from '@tauri-apps/api/app';
   import { version as appVersion } from '../../../../package.json';
   import { uiLanguage, createUiTranslator } from '../../i18n';
@@ -15,7 +16,7 @@
   import StatusBadge from '../../ui/StatusBadge.svelte';
   const tr = $derived(createUiTranslator($uiLanguage));
 
-  let { ready, onnavigate }: { ready: boolean; onnavigate?: (id: SettingsSection) => void } = $props();
+  let { ready, desktop = false, intent = '', onnavigate }: { ready: boolean; desktop?: boolean; intent?: string; onnavigate?: (id: SettingsSection) => void } = $props();
 
   type Source = { source: { sourceVersion?: string; commit?: string; archive_sha256?: string; installedDistributionVersion?: string } };
   type Release = { tag: string; name: string; published_at: string; prerelease: boolean; url: string; notes: string };
@@ -55,6 +56,29 @@
     catch { toast.bad(tr('Nie udało się skopiować. Zaznacz tekst i skopiuj ręcznie.')); }
   }
 
+  /* ---------- app update (Tauri updater, signed releases of this app on GitHub) ---------- */
+  let appChecking = $state(false), appInstalling = $state(false), appUpdate = $state.raw<Update | null>(), appProgress = $state<[number, number]>([0, 0]);
+  const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
+  async function checkApp() {
+    if (!desktop || appChecking || appInstalling) return;
+    appChecking = true; appUpdate = undefined;
+    try {
+      const update = await findAppUpdate();
+      if (disposed) return;
+      appUpdate = update;
+      if (update) toast.info(tr('Dostępna nowa wersja aplikacji: {version}', { version: update.version }));
+      else toast.ok(tr('Masz najnowszą wersję aplikacji ({version})', { version }));
+    } catch (cause) { if (!disposed) toast.bad(tr('Nie udało się sprawdzić aktualizacji: {reason}', { reason: String((cause as Error)?.message || cause) })); }
+    finally { if (!disposed) appChecking = false; }
+  }
+  async function installApp() {
+    if (!appUpdate || appInstalling) return;
+    appInstalling = true; appProgress = [0, 0];
+    try { await installAppUpdate(appUpdate, (done, total) => { appProgress = [done, total]; }); }
+    catch (cause) { if (!disposed) { appInstalling = false; toast.bad(tr('Nie udało się zainstalować aktualizacji: {reason}', { reason: String((cause as Error)?.message || cause) })); } }
+  }
+  onMount(() => { if (intent === 'check') void checkApp(); });
+
   /* ---------- public release check ---------- */
   let channel = $state('stable'), checking = $state(false), latest = $state<Release>(), result = $state<null | 'latest' | 'newer'>(null);
   const plain = (v = '') => v.trim().replace(/^v/i, '');
@@ -79,7 +103,20 @@
 
   <section class="p-card card">
     <div class="p-section">
-      <header class="split"><div><h3>Seventy Seven Labs · {version}</h3><p>{tr('Aplikacja nie aktualizuje się automatycznie. Nową wersję instalujesz z nowej kompilacji lub instalatora.')}</p></div><StatusBadge kind="neutral" text={tr('Aktualizacje ręczne')}/></header>
+      <header class="split"><div><h3>Seventy Seven Labs · {version}</h3><p>{tr('Aplikacja sprawdza podpisane wydania w repozytorium projektu na GitHub dopiero po kliknięciu. Twoje głosy, projekty i modele zostają bez zmian.')}</p></div>
+        {#if appUpdate}<StatusBadge kind="warn" text={tr('Dostępna {version}', { version: appUpdate.version })}/>{:else if appUpdate === null}<StatusBadge kind="ok" text={tr('Aktualna')}/>{/if}</header>
+      {#if !desktop}<p class="p-notice">{tr('Aktualizacje aplikacji działają w aplikacji Windows. Podgląd w przeglądarce nie instaluje nowych wersji.')}</p>
+      {:else}
+        <div class="p-actions">
+          {#if appUpdate}<Button disabled={appInstalling} onclick={installApp}><Download size={15}/>{appInstalling ? tr('Instaluję…') : tr('Pobierz i zainstaluj {version}', { version: appUpdate.version })}</Button>
+            <Button variant="outline" disabled={appChecking || appInstalling} onclick={checkApp}><RefreshCw size={15} class={appChecking ? 'spin' : ''}/>{tr('Sprawdź ponownie')}</Button>
+          {:else}<Button disabled={appChecking} onclick={checkApp}><RefreshCw size={15} class={appChecking ? 'spin' : ''}/>{appChecking ? tr('Sprawdzam…') : tr('Sprawdź aktualizacje')}</Button>{/if}
+        </div>
+        {#if appChecking}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Sprawdzanie aktualizacji')}></progress><span>{tr('Łączenie z GitHub')}</span></div>{/if}
+        {#if appInstalling}<div class="p-progress" role="status">{#if appProgress[1]}<progress class="p-bar" max={appProgress[1]} value={appProgress[0]} aria-label={tr('Pobieranie aktualizacji')}></progress><span>{tr('{done} z {total} MB', { done: mb(appProgress[0]), total: mb(appProgress[1]) })}</span>{:else}<progress class="p-bar" aria-label={tr('Pobieranie aktualizacji')}></progress><span>{tr('Pobieranie')}</span>{/if}</div>
+          <p class="p-sub">{tr('Po pobraniu uruchomi się instalator, a aplikacja zamknie się i otworzy ponownie. Silnik zatrzyma się na ten czas.')}</p>{/if}
+        {#if appUpdate?.body}<div class="notes"><h5>{tr('Co nowego w {version}', { version: appUpdate.version })}</h5><p class="p-sub">{appUpdate.body}</p></div>{/if}
+      {/if}
     </div>
 
     {#if !ready}
@@ -131,6 +168,7 @@
 
 <style>
   .card{display:flex;flex-direction:column;gap:18px}
+  .notes h5{margin:0 0 2px;font-size:var(--ui-text-12);font-weight:600}.notes p{white-space:pre-line;margin:0}
   .sha{display:flex;align-items:center;justify-content:flex-end;gap:6px}
   .sha code{font-size:var(--ui-text-11);font-family:var(--font-mono,monospace)}
   .p-kv>div{align-items:center}.sha :global(.ok){color:var(--success)}

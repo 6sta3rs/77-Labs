@@ -15,12 +15,15 @@
     "preview": "vite preview --host 127.0.0.1 --port 4310 --strictPort",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build --no-bundle",
+    "desktop:release": "node scripts/release/build-update.mjs",
     "test:structure": "node scripts/dev/check-structure.mjs"
   },
   "dependencies": {
     "@lucide/svelte": "1.59.0",
     "@tauri-apps/api": "2.12.4",
     "@tauri-apps/plugin-http": "2.8.3",
+    "@tauri-apps/plugin-process": "2.4.0",
+    "@tauri-apps/plugin-updater": "2.14.0",
     "svelte": "5.57.2"
   },
   "devDependencies": {

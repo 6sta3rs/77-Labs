@@ -160,7 +160,7 @@
     wasGenerating = now;
   });
   async function refreshState() {
-    await act('refresh', async () => { await onrefresh(); if (ready) await reload(); toast.info(tr('Stan odświeżony')); });
+    await act('refresh', async () => { await onrefresh(); if (ready) await reload(); }); // App reports the result (studio refresh)
   }
 
   /* ---------- live load (/sysinfo is a monitor read: does not keep the engine awake) ---------- */
@@ -509,7 +509,7 @@
         {#if shownHw.length}<div class="hw1">{#each shownHw as part, i}<span class="it">{i === 0 && !on ? tr('Ostatnio:') + ' ' : ''}{part}</span>{/each}</div>{/if}
         {#if compute || performance}<div class="hw2">{#if compute}<span class="it">{devName(compute.value)}</span>{/if}{#if performance}<span class="it">{tierName(performance.global)}</span>{/if}{#if compute && compute.restart_required && compute.value !== compute.applied}<span class="it">{tr('po restarcie: {device}', { device: devName(compute.value) })}</span>{/if}</div>{/if}
       </div>
-      <div class="inline"><Button variant="ghost" onclick={() => goTab('dzienniki')}>{tr('Diagnostyka')}{on && diag ? ': ' + diag : ''}</Button><Button variant="ghost" disabled={stopped || starting || working.refresh} onclick={refreshState}><RefreshCw size={15}/>{tr('Odśwież stan')}</Button></div>
+      <div class="inline"><Button variant="ghost" onclick={() => goTab('dzienniki')}>{tr('Diagnostyka')}{on && diag ? ': ' + diag : ''}</Button><Button variant="ghost" disabled={starting || working.refresh} onclick={refreshState}><RefreshCw size={15}/>{tr('Odśwież stan')}</Button></div>
     </div>
   </section></div>
 

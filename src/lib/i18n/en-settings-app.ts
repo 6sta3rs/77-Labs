@@ -1,5 +1,23 @@
 // English strings of the redesigned settings pages (App).
 export const enSettingsApp: Record<string, string> = {
+  "Pobieranie": "Downloading",
+  "Sprawdź aktualizacje": "Check for updates",
+  "Dostępna nowa wersja aplikacji: {version}": "A new app version is available: {version}",
+  "Masz najnowszą wersję aplikacji ({version})": "You have the latest app version ({version})",
+  "Nie udało się sprawdzić aktualizacji: {reason}": "Could not check for updates: {reason}",
+  "Nie udało się zainstalować aktualizacji: {reason}": "Could not install the update: {reason}",
+  "Aplikacja sprawdza podpisane wydania w repozytorium projektu na GitHub dopiero po kliknięciu. Twoje głosy, projekty i modele zostają bez zmian.": "The app checks signed releases in the project's GitHub repository only when you click. Your voices, projects and models stay unchanged.",
+  "Dostępna {version}": "{version} available",
+  "Aktualna": "Up to date",
+  "Aktualizacje aplikacji działają w aplikacji Windows. Podgląd w przeglądarce nie instaluje nowych wersji.": "App updates work in the Windows app. The browser preview does not install new versions.",
+  "Instaluję…": "Installing…",
+  "Pobierz i zainstaluj {version}": "Download and install {version}",
+  "Sprawdź ponownie": "Check again",
+  "Sprawdzanie aktualizacji": "Checking for updates",
+  "Pobieranie aktualizacji": "Downloading the update",
+  "{done} z {total} MB": "{done} of {total} MB",
+  "Po pobraniu uruchomi się instalator, a aplikacja zamknie się i otworzy ponownie. Silnik zatrzyma się na ten czas.": "After the download the installer runs, and the app closes and reopens. The engine stops in the meantime.",
+  "Co nowego w {version}": "What's new in {version}",
   // General
   "Język aplikacji i domyślny sposób pracy z dubbingiem.": "App language and the default way of working with dubbing.",
   "Dotyczy całej aplikacji. Tekst narracji, głosy i modele zostają bez zmian.": "Applies to the whole app. Narration text, voices and models stay unchanged.",

@@ -74,8 +74,15 @@ export async function runCatalogCheck() {
     check('Initial model trigger shows the confirmed engine', trigger().textContent.includes(oldName));
 
     delayNextRead = true;
-    const refresh = document.querySelector('[aria-label="Odśwież stan studia"]');
-    refresh?.click(); await until(() => delayed, 'Odświeżanie nie rozpoczęło opóźnionego odczytu.');
+    // The studio refresh lives on Settings -> Silnik ("Odśwież stan"); the footer button now checks app updates.
+    document.querySelector('.settings-trigger')?.click()
+    const navTo = label => [...document.querySelectorAll('.settings-shell nav button')].find(b => b.textContent.trim() === label)
+    const button = label => [...document.querySelectorAll('.settings-shell button')].find(b => b.textContent.trim() === label)
+    await until(() => navTo('Silnik'), 'Nie otwarto ustawień.'); navTo('Silnik').click()
+    await until(() => button('Odśwież stan'), 'Brak przycisku „Odśwież stan” na stronie Silnik.'); button('Odśwież stan').click()
+    await until(() => delayed, 'Odświeżanie nie rozpoczęło opóźnionego odczytu.');
+    document.querySelector('.settings-shell .settings-back')?.click()
+    await until(() => !document.querySelector('.settings-shell'), 'Nie zamknięto ustawień.')
     check('A real App background refresh is held at its GET', Boolean(delayed));
     await openPicker();
     check('Picker supersedes the background request with cancellation', delayed.signal?.aborted === true);

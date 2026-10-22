@@ -102,6 +102,7 @@
   onMount(()=>{window.addEventListener('studio:create-voice',openVoiceCreate);return()=>window.removeEventListener('studio:create-voice',openVoiceCreate)});
   function openSearch(){query='';modal='search';}
   async function refreshStudio(){if(demoMode){notify('Dane przykładowe są gotowe. Odśwież stronę, aby przywrócić zestaw.');return;}if(refreshing)return;refreshing=true;try{if(isDesktop)await refreshRuntime();else{await api.health();runtime={state:'ready',message:'Lokalny silnik gotowy',port:4312,managed:false};await refreshVoices();await refreshEngine();}notify('Odświeżono stan studia.');}catch{notify('Nie można połączyć się z lokalnym silnikiem.');}finally{refreshing=false;}}
+  function checkAppUpdates(){openSettings('updates','check');}
   let settingsOpen=$state(false);let settingsSection=$state<SettingsSection>('general');let settingsIntent=$state('');let settingsReturnFocus:HTMLElement|null=null;
   function openSettings(section?:SettingsSection,intent=''){flushProjectSave();if(!settingsOpen)settingsReturnFocus=document.activeElement as HTMLElement;settingsSection=section||settingsSection;settingsIntent=intent;settingsOpen=true;}
   const goSettings=(section:string,intent='')=>openSettings(section as SettingsSection,intent);
@@ -421,7 +422,7 @@
 <input hidden type="file" accept=".txt" bind:this={textInput} onchange={importText}/>
 
 <div class="app-shell" class:sidebar-hidden={!sidebar} class:settings-underlay={settingsOpen} inert={settingsOpen}>
-  <NavigationSidebar items={uiOptions([...mainNav,...toolNav])} active={page} {projects} {projectId} runtimeState={runtime.state} onnavigate={navigate} onnew={newProject} onproject={openProject} onsettings={section=>section==='models'?void showModels():openSettings(section)} onnotify={notify} onaddvoice={openVoiceCreate} onsearch={openSearch} onback={backPage} backLabel={tr(pageNames[navigationTrail.at(-1)||'dashboard'])} backDisabled={!navigationTrail.length&&page==='dashboard'} onrefresh={refreshStudio} {refreshing}/>
+  <NavigationSidebar items={uiOptions([...mainNav,...toolNav])} active={page} {projects} {projectId} runtimeState={runtime.state} onnavigate={navigate} onnew={newProject} onproject={openProject} onsettings={section=>section==='models'?void showModels():openSettings(section)} onnotify={notify} onaddvoice={openVoiceCreate} onsearch={openSearch} onback={backPage} backLabel={tr(pageNames[navigationTrail.at(-1)||'dashboard'])} backDisabled={!navigationTrail.length&&page==='dashboard'} onrefresh={checkAppUpdates} refreshing={false}/>
   <main class="main"><ShellTopbar title={tr(pageNames[page])} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>{#snippet children()}{#if page==='studio'}<span class="breadcrumb-divider">/</span><button class="project-name" onclick={()=>{projectDraftName=projectName;modal='project';}}>{projectName}<ChevronDown size={12}/></button>{/if}{/snippet}{#snippet actions()}{#if $remoteBackendState.active}<button class="remote-mode-status" title={$remoteBackendState.url} onclick={()=>openSettings('network','remote')}>{$remoteBackendState.error?tr('Zdalny silnik wymaga uwagi'):tr('Zdalny silnik')}</button>{/if}{#if page==='studio'}{/if}{/snippet}</ShellTopbar>
     <div class="workspace" class:full-width={page!=='studio'}>
       <section class="content" class:tts-demo-content={demoMode&&page==='studio'} aria-label={tr(pageNames[page])}>
@@ -470,14 +471,14 @@
     </div><Player bind:this={player} {recording} orbVariant={appearance.orbVariant} orbVoiceId={activeOrbVoiceId} orbSyncGroup="global-playback" orbSuspended={settingsOpen} onimport={()=>audioInput.click()} onstate={value=>playbackState=value} onactivity={value=>playbackActivity=value}/>
   </main>
 </div>
-{#if settingsOpen}<SettingsShell section={settingsSection} onsection={section=>openSettings(section)} onback={closeSettings} backLabel={tr(pageNames[page])} onhome={()=>navigate('dashboard')} onsearch={openSearch} onprojects={()=>navigate('projects')} onrefresh={refreshStudio} {refreshing} runtimeState={runtime.state} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>
+{#if settingsOpen}<SettingsShell section={settingsSection} onsection={section=>openSettings(section)} onback={closeSettings} backLabel={tr(pageNames[page])} onhome={()=>navigate('dashboard')} onsearch={openSearch} onprojects={()=>navigate('projects')} onrefresh={checkAppUpdates} refreshing={false} runtimeState={runtime.state} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>
   {#key settingsSection}
   {#if settingsSection==='general'}<GeneralPage ready={runtime.state==='ready'} onnavigate={goSettings}/>
   {:else if settingsSection==='appearance'}<AppearancePage value={appearance} voiceId={activeOrbVoiceId} onchange={changeAppearance}/>
   {:else if settingsSection==='dictionary'}<DictionaryPage ready={runtime.state==='ready'} onnavigate={goSettings}/>
   {:else if settingsSection==='shortcuts'}<ShortcutsPage desktop={isDesktop}/>
-  {:else if settingsSection==='updates'}<UpdatesPage ready={runtime.state==='ready'} onnavigate={goSettings}/>
-  {:else if settingsSection==='engine'}<EnginePage {runtime} busy={runtimeBusy} generating={running} desktop={isDesktop} intent={settingsIntent} onstart={bootRuntime} onstop={endRuntime} onrestart={isDesktop?restartRuntime:undefined} onrefresh={refreshRuntime} onchange={refreshEngine} onnavigate={goSettings}/>
+  {:else if settingsSection==='updates'}<UpdatesPage ready={runtime.state==='ready'} desktop={isDesktop} intent={settingsIntent} onnavigate={goSettings}/>
+  {:else if settingsSection==='engine'}<EnginePage {runtime} busy={runtimeBusy} generating={running} desktop={isDesktop} intent={settingsIntent} onstart={bootRuntime} onstop={endRuntime} onrestart={isDesktop?restartRuntime:undefined} onrefresh={refreshStudio} onchange={refreshEngine} onnavigate={goSettings}/>
   {:else if settingsSection==='models'}<ModelsPage ready={runtime.state==='ready'} desktop={isDesktop} intent={settingsIntent} {requestedLicenseRepo} {requestedLicenseRepos} onchange={refreshEngine} onrestart={isDesktop?restartRuntime:undefined} onnavigate={goSettings}/>
   {:else if settingsSection==='network'}<NetworkPage ready={runtime.state==='ready'} intent={settingsIntent} onremotechange={async()=>{await refreshVoices();await refreshEngine();}} onnavigate={goSettings}/>
   {:else if settingsSection==='integrations'}<IntegrationsPage ready={runtime.state==='ready'} onnavigate={goSettings}/>

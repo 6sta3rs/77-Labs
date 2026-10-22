@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — app updates from GitHub Releases
+
+User request: the bottom-left sidebar button should detect and download new versions, based on the owner's GitHub repository. Added the Tauri updater (`tauri-plugin-updater`, `tauri-plugin-process`): the button (**Sprawdź aktualizacje**) opens Ustawienia → Aktualizacje and checks the `latest.json` feed of the project's GitHub repository (endpoint injected at release build time from `git remote`, so it is not stored in the repository); a newer signed release shows its version and notes with **Pobierz i zainstaluj** (download, signature check, passive NSIS install, restart). Bundling is now NSIS with updater artifacts; `npm run desktop:release` (`scripts/release/build-update.mjs`) builds the signed installer and `latest.json` into `.tmp/release/v<version>/`. The signing key lives outside the repository (`%USERPROFILE%\.tauri\`); the public key is in `tauri.conf.json`. The studio refresh the button used to run is **Odśwież stan** on Ustawienia → Silnik, now enabled while the engine is stopped (it also connects the browser preview); `catalog-ui-check.js` was retargeted to that path. Docs: `docs/features/aktualizacje-aplikacji.md`, README.
+
+Checks: `npm run check` 0/0, `cargo check` OK, `npm run test:ui` PASS, `i18n-check` 14/14, `test:structure` PASS; `npm run desktop:release` produced a signed `Seventy-Seven-Labs_0.2.0_x64-setup.exe` (24 MB), its `.sig` and `latest.json`. Not verified yet: an update from one published version to a higher one (needs a second release), the browser QA `catalog-ui-check.js` run.
+
+Limitations: only NSIS-installed copies can update; the `--no-bundle` EXE from `target/release` must be replaced by an installed copy once. The key has no password; losing it blocks future updates for installed copies.
+
 ## 22 October 2026 — settings: one search field
 
 From the prototype review: the settings sidebar had two searches (the "Szukaj… Ctrl K" button that opens the global palette and a separate "Filtruj ustawienia…" field). Now there is one field in the "Szukaj…" button style with the magnifier, which filters the 12 settings pages by name (empty result: „Brak pasujących ustawień.”); the Ctrl K hint and the second field are gone. The rest of the app keeps the real `SidebarHeader` (button opening the palette).
