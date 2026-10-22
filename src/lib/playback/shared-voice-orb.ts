@@ -2,6 +2,7 @@ import { VoiceOrbRenderer, type OrbVariant } from './voice-orb';
 import type { AudioFeatures } from './audio-features';
 import type { OrbAudioBands } from './playback-meter';
 
+type Treatment = NonNullable<ConstructorParameters<typeof VoiceOrbRenderer>[1]>;
 export type OrbPresentation = Pick<VoiceOrbRenderer,
   'running' | 'setVoice' | 'setVariant' | 'setSensitivity' | 'setLevel' | 'setFeatures' | 'setAudioBands' | 'resize' | 'draw' | 'start' | 'stop' | 'dispose'>;
 type Input = {
@@ -10,7 +11,7 @@ type Input = {
 };
 const groups = new Map<string, SharedSource>();
 
-/** One procedural material and one clock shared by all visible presentations. */
+/** One simulation and one clock, including the landing effect's fluid history. */
 class SharedSource {
   readonly canvas = document.createElement('canvas');
   readonly views = new Set<SharedVoiceOrb>();
@@ -38,14 +39,21 @@ class SharedSource {
     } catch { this.fail(); }
   };
 
-  constructor(readonly key: string) {
+  constructor(readonly key: string, private treatment?: Treatment) {
     this.createRenderer();
     this.canvas.addEventListener('webglcontextlost', this.lost);
     this.canvas.addEventListener('webglcontextrestored', this.restored);
   }
   private createRenderer() {
-    this.ready = true;
-    this.renderer = new VoiceOrbRenderer(this.canvas);
+    const treatment = this.treatment;
+    this.ready = !treatment;
+    this.renderer = new VoiceOrbRenderer(this.canvas, treatment ? { ...treatment,
+      onload: () => {
+        this.ready = true;
+        for (const view of this.views) view.loaded();
+        if ([...this.views].some(view => view.running)) this.renderer.draw();
+      }, onerror: () => this.fail(),
+    } : undefined);
     this.renderer.onDraw = () => {
       ++this.frame;
       // A second RAF here can receive an already-cleared WebGL buffer.
@@ -91,6 +99,8 @@ class SharedSource {
     view.context.drawImage(this.canvas, 0, 0, view.canvas.width, view.canvas.height);
     view.canvas.dataset.sharedFrame = String(this.frame);
     view.canvas.dataset.frames = String(Number(view.canvas.dataset.frames || 0) + 1);
+    view.canvas.dataset.texture = this.canvas.dataset.texture ?? 'none';
+    view.canvas.dataset.fluid = this.canvas.dataset.fluid ?? 'disabled';
   }
   private fail() {
     if (this.failed) return;
@@ -117,12 +127,12 @@ export class SharedVoiceOrb implements OrbPresentation {
   private source: SharedSource;
   private disposed = false;
   running = false;
-  constructor(group: string, readonly canvas: HTMLCanvasElement, private callbacks: { onload: () => void; onerror: () => void; onlost?: () => void }) {
+  constructor(group: string, readonly canvas: HTMLCanvasElement, private callbacks: { onload: () => void; onerror: () => void; onlost?: () => void }, treatment?: Treatment) {
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Canvas 2D unavailable');
     this.context = context;
-    const key = `${group}:procedural`;
-    this.source = groups.get(key) ?? new SharedSource(key);
+    const key = `${group}:${treatment ? 'landing' : 'procedural'}`;
+    this.source = groups.get(key) ?? new SharedSource(key, treatment);
     groups.set(key, this.source); this.source.views.add(this);
     if (this.source.ready) this.loaded();
   }

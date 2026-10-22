@@ -69,6 +69,15 @@ the [original text](src/lib/ui/language-flags/LICENSE.md),
 are included in the flags directory. The manifest describes how source
 symlinks were resolved to file contents.
 
+## ElevenLabs homepage orb - Płyn style
+
+The **Płyn** orb style adapts the fragment shader, fluid pass, and three
+decorative images (`src/lib/assets/landing-orb/`) from the ElevenLabs
+homepage, captured 2026-10-20. ElevenLabs published no redistribution terms
+for them; they are included at the maintainer's decision and remain the
+property of their owner. Origin, hashes, and removal steps:
+[docs/features/kula-plyn.md](docs/features/kula-plyn.md).
+
 ## Dependencies and interface assets
 
 npm, Rust, and Python dependencies retain their own licenses. Exact versions
@@ -77,8 +86,9 @@ inside the engine archive. Assess versions and licenses for the actual
 package; this document is not a complete transitive dependency inventory
 or set of notices for the EXE.
 
-The public release uses original procedural visualizations and neutral model
-icons. Model names identify models; they do not
+Four of the five voice-orb styles are original procedural visualizations; the
+fifth, **Płyn**, uses material adapted from the ElevenLabs homepage (see
+below). Model icons are neutral. Model names identify models; they do not
 imply endorsement or affiliation with their authors. Legacy internal
 identifiers may remain for settings compatibility and do not grant rights
 to third-party materials.

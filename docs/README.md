@@ -18,6 +18,7 @@ Start with the [project map](architecture/struktura-projektu.md), the [project c
 ## Features and guides
 
 - [Interface component gallery](features/podglad-kontrolek.md)
+- [Voice orb style Płyn](features/kula-plyn.md)
 - [Shared controls](features/t3-controls.md)
 - [Labs themes and palettes](features/motywy-t3-code.md)
 - [Safe interface preview (demo data)](features/tts-demo.md)

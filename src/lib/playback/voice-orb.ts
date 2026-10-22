@@ -2,7 +2,7 @@ import type { AudioFeatures } from './audio-features';
 import type { OrbAudioBands } from './playback-meter';
 export type OrbVariant = 'original' | 'calm' | 'storm' | 'intonation' | 'landing';
 export const orbVariants: OrbVariant[] = ['original', 'calm', 'storm', 'intonation', 'landing'];
-/** Previous saved names select the original, texture-free material. */
+/** The earlier saved name 'elevenlabs' is the same variant as 'landing' (Płyn). */
 export function normalizeOrbVariant(value: unknown, fallback: OrbVariant = 'original'): OrbVariant {
   if (value === 'elevenlabs') return 'landing';
   return orbVariants.includes(value as OrbVariant) ? value as OrbVariant : fallback;
@@ -178,24 +178,38 @@ export class VoiceOrbRenderer {
   private centroid = 0;
   private targetCentroid = 0;
   private disposed = false;
+  private texture?: WebGLTexture;
+  private image?: HTMLImageElement;
+  private fluid?: { readonly texture: WebGLTexture; readonly state: string; update: (dt: number, audio: OrbAudioBands) => void; dispose: () => void };
+  private emptyFluid?: WebGLTexture;
+  private position = 0;
   private audioTarget?: OrbAudioBands;
   private rawAudio: [number, number, number, number] = [0, 0, 0, 0];
+  private audioAverage = new Float32Array(4);
+  private cumulativeAudio = new Float32Array(4);
   private reactiveBands = new Float32Array(4);
   private reactiveDrive = 0;
   private reactiveImpulse = 0;
   private targetTransient = 0;
   private previousEnvelope = 0;
   running = false;
+  /** Without its textures (not loaded or failed) the Płyn style degrades to the original procedural material. */
+  private get textured() { return this.variant === 'landing' && !!this.texture; }
   /** Copies shared presentations before WebGL clears its drawing buffer. */
   onDraw?: () => void;
 
-  constructor(private canvas: HTMLCanvasElement, private preview = false) {
+  constructor(private canvas: HTMLCanvasElement, treatment?: {
+    fragment: string; texture: string; onload: () => void; onerror: () => void;
+    uniforms?: Record<string, number | number[]>;
+    createFluid?: (gl: WebGLRenderingContext) => NonNullable<VoiceOrbRenderer['fluid']>;
+  }, private preview = false) {
     const gl = canvas.getContext('webgl', { alpha: true, antialias: false, depth: false, premultipliedAlpha: false });
     if (!gl) throw new Error('WebGL unavailable');
     this.gl = gl;
+    if (treatment) gl.getExtension('OES_standard_derivatives');
     const shaders: WebGLShader[] = [];
     try {
-      for (const [type, source] of [[gl.VERTEX_SHADER, vertex], [gl.FRAGMENT_SHADER, fragment]] as const) {
+      for (const [type, source] of [[gl.VERTEX_SHADER, vertex], [gl.FRAGMENT_SHADER, treatment?.fragment ?? fragment]] as const) {
         const shader = gl.createShader(type);
         if (!shader) throw new Error('Shader allocation failed');
         shaders.push(shader); gl.shaderSource(shader, source); gl.compileShader(shader);
@@ -212,11 +226,61 @@ export class VoiceOrbRenderer {
       this.buffer = buffer;
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
       const position = gl.getAttribLocation(program, 'position');
+      this.position = position;
       gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
       for (const name of ['time','level','energy','seed','resolution','darkColor','midColor','lightColor','variant','turbulence','centroid','pitch','pitchStrength','uAudioAverage','uCumulativeAudio','reactiveBands','reactiveDrive','reactiveImpulse','previewPalette']) this.uniforms[name] = gl.getUniformLocation(program, name);
       gl.uniform1f(this.uniforms.previewPalette, 1);
       gl.disable(gl.DEPTH_TEST);
+      if (treatment) {
+        for (const [name, value] of Object.entries(treatment.uniforms ?? {})) {
+          const location = gl.getUniformLocation(program, name);
+          if (typeof value === 'number') gl.uniform1f(location, value);
+          else if (value.length === 2) gl.uniform2fv(location, value);
+          else if (value.length === 3) gl.uniform3fv(location, value);
+          else if (value.length === 4) gl.uniform4fv(location, value);
+        }
+        const emptyFluid = gl.createTexture();
+        if (!emptyFluid) throw new Error('Fluid fallback allocation failed');
+        this.emptyFluid = emptyFluid;
+        gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, emptyFluid);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.uniform1i(gl.getUniformLocation(program, 'uFluidSimTexture'), 1);
+        const texture = gl.createTexture();
+        if (!texture) throw new Error('Texture allocation failed');
+        this.texture = texture;
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        const placeholder = this.preview ? [...orbPreviewIdentity('', 'landing').rgb[1].map(value => Math.round(value * 255)), 255] : [255, 118, 50, 255];
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(placeholder));
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.uniform1i(gl.getUniformLocation(program, 'gradientTexture'), 0);
+        const ready = gl.getUniformLocation(program, 'textureReady');
+        const image = new Image();
+        this.image = image;
+        canvas.dataset.texture = 'loading';
+        image.onload = () => {
+          if (this.disposed || gl.isContextLost()) return;
+          gl.useProgram(program); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+          gl.uniform1f(ready, 1);
+          canvas.dataset.texture = 'ready';
+          treatment.onload();
+        };
+        image.onerror = () => { if (!this.disposed) { canvas.dataset.texture = 'fallback'; treatment.onerror(); } };
+        this.fluid = treatment.createFluid?.(gl);
+        canvas.dataset.fluid = this.fluid?.state ?? 'disabled';
+        image.src = treatment.texture;
+      }
     } catch (error) {
+      if (this.texture) gl.deleteTexture(this.texture);
+      this.fluid?.dispose();
+      if (this.emptyFluid) gl.deleteTexture(this.emptyFluid);
       if (this.buffer) gl.deleteBuffer(this.buffer);
       if (this.program) gl.deleteProgram(this.program);
       throw error;
@@ -291,7 +355,17 @@ export class VoiceOrbRenderer {
       const sample = orbPreviewFrame(this.previewTime);
       this.setLevel(sample.level); this.setFeatures(sample.features); this.setAudioBands(sample.bands);
     }
-    this.updateReaction(Math.max(0, dt));
+    if (this.textured) {
+      const weight = 1 - Math.pow(.45, Math.max(0, dt) * 60);
+      for (let channel = 0; channel < 4; channel++) {
+        const value = this.audioTarget?.[channel] ?? 0;
+        const raw = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+        this.rawAudio[channel] = raw;
+        this.audioAverage[channel] += (raw - this.audioAverage[channel]) * weight;
+        this.cumulativeAudio[channel] += raw * 21 * Math.max(0, dt);
+      }
+      if (dt > 0) this.fluid?.update(dt, this.rawAudio);
+    } else this.updateReaction(Math.max(0, dt));
     // A sustained note still carries energy. Flux alone only describes its changes.
     const storm = this.variant === 'storm';
     const sustained = this.target * (.7 + this.targetConfidence * (.12 + this.targetPitch * .22) + this.targetCentroid * .14);
@@ -300,25 +374,39 @@ export class VoiceOrbRenderer {
     // A zero-time redraw (resize, resume, prop change) must never snap to a new target.
     const blend = dt ? 1 - Math.exp(-dt / (gain > this.turbulence ? .55 : 1.1)) : 0;
     this.turbulence += (gain - this.turbulence) * blend;
-    const intonation = this.variant === 'intonation';
-    const confidenceTarget = this.target > .001 ? this.targetConfidence * Math.min(1, this.sensitivity) : 0;
-    const confidenceTime = confidenceTarget > this.confidence ? intonation ? .065 : .14 : intonation ? .18 : .35;
-    this.pitch += (this.targetPitch - this.pitch) * (dt ? 1 - Math.exp(-dt / (intonation ? .14 : .3)) : 0);
+    const landing = this.textured, intonation = this.variant === 'intonation';
+    const confidenceTarget = landing ? this.targetConfidence : this.target > .001 ? this.targetConfidence * Math.min(1, this.sensitivity) : 0;
+    const confidenceTime = landing ? .8 : confidenceTarget > this.confidence ? intonation ? .065 : .14 : intonation ? .18 : .35;
+    this.pitch += (this.targetPitch - this.pitch) * (dt ? 1 - Math.exp(-dt / (landing ? .7 : intonation ? .14 : .3)) : 0);
     this.confidence += (confidenceTarget - this.confidence) * (dt ? 1 - Math.exp(-dt / confidenceTime) : 0);
-    this.centroid += (this.targetCentroid - this.centroid) * (dt ? 1 - Math.exp(-dt / (this.variant === 'calm' ? .4 : .2)) : 0);
+    this.centroid += (this.targetCentroid - this.centroid) * (dt ? 1 - Math.exp(-dt / (landing ? .8 : this.variant === 'calm' ? .4 : .2)) : 0);
     const drift = this.variant === 'calm' ? .6 : this.variant === 'intonation' ? .82 : .9;
     const response = storm ? .9 + this.pitch * this.confidence * .6 : .24;
     this.time += dt * (this.variant === 'original' || this.variant === 'landing' ? 1 : drift + this.turbulence * response);
-    const levelTarget = Math.min(1, this.target * this.sensitivity);
-    this.level += (levelTarget - this.level) * (dt ? 1 - Math.exp(-dt / (levelTarget > this.level ? .055 : .26)) : 0);
-    this.energy += (this.reactiveDrive * .35 + this.turbulence * .12) * dt;
+    const levelTarget = landing ? this.target : Math.min(1, this.target * this.sensitivity);
+    this.level += (levelTarget - this.level) * (dt ? 1 - Math.exp(-dt / (landing ? levelTarget > this.level ? .25 : .65 : levelTarget > this.level ? .055 : .26)) : 0);
+    this.energy += (landing ? this.level * .15 + this.turbulence * .22 : this.reactiveDrive * .35 + this.turbulence * .12) * dt;
     const gl = this.gl;
+    // Fluid owns temporary framebuffers/programs. Restore the sphere's state.
+    if (this.texture) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+      gl.enableVertexAttribArray(this.position); gl.vertexAttribPointer(this.position, 2, gl.FLOAT, false, 0, 0);
+      gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.fluid?.texture ?? this.emptyFluid!);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    }
     gl.useProgram(this.program); gl.uniform1f(this.uniforms.time, this.time); gl.uniform1f(this.uniforms.level, this.level); gl.uniform1f(this.uniforms.energy, this.energy);
-    gl.uniform4fv(this.uniforms.reactiveBands, this.reactiveBands);
-    gl.uniform1f(this.uniforms.reactiveDrive, this.reactiveDrive);
-    gl.uniform1f(this.uniforms.reactiveImpulse, this.reactiveImpulse);
-    // The saved landing name aliases our own original procedural shader.
-    gl.uniform1f(this.uniforms.variant, this.variant === 'landing' ? 0 : orbVariants.indexOf(this.variant)); gl.uniform1f(this.uniforms.turbulence, this.turbulence);
+    if (this.textured) {
+      gl.uniform4fv(this.uniforms.uAudioAverage, this.audioAverage);
+      gl.uniform4fv(this.uniforms.uCumulativeAudio, this.cumulativeAudio);
+    } else {
+      gl.uniform4fv(this.uniforms.reactiveBands, this.reactiveBands);
+      gl.uniform1f(this.uniforms.reactiveDrive, this.reactiveDrive);
+      gl.uniform1f(this.uniforms.reactiveImpulse, this.reactiveImpulse);
+    }
+    gl.uniform1f(this.uniforms.variant, this.variant === 'landing' && !this.textured ? 0 : orbVariants.indexOf(this.variant)); gl.uniform1f(this.uniforms.turbulence, this.turbulence);
     gl.uniform1f(this.uniforms.centroid, this.centroid); gl.uniform1f(this.uniforms.pitch, this.pitch); gl.uniform1f(this.uniforms.pitchStrength, this.confidence);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.canvas.dataset.frames = String(Number(this.canvas.dataset.frames || 0) + 1);
@@ -329,9 +417,9 @@ export class VoiceOrbRenderer {
     this.running = true; this.last = 0; this.nextFrame = 0;
     const frame = (now: number) => {
       if (!this.running) return;
-      // Keep the 30 FPS deadline across 60/75/120/144 Hz displays.
+      // Keep the selected 30/60 FPS deadline across 60/75/120/144 Hz displays.
       // Small timestamp rounding must not skip an intended display frame.
-      const interval = 1000 / 30;
+      const interval = 1000 / (this.textured ? 60 : 30);
       if (now >= this.nextFrame - .5) {
         this.draw(this.last ? Math.min((now - this.last) / 1000, .1) : 0);
         this.last = now;
@@ -346,6 +434,10 @@ export class VoiceOrbRenderer {
   stop() { this.running = false; cancelAnimationFrame(this.raf); }
   dispose() {
     this.stop(); this.disposed = true;
+    if (this.image) { this.image.onload = null; this.image.onerror = null; this.image.src = ''; this.image = undefined; }
+    if (this.texture) this.gl.deleteTexture(this.texture);
+    this.fluid?.dispose();
+    if (this.emptyFluid) this.gl.deleteTexture(this.emptyFluid);
     this.gl.deleteBuffer(this.buffer); this.gl.deleteProgram(this.program);
   }
 }

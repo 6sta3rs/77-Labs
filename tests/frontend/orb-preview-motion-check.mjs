@@ -32,7 +32,7 @@ function create(preview, variant = 'original', voiceId = 'settings-preview-test'
     return () => {};
   } });
   const canvas = { getContext: () => { metrics.contextRequests++; return gl; }, dataset: {} };
-  const renderer = preview === undefined ? new VoiceOrbRenderer(canvas) : new VoiceOrbRenderer(canvas, preview);
+  const renderer = preview === undefined ? new VoiceOrbRenderer(canvas) : new VoiceOrbRenderer(canvas, undefined, preview);
   renderer.setVoice(voiceId); renderer.setVariant(variant);
   renderer.setLevel(0); renderer.setFeatures(); renderer.setAudioBands();
   return { renderer, values, canvas, metrics };

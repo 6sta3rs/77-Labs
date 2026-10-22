@@ -20,6 +20,9 @@
   // Bumped when the app-wide orb palette changes, so colors and the GL uniforms repaint.
   let paletteVersion = $state(0);
   $effect(() => { const bump = () => paletteVersion++; window.addEventListener('orb-palette', bump); return () => window.removeEventListener('orb-palette', bump); });
+  let textureLoaded = $state(false);
+  let landingAssets = $state.raw<typeof import('./landing-orb')>();
+  const landing = $derived(variant === 'landing');
   let identity = $derived((void paletteVersion, preview ? orbPreviewIdentity(voiceId, variant) : voiceIdentity(voiceId)));
   const presenting = $derived(animated && visible && !hidden && !reduced && !suspended);
   const safeSensitivity = $derived(Number.isFinite(sensitivity) ? Math.max(0, Math.min(3, sensitivity)) : 1);
@@ -33,6 +36,12 @@
   const angles = Array.from({ length: 37 }, (_, index) => Math.PI + index / 36 * Math.PI);
 
   $effect(() => {
+    if (!landing || landingAssets) return;
+    let cancelled = false;
+    void import('./landing-orb').then(assets => { if (!cancelled) landingAssets = assets; }).catch(() => { if (!cancelled) mode = 'fallback'; });
+    return () => { cancelled = true; };
+  });
+  $effect(() => {
     if (!root || !animated) { visible = false; initialized = false; return; }
     return observeOrbMotion(root, state => {
       reduced = state.reduced; visible = state.visible; hidden = state.hidden;
@@ -44,23 +53,29 @@
   });
   $effect(() => {
     const element = canvas;
-    if (!element || !animated || !initialized) { mode = 'static'; return; }
+    const textured = landing;
+    const assets = textured ? landingAssets : undefined;
+    if (!element || !animated || !initialized || (textured && !assets)) { mode = 'static'; return; }
     // A demonstration must never drive the shared, real playback visualization.
     const group = preview ? undefined : syncGroup;
     let local: OrbPresentation | undefined;
     const create = () => {
-      // Initialization waits until a presentation is visible.
+      // A lazy texture can arrive after the orb left the viewport. The next
+      // visibility notification will retry initialization without waking hidden GL.
       if (!untrack(() => visible && !hidden && !suspended)) { initialized = false; mode = 'static'; return; }
+      textureLoaded = false;
       try {
         const callbacks = { onload: () => {
-          mode = 'webgl';
+          textureLoaded = true; mode = 'webgl';
           // A ready shared source calls back during construction; do not track presentation state here.
           untrack(() => { if (visible && !hidden && !suspended && !local?.running) local?.draw(); });
-        }, onlost: () => { mode = 'fallback'; }, onerror: () => {
+        }, onlost: () => { textureLoaded = false; mode = 'fallback'; }, onerror: () => {
           local?.dispose(); local = undefined; renderer = undefined;
-          mode = 'fallback';
+          textureLoaded = false; mode = 'fallback';
         } };
-        local = group ? new SharedVoiceOrb(group, element, callbacks) : new VoiceOrbRenderer(element, preview);
+        const treatment = assets ? { fragment: assets.landingOrbFragment, texture: assets.landingGradient,
+          uniforms: assets.landingOrbUniforms, createFluid: (gl: WebGLRenderingContext) => new assets.LandingFluid(gl), ...callbacks } : undefined;
+        local = group ? new SharedVoiceOrb(group, element, callbacks, treatment) : new VoiceOrbRenderer(element, treatment, preview);
         renderer = local; mode = local instanceof SharedVoiceOrb && local.unavailable ? 'fallback' : 'webgl'; local.resize();
       }
       catch { mode = 'fallback'; renderer = undefined; }
@@ -96,8 +111,9 @@
   data-variant={variant} data-preview={preview || undefined} data-sync-group={preview ? undefined : syncGroup} data-turbulence={drive.toFixed(3)} data-pitch={playing && presenting ? features?.pitchHz?.toFixed(1) : undefined} aria-hidden="true"
   style={`--orb-size:${typeof size === 'number' ? `${size}px` : size};--orb-dark:${identity.colors[0]};--orb-mid:${identity.colors[1]};--orb-light:${identity.colors[2]};--orb-level:${presenting ? level : 0};--orb-pitch-angle:${pitchAngle}deg;--orb-duration:${variant === 'calm' ? 36 : variant === 'intonation' ? 28 : 24}s`}>
   <span class="orb-sphere">
-    <span class="orb-fallback" class:moving={mode === 'fallback' && presenting}></span>
-    {#if animated}<canvas bind:this={canvas} class:ready={mode === 'webgl'}></canvas>{/if}
+    <span class="orb-fallback" style:background-image={landing && !preview && landingAssets ? `url(${landingAssets.landingFallback})` : undefined} class:moving={!landing && mode === 'fallback' && presenting}></span>
+    {#if animated}<canvas bind:this={canvas} class:ready={mode === 'webgl' && (!landing || textureLoaded)}></canvas>{/if}
+    {#if landing}<span class="orb-grain" style:background-image={landingAssets ? `url(${landingAssets.landingNoise})` : undefined}></span>{/if}
   </span>
   {#if ring}<svg viewBox="0 0 200 200" class="orb-ring">
     {#each angles as angle, index}
@@ -108,6 +124,8 @@
 </span>
 
 <style>
+  .voice-orb[data-sync-group] .orb-grain{background-size:100% 100%}
+  .voice-orb[data-variant=landing]:not([data-preview]) .orb-fallback{background-color:#ff7632;background-size:cover;background-position:center;box-shadow:none}.orb-grain{position:absolute;inset:0;background-repeat:repeat;background-size:256px;image-rendering:pixelated;mix-blend-mode:overlay;opacity:.5;pointer-events:none}@media(min-resolution:2x){.orb-grain{background-size:128px}}
   .voice-orb[data-variant=intonation] .orb-fallback{transition:filter .8s ease-out}@media(prefers-reduced-motion:reduce){.voice-orb[data-variant=intonation] .orb-fallback{transition:none}}:global([data-reduced-motion=true]) .voice-orb[data-variant=intonation] .orb-fallback{transition:none}
   .voice-orb{display:inline-block;position:relative;width:var(--orb-size);height:var(--orb-size);flex:none;vertical-align:middle;isolation:isolate;pointer-events:none}.orb-sphere{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:var(--orb-dark);transform:translateZ(0)}.ring .orb-sphere{inset:13%}.orb-fallback{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 28% 26%,var(--orb-light),transparent 48%),radial-gradient(ellipse at 72% 70%,var(--orb-mid),transparent 50%),radial-gradient(ellipse at 70% 28%,var(--orb-dark),transparent 55%),var(--orb-mid);box-shadow:inset -5px -8px 18px #0004,inset 2px 2px 10px #ffffff18}.orb-fallback.moving{animation:orb-drift 22s linear infinite}.voice-orb:not([data-variant=original]) .orb-fallback.moving{animation-duration:var(--orb-duration)}.voice-orb[data-variant=intonation] .orb-fallback{filter:hue-rotate(var(--orb-pitch-angle))}.orb-sphere canvas{position:absolute;width:100%;height:100%;inset:0;opacity:0}.orb-sphere canvas.ready{opacity:1}.orb-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--foreground);stroke-width:1.6;stroke-linecap:round}@keyframes orb-drift{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.orb-fallback.moving{animation:none}}
 </style>
