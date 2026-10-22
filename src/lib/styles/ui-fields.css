@@ -26,8 +26,8 @@ textarea.vs-textarea[data-size=lg]{min-height:74px;padding-block:7px}
 .vs-select-list{max-height:max(0px,calc(var(--select-max-height,272px) - 2px));overflow-y:auto;overscroll-behavior:contain;padding:4px;scroll-padding-block:28px;outline:none}
 .vs-select-group-label{padding:6px 8px;color:var(--muted);font-size:var(--ui-text-12);font-weight:500}
 .vs-select-scroll{position:absolute;z-index:1;inset-inline:1px;display:flex;align-items:center;justify-content:center;height:24px;padding:0;border:0;color:var(--foreground);cursor:default;border-radius:6px;box-shadow:none}
-.vs-select-scroll-up{top:1px;background:linear-gradient(to bottom,var(--surface-overlay,var(--surface-raised)) 60%,transparent)}
-.vs-select-scroll-down{bottom:1px;background:linear-gradient(to top,var(--surface-overlay,var(--surface-raised)) 60%,transparent)}
+.vs-select-scroll-up{top:1px;background:var(--surface-raised)}
+.vs-select-scroll-down{bottom:1px;background:var(--surface-raised)}
 .vs-select-scroll:hover{color:var(--foreground)}
 .vs-native-control{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;pointer-events:none}
 .vs-switch[data-size=sm]{--thumb-size:14px}

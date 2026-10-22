@@ -7,7 +7,7 @@
     as?: 'button' | 'label'
     for?: string
     onclick?: (event: MouseEvent & { currentTarget: EventTarget & HTMLElement }) => void
-    variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive'
+    variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'light'
     size?: 'default' | 'sm' | 'compact' | 'xs' | 'icon' | 'icon-xs'
     children?: Snippet
   } = $props()

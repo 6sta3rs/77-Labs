@@ -1,5 +1,15 @@
 # Public project progress
 
+## 22 October 2026 — shared controls corrected as in the approved settings prototype
+
+User request: move the approved settings prototype into the app, including the component corrections made during its review. This entry covers the shared components; the settings pages follow in separate commits.
+
+Change (app-wide, `src/lib/ui`, `src/lib/styles`): list popups (`Select`) are solid `--surface-raised` without blur, and their scroll arrows are solid, so text under the popup no longer shows through; text fields are 32 px like `Select` and `Button` (was 30 px); fields, select triggers and outline buttons share one clearly visible border (`--foreground` 18 % over `--input-border`); `Button` text is 13 px like the fields (was 14 px); filled blue and red buttons lose the inset highlight and outer glow; a disabled filled button is flat (transparent, `--border`, muted text) instead of a dimmed fill; new `Button variant="light"` (white fill) for finishing or closing an inline editor.
+
+Checks: `npm run check` 0/0, `npm run test:styles` PASS, `npm run test:buttons` PASS. `publication_check` reports only the known local `refs/t3/.../checkpoints` refs created by T3 Code; file contents pass.
+
+Limitations: the 13 px button text and stronger borders apply to every screen, not only Settings; the mobile sizes (≤639 px) are unchanged. Not yet checked visually outside Settings.
+
 ## 22 October 2026 — Płyn preview shows the full effect
 
 User request: the Płyn animation in the settings preview did not show the full potential of the style. Cause: the shared demo signal is a smooth, low-amplitude pulse (level ≤ 0.66), and the fluid only splashes while the overall level is rising, so the preview showed little of the flow.

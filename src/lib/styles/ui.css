@@ -2,8 +2,8 @@
 @import './typography.css';
 /* T3 Code controls, adapted to Svelte. Source and license: docs/features/t3-controls.md. */
 .vs-control-label{display:block;font-size:var(--ui-text-12);font-weight:500;color:var(--muted);margin-bottom:7px}
-.text-input,.search-field,.vs-select-trigger{border:1px solid var(--input-border,var(--border));border-radius:8px;background:var(--control-background,var(--background));color:var(--foreground);box-shadow:var(--control-shadow);transition:box-shadow var(--motion-duration,140ms),border-color var(--motion-duration,140ms);background-clip:padding-box}
-.text-input{display:block;min-width:0;width:100%;height:30px;padding:0 11px;font:inherit;font-size:var(--ui-font-size,13px);line-height:28px;outline:none}
+.text-input,.search-field,.vs-select-trigger{border:1px solid color-mix(in srgb,var(--foreground) 18%,var(--input-border,var(--border)));border-radius:8px;background:var(--control-background,var(--background));color:var(--foreground);box-shadow:var(--control-shadow);transition:box-shadow var(--motion-duration,140ms),border-color var(--motion-duration,140ms);background-clip:padding-box}
+.text-input{display:block;min-width:0;width:100%;height:32px;padding:0 11px;font:inherit;font-size:var(--ui-font-size,13px);line-height:30px;outline:none}
 textarea.text-input{height:auto;min-height:70px;padding:5px 11px;line-height:1.6;resize:vertical;overflow-wrap:anywhere}
 .text-input::placeholder,.search-field input::placeholder{color:var(--placeholder,var(--muted))}
 .text-input:focus-visible,.search-field:has(input:focus-visible),.vs-select-trigger:focus-visible{border-color:var(--focus,var(--accent));box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--focus,var(--accent)) 24%,transparent);outline:none}

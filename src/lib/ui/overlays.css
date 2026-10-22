@@ -1,9 +1,12 @@
 /* Glass surfaces use the user's theme and existing menu-opacity setting. */
 :root{--popup-blur:10px;--modal-blur:6px;--modal-scrim:rgb(0 0 0 / 42%)}
 /* Prefix first: Lightning CSS otherwise drops the standard property in production. */
-html :is(.vs-select-popup[class],.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){--muted:var(--overlay-muted);--icon-muted:var(--overlay-muted);--placeholder:var(--overlay-placeholder);background:color-mix(in srgb,var(--surface-overlay,var(--background)) var(--glass-opacity,95%),transparent);-webkit-backdrop-filter:blur(var(--popup-blur)) saturate(1.12);backdrop-filter:blur(var(--popup-blur)) saturate(1.12)}
+html :is(.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){--muted:var(--overlay-muted);--icon-muted:var(--overlay-muted);--placeholder:var(--overlay-placeholder);background:color-mix(in srgb,var(--surface-overlay,var(--background)) var(--glass-opacity,95%),transparent);-webkit-backdrop-filter:blur(var(--popup-blur)) saturate(1.12);backdrop-filter:blur(var(--popup-blur)) saturate(1.12)}
 html .modal-backdrop,html dialog[open]::backdrop{background:var(--modal-scrim);-webkit-backdrop-filter:blur(var(--modal-blur));backdrop-filter:blur(var(--modal-blur))}
 /* Project/search use native modality with the same viewport gutters as before. */
 dialog.modal[open]{position:fixed;inset:0;margin:auto;height:fit-content;max-width:calc(100vw - 30px);max-height:min(90dvh,calc(100dvh - 30px))}
-@supports not (backdrop-filter:blur(1px)){html :is(.vs-select-popup[class],.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){background:var(--surface-overlay,var(--background))}}
-@media(prefers-reduced-transparency:reduce){html :is(.vs-select-popup[class],.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){background:var(--surface-overlay,var(--background));-webkit-backdrop-filter:none;backdrop-filter:none}html .modal-backdrop,html dialog[open]::backdrop{-webkit-backdrop-filter:none;backdrop-filter:none}}
+@supports not (backdrop-filter:blur(1px)){html :is(.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){background:var(--surface-overlay,var(--background))}}
+@media(prefers-reduced-transparency:reduce){html :is(.tag-popover[class],.tools-popover[class],.device-popover[class],.voice-menu-items[class],.modal[class],dialog[open]){background:var(--surface-overlay,var(--background));-webkit-backdrop-filter:none;backdrop-filter:none}html .modal-backdrop,html dialog[open]::backdrop{-webkit-backdrop-filter:none;backdrop-filter:none}}
+
+/* Lists are solid: the glass mix let text under the popup and its scroll arrows show through. */
+html .vs-select-popup[class]{--muted:var(--overlay-muted);--icon-muted:var(--overlay-muted);--placeholder:var(--overlay-placeholder);background:var(--surface-raised);-webkit-backdrop-filter:none;backdrop-filter:none}
