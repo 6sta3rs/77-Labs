@@ -24,11 +24,12 @@ Settings has 12 pages in 4 groups, defined in `src/lib/settings/settings-catalog
 
 Run `npm ci`, then `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` displays fictional data and a procedural tone. `inputy.html` opens the component gallery.
 
-`npm run desktop:dev` starts Tauri; `npm run desktop:build` creates an EXE without an installer, at `src-tauri/target/release/seventy-seven-labs.exe`. The window opens without Python. The backend on port 4312 starts on demand and stops after confirmed inactivity; it needs its own environment and weights. Rust reads voices and portraits without the backend. The browser uses the `/backend` proxy and does not start the Tauri supervisor.
+`npm run desktop:dev` starts Tauri; `npm run desktop:build` creates an EXE without an installer, at `src-tauri/target/release/seventy-seven-labs.exe`. The window opens without Python, then the app starts the backend on port 4312 (and warms the TTS model in the background); after an idle stop it starts again on the next task. It stops after confirmed inactivity; it needs its own environment and weights. Rust reads voices and portraits without the backend. The browser uses the `/backend` proxy and does not start the Tauri supervisor.
 
 Engine lifecycle:
 
 - **Idle stop:** the engine stops after a configurable period of confirmed inactivity. The default is 15 minutes; the choice is 5, 15, 30, or 60 minutes in **Ustawienia → Silnik → Stan** (Settings → Engine → Status), under **Utrzymuj silnik po bezczynności** (Keep the engine after inactivity).
+- **Start at launch:** `App.svelte` starts the engine when the desktop app opens (`bootRuntime`, silent in the browser demo) and the launcher sets `VOICESTUDIO_NEXT_PRELOAD_TTS=1`, so the TTS model loads in the background. `EngineStartup.svelte` shows the steps and the model warm-up.
 - **Startup budget:** a cold start may take up to 300 s when libraries and weights load from a slow disk; progress is shown and waiting ends when progress stalls.
 - **Graceful stop:** stdin is closed and the supervisor waits up to 15 s before ending only the process tree it owns.
 

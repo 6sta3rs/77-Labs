@@ -29,6 +29,7 @@
   import StoragePage from './lib/settings/pages/StoragePage.svelte';
   import PrivacyPage from './lib/settings/pages/PrivacyPage.svelte';
   import Toaster from './lib/ui/Toaster.svelte';
+  import EngineStartup from './lib/platform/EngineStartup.svelte';
   import type { SettingsSection } from './lib/shell/navigation';
   import './lib/shell/navigation-layout.css';
   import Player from './lib/playback/Player.svelte';
@@ -410,7 +411,7 @@
     void loadRecordings().then(rows=>history=rows).catch(()=>{});
     const runtimeChanged=(event:Event)=>{runtime=(event as CustomEvent).detail;};
     window.addEventListener('studio-runtime',runtimeChanged);
-    if(isDesktop){void refreshRuntime();void refreshVoices().catch(error=>notify((error as Error).message));}else{runtime={state:'stopped',message:'Podgląd interfejsu · synteza w aplikacji Windows',port:4312,managed:false};void api.health().then(async()=>{runtime={state:'ready',message:'Lokalny silnik gotowy',port:4312,managed:false};await refreshVoices();await refreshEngine();}).catch(()=>{});}
+    if(isDesktop){void refreshRuntime();if(!demoMode)void bootRuntime();void refreshVoices().catch(error=>notify((error as Error).message));}else{runtime={state:'stopped',message:'Podgląd interfejsu · synteza w aplikacji Windows',port:4312,managed:false};void api.health().then(async()=>{runtime={state:'ready',message:'Lokalny silnik gotowy',port:4312,managed:false};await refreshVoices();await refreshEngine();}).catch(()=>{});}
     let lastRuntimeRefresh=0;
     const refresh=setInterval(()=>{if(isDesktop&&!document.hidden&&!runtimeBusy&&(runtime.state==='starting'||runtime.state==='ready'&&Date.now()-lastRuntimeRefresh>10000)){lastRuntimeRefresh=Date.now();void refreshRuntime();}},2500);
     return()=>{window.removeEventListener('studio-runtime',runtimeChanged);disposeModelRequests();flushProjectSave();window.removeEventListener('pagehide',flushProjectSave);window.removeEventListener('beforeunload',flushProjectSave);document.removeEventListener('visibilitychange',flushHidden);voiceRefreshSequence++;portraits.dispose();clearInterval(refresh);clearTimeout(noticeTimer);controller?.abort();aiController?.abort();voicePreviewController?.abort();if(voicePreviewUrl)URL.revokeObjectURL(voicePreviewUrl);history.forEach(item=>{if(item.url)URL.revokeObjectURL(item.url);});};
@@ -487,7 +488,7 @@
   {:else if settingsSection==='privacy'}<PrivacyPage ready={runtime.state==='ready'} onnavigate={goSettings}/>
   {/if}
   {/key}
-</SettingsShell>{/if}<Toaster/>
+</SettingsShell>{/if}<EngineStartup {runtime}/><Toaster/>
 {#if !demoMode}<ModelLicenseOnboarding ready={runtime.state==='ready'} selection={`${ttsFamily?.active || ''}:${ttsFamily?.active_model || ''}`} onsetup={()=>void showModels()}/>{/if}
 {#if toast}<div class="toast" role="status"><Info size={16}/><span>{tr(toast)}</span><Button variant="ghost" size="icon-xs" aria-label={tr("Zamknij komunikat")} onclick={()=>toast=''}><X size={14}/></Button></div>{/if}
 {#if modal==='voices'}<VoicePicker {voices} initialVoiceId={linkedVoiceId} onrefresh={demoMode?undefined:loadPickerModels} modelLanguages={voiceModel?.supported_language_names||[]} modelName={voiceModel?.display_name||voiceModelFamily?.active||''} languageLoading={!demoMode&&modelLoading} languageNotice={!demoMode&&modelError?tr("Nie udało się odczytać języków modelu. ")+modelError:''} selectedId={blocks.find(block=>block.id===voiceBlockId)?.voiceId||primaryVoice.id} demo={demoMode} ready={demoMode?!!demoAudio:isDesktop||runtime.state==='ready'} busyId={voicePreviewId} playingId={playbackState.status==='playing'?recording?.voiceId||'':''} onselect={chooseVoice} onpreview={previewVoice} onclose={()=>{cancelVoicePreview();linkedVoiceId='';modal=null;}} oncreate={()=>{openVoiceCreate();}}/>{/if}

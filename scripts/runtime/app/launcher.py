@@ -23,6 +23,11 @@ DATA = ROOT.parent / "data"
 PORT = 4312
 
 
+def stage(name):
+    """Tell the supervisor which pre-server startup stage began (read from engine.log)."""
+    print("NEXT_STARTUP_EVENT " + json.dumps({"stage": name}), flush=True)
+
+
 def prepare_engine():
     """Publish one immutable source generation; never overwrite an old engine.
 
@@ -289,11 +294,14 @@ def main():
     global DATA
     from storage_settings import apply_pending_data_relocation
     DATA = apply_pending_data_relocation(ROOT)
+    stage("engine_files")
     prepare_engine()
     configure_environment()
     from runtime_backup import backup_before_upgrade
+    stage("backup")
     source_manifest = json.loads((PROJECT / ".engine-ready.json").read_text(encoding="utf-8"))
     backup_before_upgrade(DATA, source_manifest["archiveSha256"])
+    stage("modules")
     from windows_runtime_paths import configure_windows_runtime_paths
     configure_windows_runtime_paths()
     from integration_settings import apply_environment as apply_integration_environment
@@ -336,6 +344,7 @@ def main():
     from tts_extensions import create_router as create_tts_router
     backend.app.include_router(create_tts_router(ROOT))
     import uvicorn
+    stage("server")
     # A per-launch marker prevents treating a foreign listener as our backend.
     token = os.environ.get("VOICESTUDIO_NEXT_TOKEN", "")
     from activity import Activity, backend_work_busy

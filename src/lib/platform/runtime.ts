@@ -16,6 +16,8 @@ export type RuntimeStartupProgress = {
   copiedPages: number; totalPages: number | null;
   copiedBytes: number; totalBytes: number | null;
   files: number | null; backupComplete: boolean; logReadError: boolean;
+  /** Id of the startup stage in progress (see engine-startup.ts); null before the first one is reported. */
+  stage?: string | null;
 };
 
 const STARTUP_BUDGET_MS = 305_000;

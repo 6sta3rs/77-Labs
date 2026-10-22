@@ -22,7 +22,7 @@ The launcher creates a consistent backup before migration. Compatibility import 
 
 ## Supervision
 
-The window starts without Python. An operation that needs the engine starts an owned process, whose marker is checked in the health response. An unrelated server is not taken over. Startup and backup have bounded waits and report actual progress. Stop terminates only owned processes; automatic shutdown requires confirmed inactivity for the time chosen in **Ustawienia → Silnik → Stan → „Utrzymuj silnik po bezczynności”** (Settings → Engine → Status → keep the engine after inactivity): 5, 15, 30 or 60 minutes, default 15 (`runtime_set_idle_minutes`).
+The window starts without Python and the app then starts the engine itself (an operation that needs it starts it too, for example after an idle stop). The owned process, whose marker is checked in the health response. An unrelated server is not taken over. Startup and backup have bounded waits and report actual progress. Stop terminates only owned processes; automatic shutdown requires confirmed inactivity for the time chosen in **Ustawienia → Silnik → Stan → „Utrzymuj silnik po bezczynności”** (Settings → Engine → Status → keep the engine after inactivity): 5, 15, 30 or 60 minutes, default 15 (`runtime_set_idle_minutes`).
 
 Catalog GET requests use lightweight metadata. Explicit verification and synthesis perform the actual availability checks. Catalog and health responses do not prove a model works.
 
@@ -30,6 +30,8 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 
 ## Startup, stop and diagnostics
 
+- At launch the app starts the engine and, because Rust sets `VOICESTUDIO_NEXT_PRELOAD_TTS=1` (the gate patched into the pinned `main.py` by `launcher.py`), the engine warms the TTS model in the background; warm-up is skipped silently when the model terms are not accepted or no weights are installed. Memory use is the cost: the model stays resident until the engine's own model idle timeout (900 s) or a stop.
+- Progress shown by the card in `src/lib/platform/EngineStartup.svelte` is real: `launcher.py` writes `NEXT_STARTUP_EVENT {"stage":…}` lines to `engine.log` (`engine_files`, `backup`, `modules`, `server`), Rust adds the engine's own `/startup/progress` step (`env_prefs` … `services_start`) to `RuntimeStatus.startup.stage` (stages only move forward), and after `/health` the UI follows `/model/status`. Remaining time is not estimated; the card shows elapsed time.
 - Cold start may take up to 300 s (`STARTUP_BUDGET`) when libraries and weights load from a slow or external disk. A graceful stop closes stdin and waits up to 15 s (3 s while still starting) before ending only the owned process tree; a ready engine that stops answering for 90 s can be stopped manually, never automatically.
 - An interrupted mutating request without a tracked job keeps the engine awake for 30 minutes (`UNCERTAIN_WORK_WINDOW_S`), not until restart.
 - If the model folder from `OMNIVOICE_CACHE_DIR` is missing (for example an unplugged external drive), synthesis requests get an immediate 503 with a readable message instead of an obscure model-load error.

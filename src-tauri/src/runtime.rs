@@ -21,6 +21,10 @@ const BACKUP_LOG_BYTES_PER_POLL: u64 = 64 * 1024;
 const BACKUP_LOG_LINE_BYTES: usize = 8 * 1024;
 const BACKUP_EVENT: &str = "NEXT_BACKUP_EVENT ";
 const STORAGE_EVENT: &str = "NEXT_STORAGE_EVENT ";
+const STARTUP_EVENT: &str = "NEXT_STARTUP_EVENT ";
+// Startup stages in order: the first four are announced by launcher.py in engine.log, the rest are the
+// engine's own `/startup/progress` step ids. The UI (src/lib/platform/engine-startup.ts) keeps the same order.
+const STAGES: [&str; 10] = ["engine_files", "backup", "modules", "server", "env_prefs", "native_preload", "ml_imports", "api_routes", "db_migrate", "services_start"];
 const MAX_SAFE_COUNTER: u64 = 9_007_199_254_740_991;
 const LAUNCHER: &str = include_str!("../../scripts/runtime/app/launcher.py");
 const AUDIOBOOK_STREAMING: &str = include_str!("../../scripts/runtime/app/audiobook_streaming.py");
@@ -115,6 +119,7 @@ struct StartupProgress {
     files: Option<u64>,
     backup_complete: bool,
     log_read_error: bool,
+    stage: Option<String>,
 }
 
 struct StartupClock {
@@ -159,10 +164,17 @@ impl StartupClock {
                 run_id, phase: "preparing".into(), revision: 0,
                 copied_pages: 0, total_pages: None, copied_bytes: 0,
                 total_bytes: None, files: None, backup_complete: false,
-                log_read_error: false,
+                log_read_error: false, stage: None,
             },
             expected_archive, deadline: now + STARTUP_BUDGET, backup_seen: false,
         }
+    }
+
+    /// Stages only move forward, so a late or repeated report can never rewind the display.
+    fn advance_stage(&mut self, id: &str) {
+        let Some(rank) = STAGES.iter().position(|stage| *stage == id) else { return; };
+        let current = self.progress.stage.as_deref().and_then(|stage| STAGES.iter().position(|known| *known == stage));
+        if current.map_or(true, |current| rank > current) { self.progress.stage = Some(id.into()); }
     }
 
     fn counter(value: &serde_json::Value, key: &str) -> Option<u64> {
@@ -288,6 +300,10 @@ impl StartupLog {
                             if let Ok(event) = serde_json::from_str(raw) { clock.observe(&event, now); }
                         } else if let Some(raw) = line.trim_end_matches('\r').strip_prefix(STORAGE_EVENT) {
                             if let Ok(event) = serde_json::from_str(raw) { clock.observe_storage(&event, now); }
+                        } else if let Some(raw) = line.trim_end_matches('\r').strip_prefix(STARTUP_EVENT) {
+                            if let Ok(event) = serde_json::from_str::<serde_json::Value>(raw) {
+                                if let Some(stage) = event.get("stage").and_then(serde_json::Value::as_str) { clock.advance_stage(stage); }
+                            }
                         }
                     }
                 }
@@ -539,6 +555,13 @@ impl Runtime {
                     if !process.ready && process.startup_log.poll(&mut process.startup, now).is_err() {
                         process.startup.progress.log_read_error = true;
                     }
+                    if !process.ready {
+                        // Once the socket is bound the engine itself names the step it is running.
+                        let step = backend_get(&process.token, "/startup/progress", Duration::from_millis(300))
+                            .and_then(|body| serde_json::from_str::<serde_json::Value>(&body).ok())
+                            .and_then(|value| value.get("step").and_then(serde_json::Value::as_str).map(str::to_owned));
+                        if let Some(step) = step { process.startup.advance_stage(&step); }
+                    }
                     if owns_healthy_listener(&process.token) {
                         process.ready = true;
                         process.unresponsive_since = None;
@@ -641,6 +664,8 @@ impl Runtime {
                 .env_remove("PYTHONHOME")
                 .env("VOICESTUDIO_NEXT_BUNDLE", bundle)
                 .env("PYTHONUTF8", "1")
+                // Warm the TTS model in the background so the first synthesis does not wait for the weights.
+                .env("VOICESTUDIO_NEXT_PRELOAD_TTS", "1")
                 .stdin(Stdio::piped())
                 .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
                 .stderr(Stdio::from(log));
@@ -760,17 +785,17 @@ struct BackendActivity {
     keep_alive: bool,
 }
 
-fn backend_activity(token: &str) -> Option<BackendActivity> {
+fn backend_get(token: &str, path: &str, read_timeout: Duration) -> Option<String> {
     let mut stream = TcpStream::connect_timeout(
         &SocketAddr::from(([127, 0, 0, 1], PORT)),
         Duration::from_millis(300),
     )
     .ok()?;
-    stream.set_read_timeout(Some(Duration::from_secs(1))).ok()?;
+    stream.set_read_timeout(Some(read_timeout)).ok()?;
     stream
         .set_write_timeout(Some(Duration::from_millis(300)))
         .ok()?;
-    write!(stream, "GET /next/activity HTTP/1.1\r\nHost: 127.0.0.1\r\nX-VoiceStudio-Next: {token}\r\nConnection: close\r\n\r\n").ok()?;
+    write!(stream, "GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nX-VoiceStudio-Next: {token}\r\nConnection: close\r\n\r\n").ok()?;
     let mut response = String::new();
     stream.take(16384).read_to_string(&mut response).ok()?;
     let (headers, body) = response.split_once("\r\n\r\n")?;
@@ -783,7 +808,11 @@ fn backend_activity(token: &str) -> Option<BackendActivity> {
     {
         return None;
     }
-    let activity: BackendActivity = serde_json::from_str(body).ok()?;
+    Some(body.to_owned())
+}
+
+fn backend_activity(token: &str) -> Option<BackendActivity> {
+    let activity: BackendActivity = serde_json::from_str(&backend_get(token, "/next/activity", Duration::from_secs(1))?).ok()?;
     if !activity.idle_seconds.is_finite() || activity.idle_seconds < 0.0 {
         return None;
     }
@@ -892,6 +921,18 @@ mod tests {
         clock.observe(&serde_json::json!({"phase":"backup_files","copied_bytes":1,"total_bytes":10}), start + Duration::from_secs(342));
         assert_eq!(clock.progress.copied_bytes, 1);
         assert!(!clock.expired(start + Duration::from_secs(400)));
+    }
+
+    #[test]
+    fn startup_stage_only_moves_forward_and_ignores_unknown_ids() {
+        let mut clock = StartupClock::new("owned".into(), "archive".into(), Instant::now());
+        assert_eq!(clock.progress.stage, None);
+        for (reported, expected) in [("modules", "modules"), ("engine_files", "modules"), ("unknown", "modules"), ("ml_imports", "ml_imports"), ("server", "ml_imports"), ("services_start", "services_start")] {
+            clock.advance_stage(reported);
+            assert_eq!(clock.progress.stage.as_deref(), Some(expected), "after {reported}");
+        }
+        let (_, failed) = clock.failed("fixture".into());
+        assert_eq!(failed.stage.as_deref(), Some("services_start"), "A failure keeps the last stage reached");
     }
 
     fn backup_clock(now: Instant) -> StartupClock {
