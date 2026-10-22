@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: Przechowywanie and Prywatność i użycie ported
+
+Przechowywanie: data folder move plan, model folder (now the only place to change model paths), restart to apply, disk usage per category, database backups, history limit, preview samples and temporary files with confirm steps. Prywatność i użycie has tabs Prywatność (analytics consent, translation provider), Znak wodny (the former Privacy toggle and the Integrations "invisible watermark" toggle are one switch; all three switches saved in one `POST /watermark/settings`, then re-read and confirmed; detector) and Użycie (former "Wykorzystanie" stats from `/stats/usage`).
+
+Checks: `svelte-check` 0/0; `preview-cache-check.mjs` and `recording-retention-check.mjs` pass; screenshots of the not-ready state in the real app and of the ready state on a mocked fixture page (`.tmp/qa/settings-port/`). Not verified against a live engine: folder picker, restart, deletes, backup, watermark detection, sample generation.
+
+Limitations: the folder picker exists only in the desktop app (the browser preview shows a path field); "Przywróć domyślny" for the data folder only clears the plan (no endpoint moves data back); restart progress has no stages; some engine-provided labels stay untranslated.
+
 ## 22 October 2026 — settings: Modele ported
 
 Modele has tabs Synteza mowy, Rozpoznawanie mowy, Modele językowe, Pozostałe and Pobieranie i dostęp. Rows join engines with their weights (download, resume, cancel, delete behind a type-the-ID confirm, active model, licence state with inline review/accept/revoke), the "Przejrzyj warunki modeli" card lists engines and registry models needing a decision, the language tab lists cloud providers and links to AI i klucze. One Hugging Face token endpoint (`/next/settings/hf-token`, app store only), the HF mirror (moved from Sieć) and the model folder as a read-only link to Przechowywanie. The hard-coded OmniVoice/Faster-Whisper rows and the raw model-state JSON were removed.
