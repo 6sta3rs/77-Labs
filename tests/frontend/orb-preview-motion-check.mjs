@@ -6,7 +6,7 @@ const source = await readFile(new URL('../../src/lib/playback/voice-orb.ts', imp
 const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-const { VoiceOrbRenderer, orbPreviewFrame, orbPreviewIdentity, voiceIdentity, orbPalettes, setOrbPalette } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const { VoiceOrbRenderer, orbPreviewFrame, orbShowcaseFrame, orbPreviewIdentity, voiceIdentity, orbPalettes, setOrbPalette } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const checks = [];
 const check = (name, condition, detail) => checks.push({ name, passed: Boolean(condition), detail });
 let nextId = 0;
@@ -111,6 +111,16 @@ for (const seconds of [NaN, Infinity, -Infinity, -5, 0, .4, 2, 30, 3600]) {
 }
 check('Invalid or negative demonstration times select the deterministic initial frame',
   [NaN, Infinity, -Infinity, -5].every(value => JSON.stringify(orbPreviewFrame(value)) === JSON.stringify(orbPreviewFrame(0))));
+const showcase = Array.from({ length: 1200 }, (_, index) => orbShowcaseFrame(index / 50));
+check('The Płyn showcase stays finite and within the pitch range for every frame',
+  showcase.every(frame => bounded([frame.level, ...frame.bands, ...normalizedFeatureNames.map(name => frame.features[name])])
+    && frame.features.pitchHz >= 65 && frame.features.pitchHz <= 800));
+check('The Płyn showcase contains quiet breathing, a pause and loud bursts, and loops seamlessly',
+  Math.min(...showcase.map(frame => frame.level)) < .15 && Math.max(...showcase.map(frame => frame.level)) > .8
+    && orbShowcaseFrame(7).level < .15 && Math.abs(orbShowcaseFrame(11.999).level - orbShowcaseFrame(0).level) < .05
+    && Math.abs(orbShowcaseFrame(3.3).level - orbShowcaseFrame(15.3).level) < 1e-9);
+check('The showcase rises repeatedly so the fluid keeps splashing',
+  showcase.filter((frame, index) => index && frame.bands[3] - showcase[index - 1].bands[3] > .004).length > 120);
 const externalInput = [...realBands], isolated = create(true);
 isolated.renderer.setAudioBands(externalInput); advance(isolated, 12);
 check('The demonstration never mutates a caller-owned real FFT array', equal(externalInput, realBands));

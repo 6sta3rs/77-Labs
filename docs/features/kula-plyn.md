@@ -30,6 +30,7 @@ The look is adapted from the orb on the ElevenLabs homepage (captured 2026-10-20
 - The shader renders in the colors of the chosen orb palette (**Z głosu** or a pinned one).
 - If the images fail to load or WebGL is lost, the orb shows the local PNG with grain; a renderer created without textures falls back to the original procedural material.
 - Reduced motion and off-screen presentations stop the clock.
+- The settings preview (no audio) plays `orbShowcaseFrame`: a 12 s loop of breathing, phrased speech, a pause and an emphatic burst, so the fluid splats, drifting gradient and grain all show. Other styles keep the simpler `orbPreviewFrame`.
 
 ## Removing the style
 

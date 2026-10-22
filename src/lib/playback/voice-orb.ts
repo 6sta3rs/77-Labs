@@ -23,6 +23,23 @@ export function orbPreviewFrame(seconds: number): { level: number; bands: OrbAud
     turbulence: .18 + pulse * .4 + high * .15,
   } };
 }
+const ease = (from: number, to: number, x: number) => { const k = Math.max(0, Math.min(1, (x - from) / (to - from))); return k * k * (3 - 2 * k); };
+/** Płyn demonstration: a 12 s loop of breathing, phrased speech, a pause and an emphatic burst, so the fluid splats, drifting gradient and grain all show. */
+export function orbShowcaseFrame(seconds: number): { level: number; bands: OrbAudioBands; features: AudioFeatures } {
+  const k = (Number.isFinite(seconds) ? Math.max(0, seconds) : 0) % 12;
+  const speech = ease(1.6, 2.6, k) * (1 - ease(6.2, 6.7, k)), emphatic = ease(7.4, 7.9, k) * (1 - ease(10.2, 10.9, k));
+  const syllable = Math.pow(Math.abs(Math.sin(Math.PI * (4.5 + 1.8 * emphatic) * k)), 1.6);
+  const loud = speech * .72 + emphatic * .95;
+  const level = Math.min(1, .1 + .04 * Math.sin(k * 1.3) + loud * (.3 + .7 * syllable));
+  const low = .35 + .25 * Math.sin(k * 1.1), mid = .45 + .4 * syllable, high = .1 + .5 * speech * Math.pow(syllable, 3) + .8 * emphatic * syllable;
+  return { level, bands: [level * low, level * mid, level * high, level * .9], features: {
+    rms: level * .25, spectralFlux: .05 + high * .3 + emphatic * .2, spectralFlatness: .2,
+    spectralCentroidHz: 1000 + high * 6000, envelopeModulation: .08 + loud * syllable * .3,
+    pitchHz: 130 + 90 * (1 + Math.sin(k * 1.9)) * .5 + 25 * Math.sin(k * .6),
+    pitchConfidence: loud > .2 ? .95 : .3, pitchChange: Math.abs(Math.cos(k * 1.9)) * .12,
+    turbulence: .15 + loud * syllable * .5,
+  } };
+}
 /** Named orb palettes. „Z głosu” picks one of the first six from the voice id; the user may pin any of them. */
 export const orbPalettes: { id: string; label: string; colors: [string, string, string] }[] = [
   { id: 'granat', label: 'Granat', colors: ['#07182f', '#205c9e', '#8bcefa'] },
@@ -352,7 +369,7 @@ export class VoiceOrbRenderer {
     if (this.disposed || this.gl.isContextLost()) return;
     if (this.preview) {
       this.previewTime += Number.isFinite(dt) ? Math.max(0, dt) : 0;
-      const sample = orbPreviewFrame(this.previewTime);
+      const sample = this.textured ? orbShowcaseFrame(this.previewTime) : orbPreviewFrame(this.previewTime);
       this.setLevel(sample.level); this.setFeatures(sample.features); this.setAudioBands(sample.bands);
     }
     if (this.textured) {
