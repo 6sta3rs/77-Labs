@@ -29,7 +29,6 @@
   import StoragePage from './lib/settings/pages/StoragePage.svelte';
   import PrivacyPage from './lib/settings/pages/PrivacyPage.svelte';
   import Toaster from './lib/ui/Toaster.svelte';
-  import DictationDesktopSettings from './lib/tools/dictation/DictationDesktopSettings.svelte';
   import type { SettingsSection } from './lib/shell/navigation';
   import './lib/shell/navigation-layout.css';
   import Player from './lib/playback/Player.svelte';
@@ -44,8 +43,6 @@
   import InspectorSection from './lib/tts/InspectorSection.svelte';
   import GenerationHistory from './lib/projects/GenerationHistory.svelte';
   import './lib/tts/tts-inspector.css';
-  import Appearance from './lib/settings/Appearance.svelte';
-  import AISettings from './lib/tts/AISettings.svelte';
   import './lib/tts/ai.css';
   import { enhanceDialogue } from './lib/tts/ai';
   import { validateTaggedTexts } from './lib/tts/ai-validation';
@@ -56,22 +53,9 @@
   import StudioTools from './lib/tools/StudioTools.svelte';
   import AutomationWorkspace from './lib/tools/automation/AutomationWorkspace.svelte';
   import AudioLab from './lib/tools/audio-lab/AudioLab.svelte';
-  import RuntimeDiagnostics from './lib/platform/RuntimeDiagnostics.svelte';
   import ModelLicenseOnboarding from './lib/models/ModelLicenseOnboarding.svelte';
-  import EngineRuntimeInstaller from './lib/models/EngineRuntimeInstaller.svelte';
-  import IntegrationSettings from './lib/platform/IntegrationSettings.svelte';
-  import ApiReference from './lib/platform/ApiReference.svelte';
-  import GeneralSettings from './lib/settings/GeneralSettings.svelte';
-  import DictionarySettings from './lib/settings/DictionarySettings.svelte';
-  import UpdateSettings from './lib/settings/UpdateSettings.svelte';
-  import StorageSettings from './lib/settings/StorageSettings.svelte';
-  import PreviewCacheSettings from './lib/playback/PreviewCacheSettings.svelte';
   import { storageSettings } from './lib/settings/storage-settings';
-  import SystemSettings from './lib/settings/SystemSettings.svelte';
-  import RemoteBackendSettings from './lib/platform/RemoteBackendSettings.svelte';
   import { remoteBackendState } from './lib/platform/remote-state';
-  import EngineCatalog from './lib/models/EngineCatalog.svelte';
-  import RuntimeInstaller from './lib/platform/RuntimeInstaller.svelte';
   import VoiceManager from './lib/voices/VoiceManager.svelte';
   import VoiceCreatePage from './lib/voices/VoiceCreatePage.svelte';
   import { profileVoiceMetadata } from './lib/voices/voice-metadata';
@@ -151,7 +135,7 @@
   let generationLanguages=$derived(speechLanguageChoices(ttsFamily?.backends.find(row=>row.id===generationEngine)?.supported_language_names || ['Auto','Polish','English']));
   const effectNames:Record<string,string>={raw:'Bez efektów',podcast:'Podcast',warm:'Ciepłe',broadcast:'Radiowe',cinematic:'Filmowe',bright:'Jasne'};
   async function copyVoiceId(){try{await navigator.clipboard.writeText(primaryVoice.id);notify('Skopiowano ID głosu.');}catch{notify('Nie udało się skopiować ID głosu.');}}
-  let engineDetails=$state<Record<string,unknown>>({});let projectDraftName=$state('');
+  let projectDraftName=$state('');
   const pageNames:Record<Page,string>={dashboard:'Pulpit',studio:'Tekst na mowę',voices:'Głosy','voice-create':'Dodaj głos',projects:'Projekty',history:'Nagrania',transcription:'Mowa na tekst',dictation:'Dyktowanie na żywo',models:'Modele',appearance:'Wygląd','ai-settings':'AI i klucze',dubbing:'Dubbing',audiobooks:'Audiobooki',stories:'Historie',pronunciation:'Słownik wymowy',batch:'Kolejka dubbingu',conversion:'Konwersja głosu',automation:'Automatyzacja',tools:'Narzędzia audio','audio-lab':'Obróbka audio','engine-history':'Historia silnika'};
   const mainNav=[{id:'studio' as Page,label:'Tekst na mowę',icon:AudioLines},{id:'voices' as Page,label:'Głosy',icon:Mic2},{id:'projects' as Page,label:'Projekty',icon:Folder}];
   const toolNav=[{id:'dubbing' as Page,label:'Dubbing',icon:Film},{id:'audiobooks' as Page,label:'Audiobooki',icon:BookOpen},{id:'stories' as Page,label:'Historie',icon:BookOpen},{id:'dictation' as Page,label:'Dyktowanie na żywo',icon:Mic2},{id:'transcription' as Page,label:'Mowa na tekst',icon:FileText},{id:'history' as Page,label:'Nagrania',icon:Clock3},{id:'engine-history' as Page,label:'Historia silnika',icon:Clock3},{id:'voice-create' as Page,label:'Klonowanie głosu',icon:Mic2},{id:'conversion' as Page,label:'Konwersja głosu',icon:Mic2},{id:'batch' as Page,label:'Kolejka dubbingu',icon:Film},{id:'pronunciation' as Page,label:'Słownik wymowy',icon:BookOpen},{id:'automation' as Page,label:'Automatyzacja',icon:SlidersHorizontal},{id:'tools' as Page,label:'Narzędzia audio',icon:SlidersHorizontal},{id:'audio-lab' as Page,label:'Obróbka audio',icon:AudioLines}];
@@ -378,7 +362,7 @@
     modelSelectionPending=pending;
     try{await pending;}finally{if(modelSelectionController===controller){modelSelectionController=undefined;modelSelectionPending=undefined;}}
   }
-  async function showModels(){openSettings('models');if(runtime.state==='ready')try{engineDetails=await api.modelStatus();}catch{}}
+  function showModels(){openSettings('models');}
   function restore(row:Render){if(row.blocks)changeBlocks(row.blocks.map(block=>({...block})));else if(row.text)changeBlocks([{id:crypto.randomUUID(),voiceId:primaryVoice.id,text:row.text}]);speechSettings=readStoredSpeechSettings(row.speechSettings||{...defaultSpeechSettings(),wav_bits:row.wavBits||'16',preset_voice:row.presetVoice,design_recipe:row.designRecipe});scheduleProjectSave();goToPage('studio');if(row.modelId&&generationEngine&&row.modelId!==generationEngine)notify(`Nagranie używało silnika ${row.modelId}. Wybierz go przed ponownym renderem, aby zachować jego brzmienie.`);}
   function keys(event:KeyboardEvent){if(event.defaultPrevented)return;if(event.key==='Escape'&&modal){event.preventDefault();modal=null;return;}if(event.key==='Escape'&&inspector){event.preventDefault();inspector=false;return;}if(settingsOpen){if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();openSearch();}return;}if(event.key==='Escape'){modal=null;inspector=false;}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();modal=modal==='search'?null:'search';query='';}if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!modal&&page==='studio'){event.preventDefault();void generate();}}
   function mountAppModal(node: HTMLDialogElement) {

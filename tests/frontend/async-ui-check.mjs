@@ -1,5 +1,6 @@
 import { i18nDeps, i18nRequire } from '../helpers/i18n.mjs';
 import { sourceUrl } from '../helpers/source-url.mjs';
+import { runesComponent, flush } from '../helpers/runes-component.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
@@ -76,6 +77,19 @@ async function appModels(deps) {
   return new Function(...Object.keys({...i18nDeps,...values}), code)(...Object.values({...i18nDeps,...values}));
 }
 
+// Settings → Modele (ModelsPage) owns the engine catalogue since the settings redesign; run its real script with live runes.
+const quiet = { ok() {}, bad() {}, warn() {}, info() {} };
+async function modelsPage(deps = {}, props = {}) {
+  return runesComponent('ModelsPage.svelte', { props: { ready: true, onchange: async () => {}, onnavigate() {}, ...props }, deps: {
+    toast: quiet, modelsCatalog: async () => ({ models: [] }), productionJson: async () => ({}), request: async () => ({}),
+    readOnboardingPlan: async () => ({ models: [] }), canSelectEngine: () => true, engineReadinessLabel: () => '', needsEngineVerification: () => false,
+    activeDownload: () => false, byteLabel: String, downloadPercent: () => 0, engineLicenses: {}, modelFamily: () => 'other',
+    modelManagement: { status: async () => ({ jobs: [], storage: {} }) }, requiredLicenseRepos: () => [], validModelRepo: () => true,
+    openLicenseSource: async () => {}, hfMirrorAddress: String, putSettings: async () => ({}), settingsError: cause => String(cause?.message ?? cause),
+    ...deps }, exposure: 'refresh, select, get catalog() { return catalog }' });
+}
+const flushed = async () => { for (let i = 0; i < 12; i++) { await Promise.resolve(); flush(); } };
+
 const checks = [];
 const test = (name, run) => checks.push({ name, run });
 
@@ -111,24 +125,28 @@ test('JSON: cancelled reads cannot publish transport results that ignore abort',
 
 test('Engine catalog: repeated refreshes do not overlap', async () => {
   const wait = deferred(); let reads = 0;
-  const subject = await component('EngineCatalog.svelte', { engineCatalog: () => { reads++; return wait.promise; }, modelsCatalog: async () => ({ models: [] }) }, { ready: true, onchange: async () => {} }, 'refresh');
+  const subject = await modelsPage({ engineCatalog: () => { reads++; return wait.promise; } });
   const first = subject.value.refresh(); const second = subject.value.refresh();
-  assert.equal(reads, 1, 'Rapid refresh clicks must share one request.');
+  assert.equal(reads, 1, 'Opening the page and rapid refresh clicks must share one request.');
   wait.resolve({}); await Promise.all([first, second]); subject.destroy();
 });
 
 test('AI settings: closing the view aborts its pending reads', async () => {
+  // The Codex/ChatGPT reads moved from AISettings.svelte to the AI settings page; they start after the engine reads.
   const wait = deferred(); const signals = [];
-  const subject = await component('AISettings.svelte', {
+  const subject = await runesComponent('AiPage.svelte', { props: { ready: true }, deps: {
+    toast: quiet, productionJson: async path => path === '/api/settings/llm-providers' ? { providers: [] } : path === '/api/settings/llm-skills' ? { skills: [] } : path === '/next/settings/credentials' ? { fields: [] } : {},
+    postJson: body => ({ body }), putSettings: async () => ({}), settingsError: String, skillLabels: {}, connectionMessage: () => '',
+    saveAISettings: async () => assert.fail('No write expected'), testAI: async () => assert.fail('No inference expected'),
     getAISettings: signal => { signals.push(signal); return wait.promise; },
     getAIStatus: signal => { signals.push(signal); return wait.promise; },
-  }, {}, 'get loaded() { return loaded }, get error() { return error }');
-  subject.mount(); subject.destroy();
+  }, exposure: 'get aiSet() { return aiSet }, get aiErr() { return aiErr }' });
+  await flushed(); subject.destroy();
   assert.equal(signals.length, 2);
   assert.ok(signals.every(signal => signal?.aborted), 'Both settings and status reads must be cancelled.');
-  wait.resolve({ enabled: false }); await settle();
-  assert.equal(subject.value.loaded, false, 'Closed views must ignore late results.');
-  assert.equal(subject.value.error, '');
+  wait.resolve({ enabled: false }); await flushed();
+  assert.equal(subject.value.aiSet, undefined, 'Closed views must ignore late results.');
+  assert.equal(subject.value.aiErr, '');
 });
 
 test('Production: audiobook view only loads its own library endpoints', async () => {
@@ -207,7 +225,7 @@ test('Model picker: selection waits for a catalog refresh', async () => {
   const wait = deferred(); let selections = 0;
   const model = { id: 'qa', name: 'QA', languages: [], installed: true, available: true };
   const picker = await execute('model-picker.ts');
-  const subject = await component('ModelPicker.svelte', picker, { models: [model], onrefresh: () => wait.promise, onselect: async () => { selections++; } }, 'refresh, select');
+  const subject = await component('models/ModelPicker.svelte', picker, { models: [model], onrefresh: () => wait.promise, onselect: async () => { selections++; } }, 'refresh, select');
   const refreshing = subject.value.refresh();
   await subject.value.select(model);
   assert.equal(selections, 0, 'A user must not select from a catalog being replaced.');
@@ -218,7 +236,7 @@ test('Model picker: late selection never closes a new view', async () => {
   const wait = deferred(); let closes = 0;
   const model = { id: 'qa', name: 'QA', languages: [], installed: true, available: true };
   const picker = await execute('model-picker.ts');
-  const subject = await component('ModelPicker.svelte', picker, { models: [model], onselect: () => wait.promise, onclose: () => closes++ }, 'select');
+  const subject = await component('models/ModelPicker.svelte', picker, { models: [model], onselect: () => wait.promise, onclose: () => closes++ }, 'select');
   const selecting = subject.value.select(model);
   subject.destroy(); wait.resolve(); await selecting;
   assert.equal(closes, 0, 'Unmounted picker must not invoke its parent close callback.');
@@ -293,24 +311,24 @@ test('AI transport: supplying a lifecycle signal retains the request deadline', 
 
 test('Engine catalog: a pre-selection read cannot overwrite confirmed selection', async () => {
   const stale = deferred(), fresh = deferred(); let reads = 0, changes = 0;
-  const subject = await component('EngineCatalog.svelte', {
+  const subject = await modelsPage({
     engineCatalog: () => reads++ === 0 ? stale.promise : fresh.promise,
-    modelsCatalog: async () => ({ models: [] }), selectEngine: async () => ({ active: 'new', env_override: false }),
-  }, { ready: true, onchange: async () => { changes++; } }, 'select, get catalog() { return catalog }');
-  subject.effect(); const selecting = subject.value.select('new'); await settle();
+    selectEngine: async () => ({ active: 'new', env_override: false }),
+  }, { onchange: async () => { changes++; } });
+  const selecting = subject.value.select('tts', { id: 'new' }); await flushed();
   assert.equal(reads, 2);
   fresh.resolve({ tts: { active: 'new', backends: [] } }); await selecting;
-  stale.resolve({ tts: { active: 'old', backends: [] } }); await settle();
+  stale.resolve({ tts: { active: 'old', backends: [] } }); await flushed();
   assert.equal(subject.value.catalog.tts.active, 'new'); assert.equal(changes, 1); subject.destroy();
 });
 
 test('Engine catalog: closing during selection prevents late follow-up work', async () => {
   const selection = deferred(); let changes = 0, reads = 0; let signal;
-  const subject = await component('EngineCatalog.svelte', {
+  const subject = await modelsPage({
     engineCatalog: async () => { reads++; return { tts: { active: 'old', backends: [] } }; },
-    modelsCatalog: async () => ({ models: [] }), selectEngine: (_family, _id, value) => { signal = value; return selection.promise; },
-  }, { ready: true, onchange: async () => { changes++; } }, 'select');
-  subject.effect(); await settle(); const running = subject.value.select('new'); subject.destroy();
+    selectEngine: (_family, _id, value) => { signal = value; return selection.promise; },
+  }, { onchange: async () => { changes++; } });
+  await flushed(); const running = subject.value.select('tts', { id: 'new' }); subject.destroy();
   assert.equal(signal.aborted, true);
   selection.resolve({ active: 'new', env_override: false }); await running;
   assert.equal(reads, 1); assert.equal(changes, 0);

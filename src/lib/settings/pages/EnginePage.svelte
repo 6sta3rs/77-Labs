@@ -417,8 +417,13 @@
   });
   $effect(() => {
     if (!ready || tab !== 'srodowiska' || !(jobsActive || ttsInstalling || mediaRunning)) return;
-    const controller = new AbortController();
-    const timer = setTimeout(() => { void Promise.allSettled([jobsActive ? readRecipes(controller.signal, false) : 0, ttsInstalling ? readTts(controller.signal) : 0, mediaRunning ? readMedia(controller.signal) : 0]); }, 1500);
+    // The flags stay `true` between reads, so this effect does not re-run: the poll re-arms itself until one turns false.
+    const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      await Promise.allSettled([jobsActive ? readRecipes(controller.signal, false) : 0, ttsInstalling ? readTts(controller.signal) : 0, mediaRunning ? readMedia(controller.signal) : 0]);
+      if (!controller.signal.aborted) timer = setTimeout(poll, 1500);
+    };
+    timer = setTimeout(poll, 1500);
     return () => { clearTimeout(timer); controller.abort(); };
   });
 
@@ -509,7 +514,7 @@
   </section></div>
 
   <!-- dashboard -->
-  {#if stopped}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc nie ma danych o obciążeniu. Uruchom go przyciskiem u góry strony.')}</p>{/if}
+  {#if stopped}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc nie ma danych o obciążeniu.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>{/if}
 
   <div class="tiles t4">
     {#each tiles as t (t.k)}
@@ -592,7 +597,7 @@
     </div>
 
   {:else if tab === 'obliczenia'}
-    {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc ustawienia obliczeń nie są dostępne. Uruchom go przyciskiem u góry strony.')}</p>
+    {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc ustawienia obliczeń nie są dostępne.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>
     {:else}
     <div class="p-section">
       <header class="split"><div><h3>{tr('Urządzenie i jakość')}</h3><p>{tr('Najczęściej zmieniane ustawienia.')}</p></div>{#if devPending}<StatusBadge kind="wait" text={tr('Czeka na restart')}/>{/if}</header>
@@ -670,7 +675,7 @@
         {/if}
       </div>
 
-      {#if !on}<p class="p-notice warn">{tr('Dodatkowe środowiska i narzędzia audio wymagają działającego silnika. Uruchom go przyciskiem u góry strony.')}</p>{/if}
+      {#if !on}<p class="p-notice warn">{tr('Dodatkowe środowiska i narzędzia audio wymagają działającego silnika.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>{/if}
       {#if on}<div class="stack">
         <div class="p-section">
           <header class="split"><div><h3>{tr('Środowiska dodatkowych silników')}</h3><p>{tr('Osobne środowiska dla silników, które nie mieszczą się w głównym.')}</p></div><Button variant="outline" disabled={working.recipes} onclick={() => act('recipes', async s => { await readRecipes(s); toast.info(tr('Odświeżono listę instalacji')); })}><RefreshCw size={15}/>{tr('Odśwież instalacje')}</Button></header>
@@ -746,7 +751,7 @@
       </div>{/if}
 
   {:else}
-      {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc dziennik i kontrole nie są dostępne. Uruchom go przyciskiem u góry strony.')}</p>
+      {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc dziennik i kontrole nie są dostępne.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>
       {:else}
       <div class="p-section">
         <header><h3>{tr('Ostatnie błędy')}</h3><p>{tr('Najnowsze problemy zapisane przez silnik.')}</p></header>

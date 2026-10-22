@@ -1,5 +1,5 @@
 <script lang="ts">
-  import EngineCatalog from '../../src/lib/models/EngineCatalog.svelte'
+  import ModelsPage from '../../src/lib/settings/pages/ModelsPage.svelte'
   import {applyAppearance, defaultAppearance} from '../../src/lib/settings/appearance'
   import {onMount} from 'svelte'
   onMount(() => applyAppearance({...defaultAppearance}))
@@ -7,7 +7,7 @@
 
 <main class="qa-workspace">
   <p role="note">Kontrola interfejsu. Dane przykładowe, brak dostępu do prawdziwego silnika.</p>
-  <EngineCatalog ready requestedLicenseRepos={['qa/model-one','qa/model-two']} onchange={async()=>{}}/>
+  <ModelsPage ready requestedLicenseRepos={['qa/model-one','qa/model-two']} onchange={async()=>{}} onnavigate={()=>{}}/>
 </main>
 
 <style>

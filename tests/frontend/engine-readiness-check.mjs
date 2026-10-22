@@ -118,11 +118,13 @@ await test('Already selected available model is inert without a redundant POST o
   assert.equal(closes, 0);
 });
 await test('Catalogue action preserves active verification and all existing licence guards', async () => {
-  const text = await source('lib/models/EngineCatalog.svelte');
-  assert.ok(text.includes('catalog[family].active !== engine.id || needsEngineVerification(engine)'));
-  assert.ok(text.includes('!canSelectEngine(engine) || Boolean(catalog[family].env_override) || Boolean(engine.license_required && !engine.license_accepted)'));
-  assert.ok(text.includes('bind:checked={licenseAgreed}'));
-  assert.ok(text.includes('model-license-review-host'));
+  // The engine catalogue moved from models/EngineCatalog.svelte to settings/pages/ModelsPage.svelte (per-family `fam`, licence switch `agreed`).
+  const text = await source('lib/settings/pages/ModelsPage.svelte');
+  assert.ok(text.includes('fam.active !== engine.id || needsEngineVerification(engine)'));
+  assert.ok(text.includes('!canSelectEngine(engine) || Boolean(fam.env_override) || Boolean(engine.license_required && !engine.license_accepted)'));
+  assert.ok(text.includes('bind:checked={agreed}'));
+  assert.ok(text.includes('disabled={!agreed || busy}'), 'Licence acceptance stays behind the explicit switch.');
+  assert.ok(text.includes('<ModelLicenseReview'), 'The licence review stays hosted inside the catalogue.');
 });
 await test('Tool model settings support explicit ASR verification and LLM off without readiness promotion', async () => {
   for (const name of ['asr', 'llm']) {
@@ -144,7 +146,7 @@ await test('Tool model settings support explicit ASR verification and LLM off wi
   await assert.rejects(subject.choose('mlx-audio'));
 });
 await test('Both catalogues and reusable tool selector compile with actual Svelte markup', async () => {
-  for (const file of ['lib/models/EngineCatalog.svelte', 'lib/models/ModelPicker.svelte', 'lib/models/ToolModelSettings.svelte']) {
+  for (const file of ['lib/settings/pages/ModelsPage.svelte', 'lib/models/ModelPicker.svelte', 'lib/models/ToolModelSettings.svelte']) {
     compileSvelte(await source(file), { filename: file, generate: false });
   }
 });

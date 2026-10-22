@@ -8,9 +8,15 @@ import ts from 'typescript';
 import {compile} from 'svelte/compiler';
 let checks=0;const assert=new Proxy(strict,{get:(target,key)=>typeof target[key]==='function'?(...args)=>{checks++;return target[key](...args);}:target[key]});
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
-for(const filename of ['DictationDesktopSettings.svelte','DictationWidget.svelte']){const source=await readFile(sourceUrl(`${filename}`),'utf8');assert.doesNotThrow(()=>compile(source,{filename,generate:'client'}),`${filename} must compile as a complete component, including its event expressions.`);}
+// Desktop dictation settings moved from DictationDesktopSettings.svelte to Settings → Skróty i mikrofon (ShortcutsPage.svelte).
+for(const filename of ['ShortcutsPage.svelte','DictationWidget.svelte']){const source=await readFile(sourceUrl(`${filename}`),'utf8');assert.doesNotThrow(()=>compile(source,{filename,generate:'client'}),`${filename} must compile as a complete component, including its event expressions.`);}
 async function load(filename,deps={},exposure=''){let source=await readFile(sourceUrl(`${filename}`),'utf8');if(filename.endsWith('.svelte'))source=source.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];const parsed=ts.createSourceFile(filename,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);for(const node of [...parsed.statements].reverse())if(ts.isImportDeclaration(node))source=source.slice(0,node.pos)+source.slice(node.end);if(exposure)source+=`\nreturn {${exposure}};`;const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;const result={};return new Function('exports',...Object.keys({...i18nDeps,...deps}),code)(result,...Object.values({...i18nDeps,...deps}))??result;}
 const calls=[];let native=true,status={supported:true,registered:false,preferences:{enabled:false,shortcut:'Ctrl+Alt+Shift+D',paste_enabled:false}};
+const shortcuts=await readFile(sourceUrl('ShortcutsPage.svelte'),'utf8');
+assert.match(shortcuts,/from '\.\.\/\.\.\/tools\/dictation\/dictation-desktop'/,'The settings page must use the shared desktop dictation helper.');
+assert.match(shortcuts,/const value = await configureDesktopDictation\(draft\)/,'The hotkey is registered only from the explicit save action.');
+assert.match(shortcuts,/disabled=\{!edited \|\| !!invalid \|\| saving\}/,'Save stays disabled until an edit and while the shortcut is invalid.');
+assert.match(shortcuts,/onDestroy\(\(\) => \{ disposed = true; lifecycle\.abort\(\); \}\)/,'Closing the page releases the native status listener.');
 const helper=await load('dictation-desktop.ts',{isTauri:()=>native,invoke:async(name,args)=>{calls.push({name,args});if(name==='dictation_desktop_status')return status;if(name==='dictation_widget_runtime_acquire')return{lease:5,status:{state:'ready'}};return status;}});
 assert.deepEqual(helper.defaultDictationDesktopPreferences(),{enabled:false,shortcut:'Ctrl+Alt+Shift+D',paste_enabled:false});
 for(const value of ['Ctrl+Alt+Shift+D','Ctrl+Shift+Space','Alt+Shift+F11'])assert.equal(helper.shortcutError(value),'');

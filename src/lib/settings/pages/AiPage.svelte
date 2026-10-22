@@ -379,15 +379,17 @@
   const tagGroups = $derived<PickGroup[]>([{ id: CHATGPT, tpl: 'openai', name: tr('OpenAI (ChatGPT)'), state: gptOk ? '' : tr('Niezalogowany'), models: codexModels }]);
   const tagBadge = $derived<[BadgeKind, string]>(aiLoading ? ['wait', 'Sprawdzanie…'] : gptOk ? (tagMissing ? ['warn', 'Wybierz model'] : ['ok', 'Połączony']) : aiErr ? ['bad', 'Błąd'] : ['warn', 'Niezalogowany']);
   const TAG_INT: Record<string, string> = { subtle: 'Subtelna', natural: 'Naturalna', expressive: 'Ekspresyjna' };
-  let tagBusy = $state(false), tagErr = $state('');
+  let tagBusy = $state(false), tagSaving = $state(false), tagErr = $state('');
   let tagRes = $state<{ parts: string[]; line: string } | null>(null);
   async function saveTag(patch: Partial<AISettings>, key: string) {
-    if (!aiSet) return;
-    const prev = aiSet; aiSet = { ...aiSet, ...patch }; tagRes = null; tagErr = '';
+    // One write at a time and never during the test: overlapping PUTs could restore a stale `prev`, and the test must see saved settings.
+    if (!aiSet || tagSaving || tagBusy) return;
+    const prev = aiSet; aiSet = { ...aiSet, ...patch }; tagRes = null; tagErr = ''; tagSaving = true;
     try { aiSet = await saveAISettings({ ...aiSet }, signal); flash(key); } catch (cause) { if (!disposed) aiSet = prev; fail(cause); }
+    finally { if (!disposed) tagSaving = false; }
   }
   async function tagTest() {
-    if (tagBusy) return; tagRes = null;
+    if (tagBusy || tagSaving) return; tagRes = null;
     tagErr = !gptOk ? 'Nie można przetestować: zaloguj konto ChatGPT (Codex).' : tagMissing ? 'Nie można przetestować: wybierz model.' : '';
     if (tagErr) return;
     tagBusy = true; const int = aiSet?.intensity ?? 'natural';
@@ -643,7 +645,7 @@
         {#if aiSet?.enabled}<StatusBadge kind={tagBadge[0]} text={tr(tagBadge[1])}/>{/if}</header>
       <div class="p-rows">
         <div class="p-row"><div class="t"><b>{tr('Automatyczne tagowanie AI')}</b><span>{tr('Dodaje pauzy i reakcje do narracji w edytorze.')}</span></div>
-          <div class="inline">{#if flashed.tagOn}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Tooltip content={tr('Zaloguj konto ChatGPT (Codex), aby włączyć')} disabled={gptOk}><Switch label={tr('Włącz: automatyczne tagowanie AI')} checked={!!aiSet?.enabled && gptOk} disabled={!gptOk || !aiSet} onchange={v => saveTag({ enabled: v }, 'tagOn')}/></Tooltip></div></div>
+          <div class="inline">{#if flashed.tagOn}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Tooltip content={tr('Zaloguj konto ChatGPT (Codex), aby włączyć')} disabled={gptOk}><Switch label={tr('Włącz: automatyczne tagowanie AI')} checked={!!aiSet?.enabled && gptOk} disabled={!gptOk || !aiSet || tagSaving || tagBusy} onchange={v => saveTag({ enabled: v }, 'tagOn')}/></Tooltip></div></div>
         {#if aiSet?.enabled && gptOk}
         <div class="p-row"><div class="t"><b>{tr('Model językowy')}</b><span>{tr(tagMode === 'default' ? 'Domyślny model konta ChatGPT (Codex).' : 'Własny model tylko do tagowania.')}</span></div>
           <div class="tctl">
@@ -653,19 +655,19 @@
           </div></div>
         {#if tagOpen}
           <div class="fe">
-            <ButtonGroup label={tr('Model dla tagowania')} mode="single" value={tagMode} onchange={v => { if (v !== tagMode) saveTag({ model: v === 'custom' ? aiStat?.defaultModel || codexModels[0] || '' : '' }, 'tagModel'); }} items={[{ value: 'default', label: tr('Domyślny') }, { value: 'custom', label: tr('Własny') }]}/>
+            <ButtonGroup label={tr('Model dla tagowania')} mode="single" disabled={tagSaving || tagBusy} value={tagMode} onchange={v => { if (v !== tagMode) saveTag({ model: v === 'custom' ? aiStat?.defaultModel || codexModels[0] || '' : '' }, 'tagModel'); }} items={[{ value: 'default', label: tr('Domyślny') }, { value: 'custom', label: tr('Własny') }]}/>
             {#if tagMode === 'custom'}<ModelPicker groups={tagGroups} provider={CHATGPT} model={aiSet.model} ariaLabel={tr('Model: tagowanie w edytorze')} onpick={(_, m) => saveTag({ model: m }, 'tagModel')} manualEntry={false}/>{/if}
           </div>
         {/if}
         {#if tagMissing}<p class="p-sub tagnote"><StatusBadge kind="warn" text={tr('Ograniczone')}/>{tr('Zapisany model {model} nie występuje w bieżącym katalogu Codex. Wybierz inny model albo „Domyślny”.', { model: aiSet.model })}</p>{/if}
         <div class="p-row"><div class="t"><b>{tr('Intensywność tagowania')}</b><span>{tr('Jak często AI dodaje reakcje.')}</span></div>
-          <div class="inline">{#if flashed.tagInt}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<ButtonGroup label={tr('Intensywność tagowania')} mode="single" value={aiSet.intensity} onchange={v => saveTag({ intensity: String(v) as AISettings['intensity'] }, 'tagInt')} items={[{ value: 'subtle', label: tr('Subtelna') }, { value: 'natural', label: tr('Naturalna') }, { value: 'expressive', label: tr('Ekspresyjna') }]}/></div></div>
+          <div class="inline">{#if flashed.tagInt}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<ButtonGroup label={tr('Intensywność tagowania')} mode="single" disabled={tagSaving || tagBusy} value={aiSet.intensity} onchange={v => saveTag({ intensity: String(v) as AISettings['intensity'] }, 'tagInt')} items={[{ value: 'subtle', label: tr('Subtelna') }, { value: 'natural', label: tr('Naturalna') }, { value: 'expressive', label: tr('Ekspresyjna') }]}/></div></div>
         <div class="p-row"><div class="t"><b>{tr('Reakcje głosowe')}</b><span>{tr('Śmiech i westchnienia w narracji.')}</span></div>
-          <div class="inline">{#if flashed.tagReact}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Switch label={tr('Włącz: reakcje głosowe')} checked={aiSet.reactions} onchange={v => saveTag({ reactions: v }, 'tagReact')}/></div></div>
+          <div class="inline">{#if flashed.tagReact}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Switch label={tr('Włącz: reakcje głosowe')} checked={aiSet.reactions} disabled={tagSaving || tagBusy} onchange={v => saveTag({ reactions: v }, 'tagReact')}/></div></div>
         {/if}
       </div>
       {#if aiSet?.enabled && gptOk}
-        <div class="p-actions"><Button disabled={tagBusy} onclick={tagTest}>{#if tagBusy}{@render spin('Generuję podgląd…')}{:else}<Sparkles size={15}/>{tr('Przetestuj tagowanie')}{/if}</Button></div>
+        <div class="p-actions"><Button disabled={tagBusy || tagSaving} onclick={tagTest}>{#if tagBusy}{@render spin('Generuję podgląd…')}{:else}<Sparkles size={15}/>{tr('Przetestuj tagowanie')}{/if}</Button></div>
         {#if tagErr}<p class="p-field-err" role="alert">{tr(tagErr)}</p>{/if}
         {#if tagBusy}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Generowanie podglądu tagowania')}></progress><span>{tr('Czekam na odpowiedź modelu…')}</span></div>{/if}
         {#if tagRes}
