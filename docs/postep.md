@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: Silnik ported
+
+The reference page of the redesign. Sticky blurred status header (state, hardware, device and preset, start, red "Zatrzymaj" with a 4 s confirm, restart), live CPU/RAM/GPU/VRAM tiles from `/sysinfo` (a monitor read, does not keep the engine awake), the "Generowanie" card computed from the last 12 `/history` records (median speed "N×", "W 1 minutę … nagrania", bar chart with tooltips), model in memory with unload, then tabs Stan (idle time, data folder), Obliczenia (device, CUDA card, global and per-family preset, memory, offload, torch.compile, timeouts, GPU report), Środowiska (Python environment installer, extra engine environments, extra TTS libraries, FFmpeg/FFprobe/yt-dlp) and Dzienniki i diagnostyka (recent errors, system check, local readiness, log viewer with filter/copy/download/clear, support report).
+
+Checks: `svelte-check` 0/0; screenshots against the prototype at 1280/900 px (ready state through a fetch mock, stopped state in the real app) in `.tmp/qa/settings-port/engine/`. Not verified: any real engine action, the Tauri installer and EXE picker, the chart tooltip on hover.
+
+Limitations: no uptime ("Działa od") because no monitor endpoint exposes it; idle time offers 5/15/30/60 min only (Rust accepts no "no limit"); chart tooltips show the mode, not engine/device (history has neither); errors show the engine's class and message, without a plain-language table; environment size/install date are not reported.
+
 ## 22 October 2026 — settings: AI i klucze ported
 
 Tabs Modele językowe (providers with brand icons, API keys, connect/test/model list via `/api/settings/llm-providers`, ChatGPT/Codex account row, Claude Code CLI shown as not detected), Funkcje AI (50/50 "Domyślny model"; function rows as model status + "Zmień" + switch, editor with Domyślny | Własny, one model list across providers, manual id; separate Tagowanie card with an inline test preview; Redakcja dyktowania) and Tłumaczenie i rozpoznawanie (translators through `/next/settings/credential(s)`, OpenAI-compatible ASR). New `pages/ModelPicker.svelte`. The style doc now describes the status + "Zmień" pattern.
