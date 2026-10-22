@@ -1,6 +1,7 @@
 # Connecting to your own server
 
-**Ustawienia → Udostępnianie** (Settings → Sharing) can connect the studio to
+**Ustawienia → Sieć i dostęp → Zdalny silnik** (Settings → Network and access →
+Remote engine; also opened from the **Zdalny silnik** pill in the top bar) can connect the studio to
 the engine API on your own compatible server. Text, references and media used by a
 remote operation are sent to that server. GPU availability, models and applicable
 terms depend on the server. The transport test does not perform synthesis.
@@ -38,10 +39,10 @@ It is not a data migration mechanism or a restoration of historical GPU workers.
 
 ## Files and checks
 
-- `src/lib/RemoteBackendSettings.svelte` — settings and explicit actions.
-- `src/lib/remote-backend.ts`, `src/lib/remote-state.ts`, `src/lib/remote-routing.ts` — state.
+- `src/lib/settings/pages/NetworkPage.svelte` — settings and explicit actions.
+- `src/lib/platform/remote-backend.ts`, `src/lib/platform/remote-state.ts`, `src/lib/platform/remote-routing.ts` — state.
 - `scripts/runtime/remote_backend.py` — session and proxy.
-- `src/lib/api.ts`, `src/lib/dictation.ts` — transport selection for operations.
+- `src/lib/platform/api.ts`, `src/lib/tools/dictation/dictation.ts` — transport selection for operations.
 
 Regression checks: `scripts/runtime/test_remote_backend.py`, run in an isolated
 environment. A controlled loopback server does not validate a public deployment,

@@ -18,6 +18,8 @@ The Tauri identifier `local.studioa1tts.voicestudio-next`, `voicestudio.*` stora
 
 Frontend sources are grouped by feature under `src/lib/<area>/` (`shell`, `tts`, `voices`, `models`, `playback`, `projects`, `settings`, `platform`, `tools`, `ui`, `gallery`, `styles`, `themes`); only the shared `data.ts` sits directly in `src/lib/`. Tests are in `tests/{frontend,runtime,acceptance}` (plus `fixtures` and `helpers`). Scripts are in `scripts/{build,dev,preview,runtime}`, and the Python engine sources are split into `scripts/runtime/{app,install,vendor}`. The "where do I change X?" map is in the [project map](struktura-projektu.md). The published layout of the private runtime and the data format are unchanged.
 
+Settings has 12 pages in 4 groups, defined in `src/lib/settings/settings-catalog.ts`; each page is one component in `src/lib/settings/pages/` and every control has exactly one home. **Aplikacja** (Application): Ogólne, Wygląd, Słownik wymowy, Skróty i mikrofon, Aktualizacje. **Silnik i modele** (Engine and models): Silnik (engine start/stop, status, compute, environments, logs and diagnostics) and Modele (catalog, downloads, terms, Hugging Face access). **Połączenia** (Connections): Sieć i dostęp, Integracje, AI i klucze. **Dane** (Data): Przechowywanie, Prywatność i użycie. The former single "Modele i silnik" page no longer exists. Visual rules are in [settings style](../features/ustawienia-styl.md).
+
 ## Running and development
 
 Run `npm ci`, then `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` displays fictional data and a procedural tone. `inputy.html` opens the component gallery.
@@ -26,7 +28,7 @@ Run `npm ci`, then `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` displays f
 
 Engine lifecycle:
 
-- **Idle stop:** the engine stops after a configurable period of confirmed inactivity. The default is 15 minutes; the choice is 5, 15, 30, or 60 minutes in **Ustawienia -> Ogólne** (Settings -> General).
+- **Idle stop:** the engine stops after a configurable period of confirmed inactivity. The default is 15 minutes; the choice is 5, 15, 30, or 60 minutes in **Ustawienia → Silnik → Stan** (Settings → Engine → Status), under **Utrzymuj silnik po bezczynności** (Keep the engine after inactivity).
 - **Startup budget:** a cold start may take up to 300 s when libraries and weights load from a slow disk; progress is shown and waiting ends when progress stalls.
 - **Graceful stop:** stdin is closed and the supervisor waits up to 15 s before ending only the process tree it owns.
 

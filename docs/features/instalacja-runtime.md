@@ -7,8 +7,8 @@ the multi-gigabyte GPU dependencies or model weights.
 
 ## Windows workflow
 
-1. Open **Ustawienia → Modele i silnik → Samodzielne środowisko Python**
-   (Settings → Models and engine → Standalone Python environment).
+1. Open **Ustawienia → Silnik → Środowiska → Samodzielne środowisko Python**
+   (Settings → Engine → Environments → Standalone Python environment).
 2. Choose CPU or NVIDIA CUDA 12.8. The CUDA option requires a compatible GPU and
    driver. The panel shows the estimated disk space requirement.
 3. Start installation. A new `runtime_<id>` directory is created alongside the
@@ -32,7 +32,8 @@ panel.
 - `scripts/runtime/bootstrap-provenance.json` — distribution sources and hashes.
 - `scripts/runtime/bootstrap.py` — dependency preparation and doctor checks.
 - `src-tauri/src/installer.rs` — downloads, processes and activation.
-- `src/lib/RuntimeInstaller.svelte` — the panel and actual progress reporting.
+- `src/lib/settings/pages/EnginePage.svelte` (**Środowiska** tab), `src/lib/platform/runtime-installer.ts` —
+  the panel and actual progress reporting.
 
 Doctor checks alone do not verify inference. A clean CPU machine, CUDA setup and
 distributable installer each require separate acceptance testing, as described

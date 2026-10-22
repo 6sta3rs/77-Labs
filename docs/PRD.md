@@ -53,7 +53,8 @@ Demonstration data is illustrative.
 
 1. The studio opens without loading ML libraries or downloading weights.
 2. The user can explore the interface, postpone setup, or open
-   **Ustawienia > Modele i silnik** (Settings > Models and engine).
+   **Ustawienia > Silnik** (Settings > Engine) for the environment and
+   **Ustawienia > Modele** (Settings > Models) for weights and terms.
 3. Installation creates a separate candidate CPU/CUDA environment. Doctor checks
    and activation are separate steps; an incomplete candidate does not replace
    a working environment.

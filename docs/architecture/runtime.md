@@ -5,7 +5,7 @@ The Seventy Seven Labs engine runs as a supervised Python/FastAPI process at `12
 ## First launch
 
 1. Run `npm run desktop:dev` or the built EXE.
-2. Under **Ustawienia → Modele i silnik → Samodzielne środowisko Python** (Settings → Models and engine → Standalone Python environment), choose CPU or a compatible NVIDIA CUDA configuration.
+2. Under **Ustawienia → Silnik → Środowiska → Samodzielne środowisko Python** (Settings → Engine → Environments → Standalone Python environment), choose CPU or a compatible NVIDIA CUDA configuration.
 3. Wait for the download and actual candidate validation, then activate the ready environment.
 4. Read the selected model's terms and download its weights separately.
 5. Add your own profile from a recording you have permission to use, then test a short utterance in the UI.
@@ -22,7 +22,7 @@ The launcher creates a consistent backup before migration. Compatibility import 
 
 ## Supervision
 
-The window starts without Python. An operation that needs the engine starts an owned process, whose marker is checked in the health response. An unrelated server is not taken over. Startup and backup have bounded waits and report actual progress. Stop terminates only owned processes; automatic shutdown requires confirmed inactivity for the time chosen in **Ustawienia → Ogólne → „Utrzymuj silnik po bezczynności”** (Settings → General → keep the engine after inactivity): 5, 15, 30 or 60 minutes, default 15 (`runtime_set_idle_minutes`).
+The window starts without Python. An operation that needs the engine starts an owned process, whose marker is checked in the health response. An unrelated server is not taken over. Startup and backup have bounded waits and report actual progress. Stop terminates only owned processes; automatic shutdown requires confirmed inactivity for the time chosen in **Ustawienia → Silnik → Stan → „Utrzymuj silnik po bezczynności”** (Settings → Engine → Status → keep the engine after inactivity): 5, 15, 30 or 60 minutes, default 15 (`runtime_set_idle_minutes`).
 
 Catalog GET requests use lightweight metadata. Explicit verification and synthesis perform the actual availability checks. Catalog and health responses do not prove a model works.
 

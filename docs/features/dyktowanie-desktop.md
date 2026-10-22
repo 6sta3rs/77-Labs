@@ -5,8 +5,9 @@ Opening the widget alone does not start the microphone, a model, or Python.
 
 ## User workflow
 
-1. Choose a key combination in dictation settings and explicitly enable the
-   shortcut. A conflict with another application produces an error and preserves
+1. In **Ustawienia → Skróty i mikrofon → Dyktowanie w innych oknach** (Settings →
+   Shortcuts and microphone → Dictation in other windows), choose a key combination
+   and explicitly enable the shortcut. A conflict with another application produces an error and preserves
    the previous binding.
 2. The shortcut shows or hides the floating window. Holding the keys should not
    toggle the view repeatedly.
@@ -36,10 +37,10 @@ prove that the target application accepted the text.
 ## Where to make changes
 
 - `src-tauri/src/dictation_desktop.rs`: shortcut, widget, target, and leases.
-- `src/lib/dictation-desktop.ts`: IPC and session lifecycle.
-- `src/lib/DictationDesktopSettings.svelte`: explicit settings.
-- `src/lib/DictationWidget.svelte`: text, Start/Stop, and copying.
-- `src/lib/dictation.ts`, `src/lib/dictation-worklet.js`: PCM transport.
+- `src/lib/tools/dictation/dictation-desktop.ts`: IPC and session lifecycle.
+- `src/lib/settings/pages/ShortcutsPage.svelte`: explicit settings and microphone access.
+- `src/lib/tools/dictation/DictationWidget.svelte`: text, Start/Stop, and copying.
+- `src/lib/tools/dictation/dictation.ts`, `src/lib/tools/dictation/dictation-worklet.js`: PCM transport.
 
 Checks: `node scripts/dictation-desktop-check.mjs`
 and `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.

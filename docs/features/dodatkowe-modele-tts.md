@@ -20,8 +20,8 @@ error; support for Polish must not be inferred from a family name alone.
 
 ## Preparation
 
-In **Modele i silnik → Dodatkowe modele TTS** (Models and engine → Additional TTS
-models), choose the appropriate CPU/CUDA option and **Przygotuj biblioteki**
+In **Ustawienia → Silnik → Środowiska → Dodatkowe modele TTS** (Settings → Engine →
+Environments → Additional TTS models), choose **Procesor** (CPU) or **CUDA** and **Przygotuj biblioteki**
 (Prepare libraries). The installer creates a dedicated directory for the family,
 installs packages and checks imports. Then download all required weights from
 the model catalog and review the separate terms for the model and its dependencies.
@@ -47,7 +47,7 @@ the service on a public interface. Credentials in URLs and redirects are rejecte
 - `scripts/runtime/tts_extensions.py` — registry, statuses and the `/next/tts/*` API.
 - `scripts/runtime/tts_worker.py` — synthesis parameters and execution.
 - `scripts/runtime/prepare_tts.py` — library preparation.
-- `src/lib/ExtraTtsEnvironments.svelte` — the panel.
+- `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab, including the Fish connection).
 
 Regression checks: `scripts/runtime/test_tts_extensions.py`
 and `scripts/runtime/test_tts_registry.py`. They do not collectively verify

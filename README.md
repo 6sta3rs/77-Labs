@@ -45,7 +45,7 @@ npm run desktop:build
 
 The build produces an EXE without an installer: `src-tauri/target/release/seventy-seven-labs.exe`.
 
-The window opens without loading models. Under **Ustawienia → Modele i silnik** (Settings → Models and engine), set up a CPU or NVIDIA CUDA environment and download a model separately. Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/features/instalacja-runtime.md) and [engine operation](docs/architecture/runtime.md). The engine starts on demand and stops after the inactivity time set in **Ustawienia → Ogólne** (Settings → General; 5–60 minutes, default 15).
+The window opens without loading models. Under **Ustawienia → Silnik → Środowiska** (Settings → Engine → Environments), set up a CPU or NVIDIA CUDA environment, then download a model separately in **Ustawienia → Modele** (Settings → Models). Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/features/instalacja-runtime.md) and [engine operation](docs/architecture/runtime.md). The engine starts on demand and stops after the inactivity time set in **Ustawienia → Silnik → Stan** (Settings → Engine → Status; 5–60 minutes, default 15).
 
 The browser displays the UI but does not start the Tauri supervisor. Synthesis in web development mode requires a separately running backend at `127.0.0.1:4312`.
 

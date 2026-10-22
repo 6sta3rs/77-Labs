@@ -11,10 +11,11 @@ Sources are split by application feature. When changing voices, start in
 | Navigation and dashboard | `src/lib/shell/` | `NavigationSidebar.svelte`, `Dashboard.svelte` |
 | TTS editor and generation | `src/lib/tts/` | `SpeechEditor.svelte`, `speech-settings.ts`, `tags.ts` |
 | Voice picker, creation, and folders | `src/lib/voices/` | `VoicePicker.svelte`, `voice-folders.ts` |
-| Models and licenses | `src/lib/models/` | `EngineCatalog.svelte`, `model-management.ts` |
+| Models and licenses | `src/lib/models/` | `ModelLicenseReview.svelte`, `model-management.ts`, `engine-installation.ts` |
 | Playback, waveforms, and audio orbs | `src/lib/playback/` | `Player.svelte`, `VoiceOrb.svelte`, `playback-meter.ts` |
 | Projects and recording history | `src/lib/projects/` | `library.ts`, `history-view.ts` |
-| General settings and appearance | `src/lib/settings/` | `SettingsShell.svelte`, `appearance.ts` |
+| Settings shell, catalog, and appearance | `src/lib/settings/` | `SettingsShell.svelte`, `settings-catalog.ts` (12 pages in 4 groups), `appearance.ts` |
+| Settings pages | `src/lib/settings/pages/` | One component per page, e.g. `EnginePage.svelte`, `ModelsPage.svelte`, `NetworkPage.svelte` |
 | Transport, Tauri, and engine supervision | `src/lib/platform/` | `api.ts`, `runtime.ts` |
 | Transcription and dictation | `src/lib/tools/transcription/`, `dictation/` | The matching `*Workspace.svelte` |
 | Dubbing and audiobooks | `src/lib/tools/production/` | `ProductionWorkspace.svelte`, `production.ts` |

@@ -1,7 +1,7 @@
 # Additional engine environments
 
-The **Środowiska dodatkowych silników** (Additional engine environments) panel
-prepares separate Python environments or the audio.cpp executable. This is
+The **Środowiska dodatkowych silników** (Additional engine environments) panel in
+**Ustawienia → Silnik → Środowiska** (Settings → Engine → Environments) prepares separate Python environments or the audio.cpp executable. This is
 separate from downloading model weights. Reading the catalog does not install
 packages or test models.
 
@@ -38,8 +38,8 @@ a recipe is not a complete lockfile with hashes for every external environment.
 - `scripts/runtime/engine_installation.py` — catalog extraction from the AST,
   worker and status reporting.
 - `scripts/runtime/private_environment.py` — atomic configuration writes.
-- `src/lib/EngineRuntimeInstaller.svelte` — the panel.
-- `src/lib/engine-installation.ts` — transport and approval of the selected recipe.
+- `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab).
+- `src/lib/models/engine-installation.ts` — transport and approval of the selected recipe.
 
 Checks that do not require expensive inference:
 `python -S scripts/runtime/test_engine_installation.py`

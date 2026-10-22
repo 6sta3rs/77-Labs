@@ -1,8 +1,8 @@
 # Model terms
 
 The application, model code, weights, tokenizer and voice references may have
-different licenses. **Modele i silnik → Warunki modelu** (Models and engine →
-Model terms) shows information for a specific repository and its explicitly
+different licenses. **Ustawienia → Modele → Przejrzyj warunki modeli** (Settings →
+Models → Review model terms) opens **Warunki modeli** (Model terms), which shows information for a specific repository and its explicitly
 declared dependencies. `unknown` and `NOASSERTION` mean the terms are unresolved;
 they do not confirm permission to use the material.
 
@@ -37,10 +37,10 @@ model does not clear the first-use check.
 
 ## Files and checks
 
-- `src/lib/ModelLicenseReview.svelte` — review, acceptance and revocation.
-- `src/lib/model-licenses.ts` — parsing, transport and HTTP 403/409 handling.
-- `src/lib/EngineCatalog.svelte` — entry point from the catalog.
-- `src/lib/api.ts` — generation errors.
+- `src/lib/models/ModelLicenseReview.svelte` — review, acceptance and revocation.
+- `src/lib/models/model-licenses.ts` — parsing, transport and HTTP 403/409 handling.
+- `src/lib/settings/pages/ModelsPage.svelte` — entry point from the catalog.
+- `src/lib/platform/api.ts` — generation errors.
 
 Regression check: `node scripts/model-licenses-check.mjs`. Test acceptance and
 revocation must use controlled fixture state only. Do not accept real terms on

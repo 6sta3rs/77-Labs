@@ -4,8 +4,8 @@ Simply displaying the **Przygotuj modele do pracy** (Prepare models for use)
 window does not load models. When the engine is stopped, the welcome screen does
 not start Python. **Sprawdź modele i warunki** (Check models and terms) explicitly
 connects to the engine and, in the desktop application, starts the installed
-environment. Install the environment and weights separately in
-**Ustawienia → Modele i silnik** (Settings → Models and engine).
+environment. Install the environment in **Ustawienia → Silnik → Środowiska** (Settings → Engine →
+Environments) and the weights in **Ustawienia → Modele** (Settings → Models).
 
 ## User decisions
 
@@ -16,7 +16,7 @@ acceptance. A saved decision applies to the exact fingerprint of the information
 reviewed.
 
 **Później** (Later), closing the window or pressing Escape postpones the review.
-Return through **Przejrzyj warunki modeli** (Review model terms) in settings.
+Return through **Ustawienia → Modele → Przejrzyj warunki modeli** (Review model terms).
 An unfinished review may appear again on the next visit. Closing the review and
 changing the model are blocked while a decision is being saved and its result
 is being confirmed. A failed read can be retried.
@@ -37,8 +37,8 @@ the state has been read back.
 
 ## Files and checks
 
-- `src/lib/ModelLicenseOnboarding.svelte`, `src/lib/license-onboarding.ts` — UI and state.
-- `src/lib/ModelLicenseReview.svelte` — individual decisions.
+- `src/lib/models/ModelLicenseOnboarding.svelte`, `src/lib/models/license-onboarding.ts` — UI and state.
+- `src/lib/models/ModelLicenseReview.svelte` — individual decisions.
 - `scripts/runtime/model_management.py` — the plan.
 
 Regression checks: `node scripts/license-onboarding-check.mjs`,

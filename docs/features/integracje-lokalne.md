@@ -1,6 +1,7 @@
 # Local API, MCP and audio provenance
 
-The integrations panel uses the private backend at `127.0.0.1:4312`;
+**Ustawienia → Integracje** (Settings → Integrations; tabs **API zgodne z OpenAI**,
+**MCP** and **Referencja API** — API reference) uses the private backend at `127.0.0.1:4312`;
 in Vite, requests go through `/backend`. MCP is disabled by default.
 Saving settings does not enable cloud services, telephony or network exposure
 of the port.
@@ -24,19 +25,22 @@ A separate [remote transport](zdalny-silnik.md) is available for your own server
 
 ## Watermarking and sources
 
-Reading `/watermark/status` reports configuration and library availability.
+The watermark lives in **Ustawienia → Prywatność i użycie → Znak wodny** (Settings →
+Privacy and usage → Watermark). Reading `/watermark/status` reports configuration and library availability.
 It does not run the detector. Detecting a watermark in a selected file requires
 a separate button and may load the AudioSeal model. A response containing an
 error is not a negative detection result. A watermark does not establish voice
 rights or the speaker's consent.
 
-Diagnostics show the source version, installed distribution, archive SHA and
+**Ustawienia → Aktualizacje → Pochodzenie silnika** (Settings → Updates → Engine
+provenance) shows the source version, installed distribution, archive SHA and
 pinned provenance when it matches the active package. Missing information is
 reported explicitly. Code and model terms remain separate.
 
 ## Files
 
-- `src/lib/IntegrationSettings.svelte`, `src/lib/integrations.ts` — UI and transport.
+- `src/lib/settings/pages/IntegrationsPage.svelte`, `src/lib/platform/integrations.ts` — UI and transport.
+- `src/lib/settings/pages/PrivacyPage.svelte`, `src/lib/settings/pages/UpdatesPage.svelte` — watermark and provenance.
 - `scripts/runtime/integration_settings.py` — configuration and diagnostics.
 - `scripts/runtime/windows_runtime_paths.py` — local Windows library paths.
 

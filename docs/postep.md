@@ -1,5 +1,11 @@
 # Public project progress
 
+## 22 October 2026 — docs follow the new settings structure
+
+README, PRD, `kontekst-projektu.md` (new short settings-structure note), `struktura-projektu.md`, `runtime.md` and nine feature docs now use the new paths (for example Ustawienia → Silnik → Środowiska, Sieć i dostęp → Zdalny silnik, Prywatność i użycie → Znak wodny). Corrected an older error: the engine idle time is set in Silnik → Stan, not Ogólne.
+
+Checks: `npm run test:structure` PASS (133 doc links), `git diff --check` clean.
+
 ## 22 October 2026 — settings: old components removed, tests retargeted, two regressions fixed
 
 Removed the 16 settings components replaced by the new pages (SystemSettings, GeneralSettings, StorageSettings, UpdateSettings, DictionarySettings, AISettings, EngineCatalog, ExtraTtsEnvironments, EngineRuntimeInstaller, RuntimeDiagnostics, RuntimeInstaller, RemoteBackendSettings, IntegrationSettings, ApiReference, PreviewCacheSettings, DictationDesktopSettings) and the dead model-state JSON in `App.svelte`. The seven tests that read them (`ai-settings`, `async-ui`, `dictation-desktop`, `engine-idle`, `engine-installation`, `engine-readiness`, `preview-cache`; all passed on `368a416` before the change) now target the owning pages with the same intent; documented contract changes: tagging saves on each change, the idle hint wording. New `tests/helpers/runes-component.mjs` runs a page script with live Svelte reactivity, which exposed two regressions now fixed: the Środowiska tab polled install progress only once (the effect never re-ran), and AI tagging saves could overlap and restore stale settings (now serialised, and blocked during the tagging test). The Engine page shows "start it with the button at the top" only in the desktop app, where that button exists.

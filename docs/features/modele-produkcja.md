@@ -1,21 +1,25 @@
 # Models and the weights catalog
 
-**Ustawienia → Modele i silnik** (Settings → Models and engine) separates the
-library environment, downloaded weights and active engine selection. Downloading
+**Ustawienia → Modele** (Settings → Models; tabs **Synteza mowy**, **Rozpoznawanie
+mowy**, **Modele językowe**, **Pozostałe** and **Pobieranie i dostęp**) manages
+downloaded weights and active engine selection. Library environments are installed
+separately in **Ustawienia → Silnik → Środowiska** (Settings → Engine → Environments). Downloading
 a model does not install the dependencies for every family or confirm permission
 to use it.
 
 ## Choosing a directory
 
-The panel shows both the configured path and the effective path for the current
-process. **Zapisz katalog** (Save directory) changes `OMNIVOICE_CACHE_DIR` in the
+**Modele → Pobieranie i dostęp** shows the effective path for the current process.
+The path itself is changed in **Ustawienia → Przechowywanie → Foldery → Wagi modeli**
+(Settings → Storage → Folders → Model weights) with **Wybierz folder…** (Choose
+folder); this changes `OMNIVOICE_CACHE_DIR` in the
 private `data/environment` file. It does not move existing models. Restart the
 engine to use the new path. The weights directory must be separate from data and
 runtime directories; invalid paths and links are rejected.
 
 ## Downloading and cancellation
 
-**Pobierz wagi** (Download weights) starts a dedicated supervised process using
+**Pobierz** (Download) starts a dedicated supervised process using
 pinned repository revisions. Only the token saved for this application is used.
 Progress reports actual bytes when the size is known. Task state is persistent;
 a retry can complete an unfinished download.
@@ -27,7 +31,7 @@ without downloading anything during inference.
 
 ## Removal and terms
 
-Removing an individual model requires its identifier and a state in which it is
+**Usuń model** (Remove model) requires its identifier and a state in which it is
 not actively in use. Removal is limited to the application's own cache; it does
 not remove another installation's libraries or models. Review the
 [model terms](licencje-modeli.md), including tokenizer dependencies. `installed`
@@ -35,7 +39,8 @@ describes file completeness, not a successful synthesis test.
 
 ## Files
 
-- `src/lib/EngineCatalog.svelte`, `src/lib/model-management.ts` — catalog and UI.
+- `src/lib/settings/pages/ModelsPage.svelte`, `src/lib/models/model-management.ts` — catalog and UI.
+- `src/lib/settings/pages/StoragePage.svelte`, `src/lib/settings/storage-settings.ts` — model directory.
 - `scripts/runtime/model_management.py` — tasks, cache, downloads and removal.
 - `scripts/runtime/launcher.py` — effective process configuration.
 
