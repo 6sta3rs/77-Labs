@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: Modele ported
+
+Modele has tabs Synteza mowy, Rozpoznawanie mowy, Modele językowe, Pozostałe and Pobieranie i dostęp. Rows join engines with their weights (download, resume, cancel, delete behind a type-the-ID confirm, active model, licence state with inline review/accept/revoke), the "Przejrzyj warunki modeli" card lists engines and registry models needing a decision, the language tab lists cloud providers and links to AI i klucze. One Hugging Face token endpoint (`/next/settings/hf-token`, app store only), the HF mirror (moved from Sieć) and the model folder as a read-only link to Przechowywanie. The hard-coded OmniVoice/Faster-Whisper rows and the raw model-state JSON were removed.
+
+Checks: `svelte-check` 0/0; screenshots against the prototype at 1280/900 px through a mocked harness (`.tmp/qa/settings-port/models/`) and the not-ready state in the real app. Not verified: a live engine, a completed download, licence accept/revoke against the backend.
+
+Limitations: no download speed or time left (the engine reports bytes only); cloud providers show key state, not a tested connection or model count; mirror presets dropped (Auto covers them).
+
 ## 22 October 2026 — settings: Sieć i dostęp and Integracje ported
 
 Sieć i dostęp has tabs Udostępnianie (LAN share with confirm, PIN, addresses, base port, Tailscale Serve), Zdalny silnik (former "Dostęp zdalny" and "Zdalne procesy robocze", one copy; opened directly from the remote-engine pill) and Serwer proxy. Integracje: OpenAI-compatible API test, MCP settings/test/client config, voice bindings for MCP clients, API reference (search, method filter, safe GET send, export). The watermark moved to Prywatność and engine provenance to Aktualizacje.
