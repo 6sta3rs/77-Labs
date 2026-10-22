@@ -50,7 +50,7 @@ export class ModelLicenseTermsChangedError extends Error {
 export class ModelLicenseRequiredError extends Error {
   readonly code = 'model_licence_required'
   constructor(readonly models: RequiredModelLicense[]) {
-    super(models.length ? translateUi("Przed generowaniem wymagane jest sprawdzenie warunków modeli: {arg0}. Otwórz Ustawienia → Modele i silnik → Warunki modelu.", { arg0: String(models.map(model => `${model.repo_id} (${model.license || 'licencja nieustalona'})`).join('; ')) }) : translateUi("Silnik nie może zweryfikować rejestru licencji modeli. Otwórz Ustawienia → Modele i silnik i sprawdź informacje o modelach."))
+    super(models.length ? translateUi("Przed generowaniem wymagane jest sprawdzenie warunków modeli: {arg0}. Otwórz Ustawienia → Modele → Warunki modelu.", { arg0: String(models.map(model => `${model.repo_id} (${model.license || 'licencja nieustalona'})`).join('; ')) }) : translateUi("Silnik nie może zweryfikować rejestru licencji modeli. Otwórz Ustawienia → Modele i sprawdź informacje o modelach."))
     this.name = 'ModelLicenseRequiredError'
   }
 }

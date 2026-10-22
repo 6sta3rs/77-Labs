@@ -94,7 +94,7 @@
 <ToolWorkspace title={tr(String(titles[kind]))} description={kind === 'conversion' ? tr("Te same słowa wypowiedziane wybranym głosem.") : kind === 'batch' ? tr("Jeden materiał, dubbing w wielu językach.") : tr("Przygotuj sposób mówienia lub dopasuj tekst do czasu.")} bind:tab={panelTab} historyLabel={tr(String(kind === 'batch' ? 'Zadania' : 'Ta sesja'))} historyCount={kind === 'conversion' ? conversionHistory.length : kind === 'batch' ? jobs.length : analysisHistory.length}>
   {#snippet content()}
     <div class="studio-tools studio-tools-workspace">
-      {#if !ready}<p class="tool-notice" role="status">{tr("Uruchom lokalny silnik w „Modele i silnik”, aby rozpocząć przetwarzanie.")}</p>{/if}
+      {#if !ready}<p class="tool-notice" role="status">{tr("Uruchom lokalny silnik w „Silnik”, aby rozpocząć przetwarzanie.")}</p>{/if}
       {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
       {#if message}<p class="tool-inline-message" role="status">{tr(String(message))}</p>{/if}
       {#if kind === 'tools'}
@@ -136,7 +136,7 @@
 {:else}
 <div class="page-body studio-tools">
   <div class="page-heading"><div><h1>{tr(String(titles[kind]))}</h1><p>{kind === 'pronunciation' ? tr("Ustal, jak wymawiać nazwy, skróty i własne słowa.") : kind === 'batch' ? tr("Przygotuj dubbing do wielu języków i śledź zadania.") : kind === 'conversion' ? tr("Te same słowa wypowiedziane wybranym głosem.") : kind === 'engine-history' ? tr("Nagrania zachowane przez lokalny silnik, także poza bieżącą sesją.") : tr("Przygotuj sposób mówienia i dopasuj tekst do czasu.")}</p></div>{#if kind !== 'conversion' && kind !== 'tools'}<Button variant="outline" disabled={!ready || busy} onclick={() => work(refresh)}><RefreshCw size={15}/>{tr("Odśwież")}</Button>{/if}</div>
-  {#if !ready}<p class="tool-notice" role="status">{tr("Uruchom lokalny silnik w „Modele i silnik”, aby korzystać z tej funkcji.")}</p>{/if}
+  {#if !ready}<p class="tool-notice" role="status">{tr("Uruchom lokalny silnik w „Silnik”, aby korzystać z tej funkcji.")}</p>{/if}
   {#if error}<p class="tool-error" role="alert">{tr(String(error))}</p>{/if}
   {#if message}<p class="tool-notice" role="status">{tr(String(message))}</p>{/if}
   {#if busy}<p class="tool-progress" role="status"><LoaderCircle class="spin" size={16}/>{tr("Trwa przetwarzanie…")}</p>{/if}

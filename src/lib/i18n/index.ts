@@ -3,6 +3,12 @@ import { enStudio } from './en-studio'
 import { enTools } from './en-tools'
 import { enDemo } from './en-demo'
 import { enAdditions } from './en-additions'
+import { enSettingsEngine } from './en-settings-engine'
+import { enSettingsModels } from './en-settings-models'
+import { enSettingsAi } from './en-settings-ai'
+import { enSettingsConnections } from './en-settings-connections'
+import { enSettingsData } from './en-settings-data'
+import { enSettingsApp } from './en-settings-app'
 
 export type UiLanguage = 'pl' | 'en'
 export type UiArguments = Record<string, string | number>
@@ -12,7 +18,7 @@ export type UiTranslator = ((source: string, args?: UiArguments) => string) & {
 }
 export type UiLanguageResult = { ok: true; language: UiLanguage } | { ok: false; language: UiLanguage; error: string }
 export const UI_LANGUAGE_KEY = 'seventy-seven-labs.ui-language.v1'
-const english: Record<string, string> = Object.assign(Object.create(null), enAdditions, enCore, enStudio, enTools, enDemo)
+const english: Record<string, string> = Object.assign(Object.create(null), enAdditions, enSettingsEngine, enSettingsModels, enSettingsAi, enSettingsConnections, enSettingsData, enSettingsApp, enCore, enStudio, enTools, enDemo)
 let language: UiLanguage = 'pl'
 let lastError = ''
 const subscribers = new Set<(value: UiLanguage) => void>()

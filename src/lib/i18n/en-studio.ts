@@ -105,7 +105,7 @@ export const enStudio: Record<string, string> = {
   " · przykład": " - example",
   "Dodano przykład UI. WAV jest stałą próbką, niezależną od tekstu i wybranego głosu.": "UI example added. The WAV is a fixed sample, independent of the text and selected voice.",
   "To podgląd interfejsu. Synteza działa w aplikacji Windows z własnym silnikiem.": "This is an interface preview. Synthesis runs in the Windows application with its own engine.",
-  "Katalog silników nie został jeszcze wczytany. Otwórz Modele i silnik, aby odświeżyć stan.": "The engine catalog has not loaded yet. Open Models and engine to refresh its status.",
+  "Katalog silników nie został jeszcze wczytany. Otwórz Silnik, aby odświeżyć stan.": "The engine catalog has not loaded yet. Open Engine to refresh its status.",
   "Wybierz zapisany głos. Przykładowe karty służą wyłącznie do podglądu.": "Select a saved voice. Example cards are for preview only.",
   "Ziarno musi być liczbą całkowitą.": "The seed must be an integer.",
   "Łączenie nagrań…": "Joining recordings...",

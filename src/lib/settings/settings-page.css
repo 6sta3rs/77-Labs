@@ -1,0 +1,80 @@
+/* Shared layout of the settings pages (`p-` classes). Tokens only. Imported once from main.ts. Rules: docs/features/ustawienia-styl.md. */
+
+/* page column */
+/* amber for warnings; also read by StatusBadge and Toaster outside .p-page */
+:root{--settings-warn:#d6b36a}
+.p-page{display:flex;flex-direction:column;gap:20px;min-width:0}
+.p-page h1{font-size:var(--ui-text-22);font-weight:600;letter-spacing:-.4px}
+.p-page.p-page>.page-heading{margin-bottom:0} /* doubled class beats the shell's .settings-content .page-heading margin */
+
+/* text */
+.p-h2{font-size:var(--ui-text-14);font-weight:600;margin:0}
+.p-h3,.p-section>header h3{font-size:var(--ui-text-13);font-weight:600;margin:0}
+.p-sub,.p-section>header p,.p-notice{font-size:var(--ui-text-12);line-height:1.8;color:var(--muted);margin:5px 0;overflow-wrap:anywhere}
+
+/* card and sections (sections inside a card are separated by hairlines, never collapsible) */
+.p-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:20px;min-width:0}
+.p-section{display:flex;flex-direction:column;gap:12px;padding-top:18px;border-top:1px solid var(--border);min-width:0}
+.p-card>.p-section:first-child{border-top:0;padding-top:0}
+.p-section>header.split{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.p-section>header p{margin:3px 0 0}
+
+/* setting row: <div class="p-row"><div class="t"><b>Title</b><span>One-line description</span></div> control </div> */
+.p-rows{display:flex;flex-direction:column}
+.p-row{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:13px 0;border-top:1px solid var(--border)}
+.p-rows>.p-row:first-child,.p-row.flat{border-top:0}.p-row.flat{padding:0}
+.p-row .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.p-row .t b{font-size:var(--ui-text-13);font-weight:550}
+.p-row .t span{color:var(--muted);font-size:var(--ui-text-12);line-height:1.6;overflow-wrap:anywhere}
+
+/* button row */
+.p-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* tabs: use the real <div class="filter-tabs p-tabs" role="tablist">; this only adds scroll offset and badge spacing */
+.p-tabs{scroll-margin-top:110px}
+.p-tabs .p-badge{margin-left:8px;vertical-align:middle}
+
+/* notice (persistent state only; results of clicks go to toast.ts): <p class="p-notice [ok|bad|warn|info]"> optionally starts with a 15px icon. Default = info (neutral). */
+.p-notice{--nc:var(--muted);padding:12px 14px;border:1px solid color-mix(in srgb,var(--nc) 45%,var(--border));border-radius:8px;background:color-mix(in srgb,var(--nc) 10%,var(--surface));color:var(--foreground)}
+.p-notice:has(>svg:first-child){display:flex;align-items:flex-start;gap:9px}
+.p-notice>svg{flex-shrink:0;margin-top:3px;color:var(--nc)}
+.p-notice.ok{--nc:var(--success)}.p-notice.warn{--nc:var(--settings-warn)}.p-notice.bad{--nc:var(--danger)}
+/* field error: directly under the field, <p class="p-field-err" role="alert"> */
+.p-field-err{margin:4px 0 0;font-size:var(--ui-text-12);line-height:1.5;color:var(--danger)}
+/* tiny inline "Zapisano" next to a control: <span class="p-saved">Zapisano</span> with a Check icon */
+.p-saved{display:inline-flex;align-items:center;gap:4px;font-size:var(--ui-text-12);color:var(--success)}
+
+/* key-value list: <dl class="p-kv"><div><dt>Klucz</dt><dd>Wartość</dd></div></dl> */
+.p-kv{display:flex;flex-direction:column;margin:0;font-variant-numeric:tabular-nums}
+.p-kv>div{display:flex;justify-content:space-between;gap:24px;padding:9px 0;border-top:1px solid var(--border);font-size:var(--ui-text-12)}
+.p-kv>div:first-child{border-top:0}
+.p-kv dt{color:var(--muted)}.p-kv dd{margin:0;color:var(--foreground);text-align:right;overflow-wrap:anywhere}
+
+/* flat progress: <progress class="p-bar" max="100" value=…> or <div class="p-bar"><i style:width="40%"></i></div>; add .hi / .vhi for warn / danger fill */
+.p-bar{display:block;height:4px;border-radius:2px;background:var(--border);overflow:hidden}
+.p-bar>i{display:block;height:100%;background:var(--accent);transition:width .5s ease}
+.p-bar.hi>i{background:var(--settings-warn)}.p-bar.vhi>i{background:var(--danger)}
+progress.p-bar{appearance:none;-webkit-appearance:none;border:0;width:100%}
+progress.p-bar::-webkit-progress-bar{background:var(--border)}
+progress.p-bar::-webkit-progress-value{background:var(--accent);border-radius:2px;transition:width .3s}
+progress.p-bar::-moz-progress-bar{background:var(--accent);border-radius:2px}
+/* progress with a caption: <div class="p-progress" role="status"><progress class="p-bar" …/><span>40% · Pobieranie</span></div> */
+.p-progress{display:flex;align-items:center;gap:12px;font-size:var(--ui-text-12);color:var(--muted)}
+.p-progress>.p-bar{flex:1}
+
+/* inline confirmation (instead of confirm()): <div class="p-confirm" role="alert"><span>Question?</span><div class="p-actions">[destructive Button][outline Button]</div></div> */
+.p-confirm{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--danger) 45%,transparent);border-radius:8px;background:color-mix(in srgb,var(--danger) 10%,transparent);font-size:var(--ui-text-12);color:var(--foreground)}
+
+/* sticky blurred header: <div class="p-sticky-hdr"><section class="p-card">…</section></div> */
+.p-sticky-hdr{position:sticky;top:0;z-index:5;margin-top:-12px;padding-top:12px}
+.p-sticky-hdr::before{content:'';position:absolute;left:0;right:0;top:0;height:12px;background:var(--background)}
+.p-sticky-hdr>.p-card{background:color-mix(in srgb,var(--surface) 78%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 10px 18px -12px #000c}
+
+@media(max-width:600px){.p-card{padding:16px}.p-row,.p-confirm{flex-wrap:wrap}}
+
+/* inline "Zapisano" feedback (local `.saved` rules only toggle opacity/colour): green with a check mark */
+.p-page .saved{display:inline-flex;align-items:center;gap:4px}
+.p-page .saved:not(:empty)::before{content:"";width:12px;height:12px;flex-shrink:0;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/contain no-repeat}
+
+/* A hidden "Zapisano" never reserves width (belt and braces; markup should use {#if} and sit AFTER the button group) */
+.p-page .saved:not(.on){display:none}

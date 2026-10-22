@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: new navigation and shared page pieces
+
+User request: move the approved settings prototype (`.tmp/settings-redesign`, reviewed 2026-10-22) into the app without omissions. This commit adds the frame; pages are ported in the following commits.
+
+Change: `settings-catalog.ts` now has 12 pages in 4 groups (Aplikacja, Silnik i modele, Połączenia, Dane) instead of 20 flat items; `SettingsShell` shows group headers; `App.svelte` routes each page to `src/lib/settings/pages/<Name>Page.svelte` (placeholders until ported), passes an optional intent (`openSettings('network','remote')` from the remote-engine pill), maps the old `ai-settings` target to `ai`, and drops the global "engine not running" notice (each page shows one notice itself). Shared pieces: `settings-page.css` (`p-` layout classes), `StatusBadge`, `toast.ts` + `Toaster` (bottom-centre result notifications), `ProviderIcon` with 8 MIT provider marks from lobe-icons (`THIRD_PARTY_NOTICES.md`, `src/lib/ui/provider-icons/`), per-group English files `en-settings-*.ts`, style rules in `docs/features/ustawienia-styl.md`. Texts across the app that pointed to „Modele i silnik” now point to „Silnik” (starting the engine) or „Modele” (downloads, terms); the device popover link opens Silnik.
+
+Checks: `npm run check` 0/0, `git diff --check` clean. Not run at this step: build and UI tests (run after the pages land).
+
 ## 22 October 2026 — shared controls corrected as in the approved settings prototype
 
 User request: move the approved settings prototype into the app, including the component corrections made during its review. This entry covers the shared components; the settings pages follow in separate commits.

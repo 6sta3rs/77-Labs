@@ -56,7 +56,7 @@
     <div class="metric"><div><MemoryStick size={16}/><strong>{tr("RAM")}</strong><b>{amount(displayed.ram)} / {amount(displayed.total_ram)} {tr("GB")}</b></div><div class="meter" role="meter" aria-label={tr("Użycie RAM")} aria-valuenow={displayed.ram} aria-valuemin="0" aria-valuemax={displayed.total_ram}><i style={`width:${percent(displayed.ram, displayed.total_ram)}%`}></i></div></div>
     <div class="metric"><div><Monitor size={16}/><strong>{tr("GPU")}</strong><b>{displayed.gpu_utilization === null ? '—' : `${Math.round(displayed.gpu_utilization)}%`}</b></div><small title={tr(String(displayed.gpu_name))}>{displayed.gpu_name || tr("Brak dedykowanej karty")}<span>{displayed.total_vram > 0 ? `${amount(displayed.vram)} / ${amount(displayed.total_vram)} GB` : tr("Pamięć współdzielona lub brak odczytu")}</span></small><div class="meter" role="meter" aria-label={tr("Użycie pamięci GPU")} aria-valuenow={displayed.vram} aria-valuemin="0" aria-valuemax={displayed.total_vram || 1}><i style={`width:${percent(displayed.vram, displayed.total_vram)}%`}></i></div></div>
   </div>{:else}<p class="device-message" role="status">{error ? tr(error) : tr("Odczytywanie parametrów…")}</p>{/if}
-  <button class="device-settings" onclick={() => { open = false; onmodels(); }}><Cpu size={15}/><span>{tr("Modele i silnik")}</span><ChevronRight size={15}/></button>
+  <button class="device-settings" onclick={() => { open = false; onmodels(); }}><Cpu size={15}/><span>{tr("Silnik")}</span><ChevronRight size={15}/></button>
 </div>{/if}
 
 <style>

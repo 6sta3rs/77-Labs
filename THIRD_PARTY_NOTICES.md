@@ -69,6 +69,17 @@ the [original text](src/lib/ui/language-flags/LICENSE.md),
 are included in the flags directory. The manifest describes how source
 symlinks were resolved to file contents.
 
+## LobeHub Icons - AI provider marks
+
+The 8 monochrome SVG files in `src/lib/ui/provider-icons/` come from
+[lobehub/lobe-icons](https://github.com/lobehub/lobe-icons) (`packages/static-svg/icons/`),
+revision `ab8cbcc6ce806b923c547628132957c8a8b61509`, unmodified.
+Copyright (c) 2023 LobeHub. License: **MIT**; the
+[license text](src/lib/ui/provider-icons/LICENSE.md) and the per-file
+[source list](src/lib/ui/provider-icons/README.md) are included. The marks are
+trademarks of their owners (OpenAI, Anthropic, Google, OpenRouter, Ollama, Groq,
+Cloudflare, LM Studio) and are used only to identify the provider.
+
 ## ElevenLabs homepage orb - Płyn style
 
 The **Płyn** orb style adapts the fragment shader, fluid pass, and three

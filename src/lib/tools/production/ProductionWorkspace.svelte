@@ -424,7 +424,7 @@
   {/snippet}
   {#snippet content()}
     <div class="production-content">
-      {#if !ready}<p class="production-notice" role="status">{tr("Uruchom lokalny silnik w „Modele i silnik”, aby wczytać głosy, projekty i generować nagrania.")}</p>{/if}
+      {#if !ready}<p class="production-notice" role="status">{tr("Uruchom lokalny silnik w „Silnik”, aby wczytać głosy, projekty i generować nagrania.")}</p>{/if}
       {#if loading && !busy}<p class="tool-workspace-note" role="status">{tr("Wczytywanie biblioteki…")}</p>{/if}
       {#if isBook && bookView === 'library'}
         <button class="book-create" disabled={busy || bookDrain} onclick={newBook}><BookOpen size={25}/><span><strong>{tr("Utwórz audiobook")}</strong><small>{tr("Wklej tekst lub importuj książkę. Wybierz lektora i przygotuj rozdziały.")}</small></span><Plus size={19}/></button>

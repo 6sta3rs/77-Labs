@@ -160,7 +160,7 @@ async function waitForReady(initial: RuntimeStatus): Promise<RuntimeStatus> {
     deadline.observe(status);
     await new Promise(resolve => setTimeout(resolve, 500));
   }
-  throw new Error(translateUi("Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Modele i silnik."));
+  throw new Error(translateUi("Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Silnik."));
 }
 
 /** A Rust-owned lease protects startup/request dispatch against idle shutdown. */

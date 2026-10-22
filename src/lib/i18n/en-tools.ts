@@ -767,7 +767,7 @@ export const enTools: Record<string, string> = {
   "Przekazano plik do pobrania.": "File sent for download.",
   "Przekroczono czas": "Timed out",
   "Przekroczono czas uruchamiania lokalnego silnika.": "Local engine startup timed out.",
-  "Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Modele i silnik.": "Local engine startup timed out. Check Models and engine.",
+  "Przekroczono czas uruchamiania lokalnego silnika. Sprawdź Silnik.": "Local engine startup timed out. Check Engine.",
   "Przenieś blok {arg0} do sceny": "Move block {arg0} to scene",
   "Przenieś blok {arg0} później": "Move block {arg0} later",
   "Przenieś blok {arg0} wcześniej": "Move block {arg0} earlier",

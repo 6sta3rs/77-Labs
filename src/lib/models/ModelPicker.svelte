@@ -20,7 +20,7 @@
     selectedId = '',
     mode = 'panel',
     title = 'Wybierz model',
-    description = 'Wybierz silnik do syntezy mowy. Repozytoria i pobrane wagi znajdziesz w ustawieniach „Modele i silnik”.',
+    description = 'Wybierz silnik do syntezy mowy. Repozytoria i pobrane wagi znajdziesz w ustawieniach „Modele”.',
     loading = false,
     error: loadError = '',
     onselect,

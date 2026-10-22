@@ -192,7 +192,7 @@
 <ToolWorkspace title={tr("Mowa na tekst")} description={tr("Wczytaj plik lub nagraj mikrofon, popraw tekst i przygotuj napisy.")} bind:tab historyCount={results.length}>
   {#snippet content()}
     <div class="transcription-content">
-      {#if !ready}<p class="transcription-notice" role="status">{tr("Uruchom lokalny silnik w „Modele i silnik”, aby rozpoznać mowę. Nagrywanie mikrofonu jest dostępne bez silnika.")}</p>{/if}
+      {#if !ready}<p class="transcription-notice" role="status">{tr("Uruchom lokalny silnik w „Silnik”, aby rozpoznać mowę. Nagrywanie mikrofonu jest dostępne bez silnika.")}</p>{/if}
       <label class="transcription-source" class:dragging class:has-file={Boolean(file)} class:disabled={busy || capturing}
         ondragover={event => { event.preventDefault(); if (!busy && !capturing) dragging = true }} ondragleave={() => dragging = false}
         ondrop={event => { event.preventDefault(); dragging = false; choose(event.dataTransfer?.files[0]) }}>
