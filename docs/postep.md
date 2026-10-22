@@ -1,5 +1,13 @@
 # Public project progress
 
+## 22 October 2026 — settings: AI i klucze ported
+
+Tabs Modele językowe (providers with brand icons, API keys, connect/test/model list via `/api/settings/llm-providers`, ChatGPT/Codex account row, Claude Code CLI shown as not detected), Funkcje AI (50/50 "Domyślny model"; function rows as model status + "Zmień" + switch, editor with Domyślny | Własny, one model list across providers, manual id; separate Tagowanie card with an inline test preview; Redakcja dyktowania) and Tłumaczenie i rozpoznawanie (translators through `/next/settings/credential(s)`, OpenAI-compatible ASR). New `pages/ModelPicker.svelte`. The style doc now describes the status + "Zmień" pattern.
+
+Checks: `svelte-check` 0/0, `i18n-check.mjs` 14/14, screenshots against the prototype at 1280/900 px with intercepted fixture responses (`.tmp/qa/settings-port/ai/`); the real app only in the not-ready state.
+
+Limitations (need engine or Tauri work): Claude Code needs an agent bridge that src-tauri does not provide; ChatGPT login is still `codex login` in a terminal (no in-app login/logout); tagging works only through Codex; the engine stores one model per provider, so a custom function model changes that provider's model everywhere; `/models` has no dates, so no "Najnowsze/Starsze" grouping or "nowy" mark; LLM and ASR keys are not returned masked.
+
 ## 22 October 2026 — settings: Przechowywanie and Prywatność i użycie ported
 
 Przechowywanie: data folder move plan, model folder (now the only place to change model paths), restart to apply, disk usage per category, database backups, history limit, preview samples and temporary files with confirm steps. Prywatność i użycie has tabs Prywatność (analytics consent, translation provider), Znak wodny (the former Privacy toggle and the Integrations "invisible watermark" toggle are one switch; all three switches saved in one `POST /watermark/settings`, then re-read and confirmed; detector) and Użycie (former "Wykorzystanie" stats from `/stats/usage`).
