@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="11" fill="#202b3b"/><g stroke="#b4d2ff" stroke-width="3" stroke-linecap="round"><path d="M10 18v4m6-11v18m8-22v26m6-18v10"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#d9d9de"/><stop offset="1" stop-color="#8d8d96"/></linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#17171b"/><stop offset="1" stop-color="#000000"/></linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43434b"/><stop offset="1" stop-color="#0b0b0d"/></linearGradient>
+  </defs>
+  <rect x="4" y="4" width="248" height="248" rx="62" fill="url(#bg)" stroke="url(#rim)" stroke-width="3"/>
+  <g transform="translate(5 0)" fill="url(#g)">
+    <path d="M30 62H120V88L80 194H46L86 92H30Z"/>
+    <path transform="translate(96 0)" d="M30 62H120V88L80 194H46L86 92H30Z"/>
+  </g>
+</svg>

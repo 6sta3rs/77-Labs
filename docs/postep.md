@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — new application icon "77"
+
+User request: design a new logo in the style of T3 Code (black rounded square with a bold silver mark) and use variant A of three options.
+
+Change: the mark is two heavy geometric sevens in a silver gradient on a black rounded square, drawn as plain SVG paths (no font). `assets/icon.svg` and `public/favicon.svg` (used by `index.html` and `inputy.html`) are replaced; `npm run tauri icon` (CLI 2.12.3) regenerated the 52 files in `src-tauri/icons/` (PNG sizes, Windows Store logos, `icon.ico` with 16-256 px frames, `icon.icns`, Android and iOS sets) from a 1024 px render of the SVG. Only the style is shared with T3 Code; the glyphs and shape are original.
+
+Checks: `npm run build` PASS (the favicon is copied to `dist/`), `cargo check --manifest-path src-tauri/Cargo.toml` PASS (the icon is embedded by `tauri-build`); the 128 px result and the 16/32/64 px previews were viewed in a rendered image. Not verified: the icon in the built EXE, in the installer, on the taskbar and in the Start menu (no new EXE was built), legibility at 16 px on a real Windows taskbar, and the Android and iOS sets on a device.
+
+Limitations: the installed copy keeps the old icon until a new release is built and installed; a Windows icon cache may keep showing the old one for a while.
+
 ## 23 October 2026 — frontend layout decision (T-0011)
 
 User request: audit why every frontend folder sits under `src/lib/` and what the layout should be; the owner then chose `frontend/src/` instead of `lib`.
