@@ -3610,7 +3610,7 @@ dependencies = [
 
 [[package]]
 name = "seventy-seven-labs"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "rusqlite",
  "serde",

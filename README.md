@@ -4,7 +4,7 @@ A local voice studio for Windows. Write narration, assign voices to speakers, wo
 
 **Svelte 5 · TypeScript · Tauri 2 · Python/FastAPI · AGPL-3.0-only**
 
-Development version **0.2.0**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned sources for the Seventy Seven Labs engine. Model weights, the Python environment, private recordings, and account data are not included.
+Development version **0.2.1**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned sources for the Seventy Seven Labs engine. Model weights, the Python environment, private recordings, and account data are not included.
 
 ![Narration editor with a fictional dialogue](docs/screenshots/studio.png)
 

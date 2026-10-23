@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — version 0.2.1 build
+
+Bumped the version to 0.2.1 (package, lockfiles, `tauri.conf.json`, `Cargo.toml`, README) so installed copies see the UI batch above as an update. `npm run desktop:release` produced a signed `Seventy-Seven-Labs_0.2.1_x64-setup.exe` (24 MB), its `.sig` and `latest.json` in `.tmp/release/v0.2.1/`; `latest.json` reports 0.2.1.
+
+Not done: the release is not published to GitHub (needs the user's go-ahead), the installer was not run, and an update from 0.2.0 to 0.2.1 was not tested.
+
 ## 23 October 2026 — UI feedback batch (UI-013 to UI-021, UI-037)
 
 User request: implement the open UI feedback items and test them. Six parallel agents, one area each; integrated and checked in one pass.
