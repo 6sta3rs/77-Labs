@@ -30,10 +30,13 @@ def main() -> int:
         try:
             result = subprocess.run([sys.executable, "-B", "-X", "utf8", str(TESTS / name)], cwd=ROOT, capture_output=True,
                                     text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT)
-            code, tail = result.returncode, (result.stdout + result.stderr).strip().splitlines()[-1:]
+            output = (result.stdout + result.stderr).strip()
+            code, tail = result.returncode, output.splitlines()[-1:]
         except subprocess.TimeoutExpired:
-            code, tail = 1, [f"timed out after {TIMEOUT} s"]
+            output, code, tail = "", 1, [f"timed out after {TIMEOUT} s"]
         print(f"{'ok  ' if code == 0 else 'FAIL'} {name} {tail[0][:100] if tail else ''}", flush=True)
+        if code != 0:
+            print("\n".join("    | " + line for line in output.splitlines()[-40:]), flush=True)
         if code != 0:
             failed.append(name)
     print(f"{len(manifest['ci']) - len(failed)}/{len(manifest['ci'])} passed, {len(manifest['skipped'])} skipped (see the manifest for reasons)")
