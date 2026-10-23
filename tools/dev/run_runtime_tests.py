@@ -14,6 +14,7 @@ TIMEOUT = 300
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # a Windows runner prints with cp1252 by default
     manifest = json.loads((TESTS / "manifest-python.json").read_text(encoding="utf-8"))
     listed = set(manifest["ci"]) | set(manifest["skipped"])
     present = {f"{folder}/{path.name}" for folder in ("runtime", "frontend") for path in (TESTS / folder).glob("*.py")}

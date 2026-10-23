@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — runner output encoding
+
+The failing-check output added in the previous commit crashed on the runner (`UnicodeEncodeError`: the Windows runner prints with cp1252 and the checks print Polish letters). `run_runtime_tests.py` now switches its stdout to UTF-8 with replacement. Checked locally: 28/28 still pass.
+
 ## 23 October 2026 — first GitHub run of the series: Windows runtime checks
 
 After the push, `Source checks` on `main` (0f44648) gave: Ubuntu job (check, build, bundle budget, `test:ui`, 11 browser tests with Chromium, structure, publication check) green; `tauri-build` green; Windows job green through `npm ci`, `test:structure`, `test:ui`, the build, `cargo check/test/clippy`, ruff, and red at `tools/dev/run_runtime_tests.py`: 22 of 28 Python checks passed on the runner, 6 failed (`test_acceptance_guards`, `test_audiobook_streaming`, `test_bootstrap`, `test_engine_bundle`, `test_native_publication`, `test_runtime_backup`). They pass on this machine with CPython 3.12 and in the reviewer's clean clone on 3.11 and 3.12, so the cause is a difference of the runner. The runner printed only the last line of a failing check; it now prints the last 40 lines of every failing check so the next run shows the cause. Dependabot also opened update pull requests as soon as the config reached `main` (expected).
