@@ -1,11 +1,12 @@
 // Builds a signed NSIS installer and the updater feed `latest.json` for GitHub Releases.
-// Usage: npm run desktop:release -- [--notes "Co nowego"]
+// Usage: npm run desktop:release -- [--notes "Co nowego"] [--skip-guards]
 // Signing key: TAURI_SIGNING_PRIVATE_KEY (path or content), default %USERPROFILE%\.tauri\seventy-seven-labs-updater.key (never in the repo).
 // Output: .tmp/release/v<version>/ with the installer, its .sig and latest.json. Publishing is a separate, explicit step (printed at the end).
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { releaseGuardErrors } from './release-guards.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
 // Owner/name of the GitHub repository from `git remote get-url origin` (kept out of the source tree).
@@ -14,8 +15,13 @@ const REPO = origin.match(/github\.com[:/]([^/]+\/[^/.]+?)(?:\.git)?$/)?.[1];
 if (!REPO) throw new Error(`origin is not a GitHub repository: ${origin}`);
 const ENDPOINT = `https://github.com/${REPO}/releases/latest/download/latest.json`;
 const { version } = JSON.parse(readFileSync(join(root, 'desktop/tauri.conf.json'), 'utf8'));
-const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
-if (pkg !== version) throw new Error(`package.json ${pkg} != tauri.conf.json ${version}; set both to the release version.`);
+// A release is built from a tagged, clean commit with all five version manifests in agreement.
+// --skip-guards is for a local trial build only and must never produce a published release.
+if (process.argv.includes('--skip-guards')) console.warn('WARNING: release guards skipped; do not publish this build.');
+else {
+  const errors = releaseGuardErrors(root, version);
+  if (errors.length) throw new Error(['Release guards failed:', ...errors.map(error => `- ${error}`)].join('\n'));
+}
 const at = process.argv.indexOf('--notes');
 const notes = at > -1 ? process.argv[at + 1] || '' : '';
 const key = process.env.TAURI_SIGNING_PRIVATE_KEY || join(homedir(), '.tauri', 'seventy-seven-labs-updater.key');

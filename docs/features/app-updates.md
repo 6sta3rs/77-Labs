@@ -12,8 +12,8 @@ The desktop app updates itself from signed releases of this repository on GitHub
 
 ## For the maintainer: publishing a release
 
-1. Set the same new version in `package.json` and `desktop/tauri.conf.json` (the updater only offers a higher version).
-2. `npm run desktop:release -- --notes "Co nowego"` builds the signed NSIS installer and writes `.tmp/release/v<version>/` with the installer, its `.sig` and `latest.json`.
+1. Set the same new version in `package.json`, `package-lock.json`, `desktop/tauri.conf.json`, `desktop/Cargo.toml` and `desktop/Cargo.lock` (the updater only offers a higher version; `npm run test:structure` fails when they disagree), commit, and tag that commit `v<version>`.
+2. `npm run desktop:release -- --notes "Co nowego"` refuses to run unless the working tree is clean, HEAD is exactly the tag `v<version>` (a detached checkout is fine) and the five versions agree (`--skip-guards` exists for a local trial build and prints a warning; never publish such a build), then builds the signed NSIS installer and writes `.tmp/release/v<version>/` with the installer, its `.sig` and `latest.json`.
 3. Review, then publish with the `gh release create …` command the script prints. The script takes the repository from `git remote get-url origin` and builds the app with the endpoint `https://github.com/<owner>/<repo>/releases/latest/download/latest.json` (`tauri build --config`), so the newest non-draft release must contain `latest.json`. `tauri.conf.json` keeps an empty endpoint list: builds made without the script (`npm run desktop:build`) report that no update source is configured. In such a build the Updates page asks the app (`app_updates_supported`, which reads `plugins.updater.endpoints` of the merged config), disables "Sprawdź aktualizacje" and explains that this copy does not support updates, instead of showing the raw plugin error.
 
 Signing key: the private key is `%USERPROFILE%\.tauri\seventy-seven-labs-updater.key` (or `TAURI_SIGNING_PRIVATE_KEY`). It never goes into the repository. Back it up: if it is lost, installed copies cannot accept any further update, and a new key requires users to reinstall manually. The public key is in `desktop/tauri.conf.json` (`plugins.updater.pubkey`).
@@ -23,4 +23,4 @@ Signing key: the private key is `%USERPROFILE%\.tauri\seventy-seven-labs-updater
 - `frontend/src/platform/app-update.ts` — check, download/install, restart.
 - `frontend/src/settings/pages/UpdatesPage.svelte` — the "Aktualizacja aplikacji" section.
 - `desktop/tauri.conf.json` — bundle target `nsis`, `createUpdaterArtifacts`, public key (endpoint injected by the release script); `desktop/capabilities/main.json` — `updater:default`, `process:allow-restart`.
-- `tools/release/build-update.mjs` — release build and `latest.json`.
+- `tools/release/build-update.mjs` — release build and `latest.json`; `tools/release/release-guards.mjs` — version parity and the clean-tree / tag guards (also used by `test:structure`; tested by `tests/frontend/release-guards-check.mjs`).

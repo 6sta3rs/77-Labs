@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { versionMismatches } from '../release/release-guards.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(resolve(root, path), 'utf8');
@@ -59,6 +60,8 @@ for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = 
 // Build output and local folders that docs may mention but a fresh clone does not contain.
 const generatedRoots = ['desktop/target', 'desktop/gen', 'dist', 'node_modules'];
 const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file));
+// Pięć plików z wersją (package.json, package-lock.json, tauri.conf.json, Cargo.toml, Cargo.lock) musi się zgadzać.
+for (const mismatch of versionMismatches(root)) failures.push(`Wersje: ${mismatch}`);
 // Katalogi, które przestały istnieć, nie mogą wracać do bieżących dokumentów (historia je opisuje: patrz `historyFiles`).
 const retiredRoots = ['src/', 'src-tauri/', 'scripts/dev/', 'scripts/preview/', 'scripts/release/', 'scripts/build/'];
 const historyFiles = new Set(['docs/progress.md', 'tasks/BOARD.md', 'tasks/specs/ROADMAP-to-8.md', 'tasks/specs/T-0011-rename-src-folders.md', 'tasks/audits/app-audit-2026-10-22.md']);

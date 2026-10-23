@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — release guards (T-0032)
+
+`tools/release/release-guards.mjs` (new) reads the five version manifests (`package.json`, both versions in `package-lock.json`, `desktop/tauri.conf.json`, `desktop/Cargo.toml`, the `seventy-seven-labs` entry of `desktop/Cargo.lock`) and checks, for a release, that the working tree is clean (untracked files count) and that HEAD carries the tag `v<version>` (`git tag --points-at HEAD`, so a detached checkout works). `tools/release/build-update.mjs` calls it before building and throws with all failures listed; `--skip-guards` is a loud escape for a local trial build only. `npm run test:structure` also fails when the five versions disagree. The old check (package.json against tauri.conf.json) is replaced by this one.
+
+Checks: new `tests/frontend/release-guards-check.mjs` (part of `test:ui`, 7 steps, throw-away git repository): manifests agree, untagged HEAD refused, clean tagged HEAD passes, detached checkout at the tag passes, detached HEAD after the tag refused, dirty tree refused, drift in each of `Cargo.toml`, `Cargo.lock`, `package-lock.json`, `tauri.conf.json` reported. The real script run in this dirty tree refuses with the clean-tree message. `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0. Not verified: a full `desktop:release` with the guards on a tagged commit (needs the signing key and 20-30 minutes; the guards run before any build step). `docs/features/app-updates.md` describes the new steps.
+
 ## 23 October 2026 — fixes from the independent review of M2
 
 A fresh read-only reviewer (Opus, clean clone of `a800b78` with `npm ci`) confirmed that `test:structure` (681 documented paths), `npm run check`, `build`, `run-checks` (71/71), `cargo check/test --no-run`, the dev and preview servers and the preview tools work on a clone. It found stale text and weak spots, fixed here:
