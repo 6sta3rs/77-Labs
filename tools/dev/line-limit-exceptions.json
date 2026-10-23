@@ -1,5 +1,4 @@
 {
-  "scripts/runtime/app/engine_catalogue_metadata.py": { "max": 2000, "reason": "Large legacy backend module; splitting needs its own change with behaviour tests." },
   "desktop/src/runtime.rs": { "max": 1450, "reason": "Supervisor; split planned (see docs/architecture/project-structure.md)." },
   "frontend/src/i18n/en/studio.ts": { "max": 1150, "reason": "Translation table (data), not logic." },
   "frontend/src/i18n/en/additions.ts": { "max": 1100, "reason": "Translation table (data), not logic." },

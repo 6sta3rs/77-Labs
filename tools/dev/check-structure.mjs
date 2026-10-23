@@ -33,7 +33,7 @@ for (const file of files(resolve(root, 'desktop/src')).filter(path => path.endsW
 const provenance = JSON.parse(read('scripts/runtime/vendor/engine-provenance.json'));
 const sha = createHash('sha256').update(readFileSync(resolve(root, 'scripts/runtime/vendor/engine.zip'))).digest('hex');
 check(sha === provenance.archiveSha256, 'Przypięte archiwum silnika nie zgadza się z pochodzeniem.');
-const catalogueProof = read('scripts/runtime/app/engine_catalogue_metadata.py').match(/"extra_catalogue_lf_sha256": "([a-f0-9]{64})"/)?.[1];
+const catalogueProof = JSON.parse(read('scripts/runtime/app/engine_catalogue_data.json')).extra_catalogue_lf_sha256;
 const catalogueSha = createHash('sha256').update(read('scripts/runtime/app/tts_catalog.py').replaceAll('\r\n', '\n')).digest('hex');
 check(catalogueSha === catalogueProof, 'Katalog TTS nie zgadza się z przypiętym kontraktem szybkiego katalogu.');
 for (const command of Object.values(JSON.parse(read('package.json')).scripts)) {

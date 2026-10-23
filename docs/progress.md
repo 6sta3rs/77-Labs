@@ -1,5 +1,12 @@
 # Public project progress
 
+## 23 October 2026 — two oversized modules split (T-0039, step 1)
+
+- `scripts/runtime/app/engine_catalogue_metadata.py` (1,950 lines) held a 1,400-line JSON blob of declarations. The blob is now `scripts/runtime/app/engine_catalogue_data.json`, loaded next to the module (`_DATA`); the module is 543 lines and its line-limit exception is gone. `desktop/src/runtime.rs` embeds and writes the JSON beside the module at every start (a new `include_str!`), `tests/acceptance/engine_benchmark.py` copies it, and `check-structure.mjs` reads the pinned catalogue hash from the JSON.
+- `desktop/src/runtime.rs` (1,407 lines): its unit tests moved to `desktop/src/runtime/tests.rs` (a child module, same test names); `runtime.rs` is 935 lines.
+
+Checks: `test_engine_catalogue_metadata.py` 38 OK, `test_engine_bundle.py`, `test_model_onboarding.py` OK, `cargo test --locked` 51 passed / 2 ignored, clippy clean, `npm run check`/`build`/`test:ui`/`test:structure` exit 0. Not verified: the built EXE starting with the new embedded JSON (no new EXE was built; the write list and the loader are covered by the unit tests only).
+
 ## 23 October 2026 — board correction (T-0024)
 
 A helper call in the previous commit moved T-0024 to the Done table by mistake. It is blocked, not done (the install step needs an owner decision, see `tasks/specs/T-0024-update-test.md`); the row is back in the open table with its status and evidence. No other change.

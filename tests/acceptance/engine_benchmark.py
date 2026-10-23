@@ -29,7 +29,7 @@ import urllib.request
 MODULES = ["launcher.py", "audiobook_streaming.py", "ai_tagging.py", "activity.py", "model_management.py",
            "integration_settings.py", "storage_settings.py", "system_settings.py", "general_settings.py",
            "remote_backend.py", "preview_cache.py", "private_environment.py", "engine_installation.py",
-           "windows_runtime_paths.py", "runtime_backup.py", "engine_catalogue_metadata.py",
+           "windows_runtime_paths.py", "runtime_backup.py", "engine_catalogue_metadata.py", "engine_catalogue_data.json",
            "tts_catalog.py", "tts_extensions.py", "tts_worker.py", "prepare_tts.py"]
 RESOURCES = {"runtime-distribution.json": "bootstrap-provenance.json", "engine-provenance.json": "engine-provenance.json"}
 URL = "http://127.0.0.1:4312"

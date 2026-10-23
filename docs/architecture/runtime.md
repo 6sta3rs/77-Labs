@@ -49,7 +49,7 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 | Installation and doctor | `scripts/runtime/install/bootstrap.py`, `desktop/src/installer.rs` |
 | Startup and adapters | `scripts/runtime/app/launcher.py` |
 | Request activity, idle safety, input guards | `scripts/runtime/app/activity.py` |
-| Lightweight metadata | `scripts/runtime/app/engine_catalogue_metadata.py` |
+| Lightweight metadata | `scripts/runtime/app/engine_catalogue_metadata.py`, its declarations in `engine_catalogue_data.json` |
 | Weights and downloads | `scripts/runtime/app/model_management.py` |
 | Source provenance | `scripts/runtime/vendor/engine-provenance.json`, `tools/release/bundle.py` |
 
