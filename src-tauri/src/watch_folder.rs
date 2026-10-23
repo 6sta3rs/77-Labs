@@ -38,13 +38,7 @@ struct Inner {
 pub struct WatchFolder { inner: Arc<Mutex<Inner>> }
 
 fn no_links(path: &Path) -> Result<(), String> {
-    for ancestor in path.ancestors() {
-        let metadata = fs::symlink_metadata(ancestor).map_err(|e| format!("Brak dostępu do {}: {e}", ancestor.display()))?;
-        #[cfg(windows)]
-        { use std::os::windows::fs::MetadataExt; if metadata.file_attributes() & 0x400 != 0 { return Err("Folder i pliki nie mogą być dowiązaniami ani punktami ponownej analizy.".into()); } }
-        if metadata.file_type().is_symlink() { return Err("Dowiązania symboliczne nie są obsługiwane.".into()); }
-    }
-    Ok(())
+    crate::installer::no_links_with(path, "Folder i pliki nie mogą być dowiązaniami ani punktami ponownej analizy.", "Dowiązania symboliczne nie są obsługiwane.")
 }
 fn selected_root(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);

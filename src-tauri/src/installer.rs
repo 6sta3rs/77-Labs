@@ -231,12 +231,21 @@ fn candidate_path(base: &Path, id: &str) -> Result<PathBuf, String> {
 }
 
 pub(crate) fn no_links(path: &Path) -> Result<(), String> {
+    no_links_with(path, "Katalog runtime zawiera junction lub dowiązanie.", "Katalog runtime zawiera dowiązanie.")
+}
+
+/// Rejects a path whose own entry or any ancestor is a symlink or a Windows reparse point.
+/// A missing entry cannot be a link; any other read failure is an error.
+pub(crate) fn no_links_with(path: &Path, reparse_message: &str, symlink_message: &str) -> Result<(), String> {
     for current in path.ancestors() {
-        if let Ok(metadata) = fs::symlink_metadata(current) {
-            #[cfg(windows)]
-            { use std::os::windows::fs::MetadataExt; if metadata.file_attributes() & 0x400 != 0 { return Err("Katalog runtime zawiera junction lub dowiązanie.".into()); } }
-            if metadata.file_type().is_symlink() { return Err("Katalog runtime zawiera dowiązanie.".into()); }
-        }
+        let metadata = match fs::symlink_metadata(current) {
+            Ok(metadata) => metadata,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(format!("Brak dostępu do {}: {e}", current.display())),
+        };
+        #[cfg(windows)]
+        { use std::os::windows::fs::MetadataExt; if metadata.file_attributes() & 0x400 != 0 { return Err(reparse_message.into()); } }
+        if metadata.file_type().is_symlink() { return Err(symlink_message.into()); }
     }
     Ok(())
 }
@@ -583,6 +592,11 @@ mod tests {
     #[test] fn candidate_identifiers_cannot_escape() {
         assert!(safe_id("runtime_abcdef0123"));
         for id in ["runtime", "runtime_", "runtime_../old", "../runtime_ab", "runtime_ab/other", "runtime_xyz"] { assert!(!safe_id(id)); }
+    }
+    #[test] fn missing_paths_are_not_links_but_real_directories_pass() {
+        let missing = std::env::temp_dir().join("seventy-seven-labs-no-such-dir").join("child");
+        assert!(no_links(&missing).is_ok());
+        assert!(no_links_with(&std::env::temp_dir(), "a", "b").is_ok());
     }
     #[test] fn embedded_provenance_matches_archive() {
         let manifest: serde_json::Value = serde_json::from_str(PROVENANCE).unwrap();

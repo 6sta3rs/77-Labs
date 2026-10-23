@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — one `no_links` implementation (T-0016)
+
+`watch_folder.rs` and `installer.rs` each had their own loop that rejects symlinks and Windows reparse points. Both now use `installer::no_links_with(path, reparse_message, symlink_message)`; `installer::no_links` and the watch-folder wrapper only supply their Polish messages. Behaviour decision: a missing entry is skipped (a path that does not exist yet cannot be a link; the installer and the log/pointer callers rely on that), any other read failure is an error (this is the stricter variant for the installer, which used to ignore every error; the watch folder used to fail on a missing ancestor and now fails later in `is_dir`).
+
+Checks: `cargo clippy --locked --all-targets -D warnings` clean, `cargo test --locked` 51 passed (new `missing_paths_are_not_links_but_real_directories_pass`), `test:structure` PASS. Not verified: a real junction/symlink rejection (creating one needs privileges; the existing tests that cover the reparse path were not changed) and the watch folder in the running app.
+
 ## 23 October 2026 — orphan fixtures and a one-off script removed (T-0005)
 
 Deleted `tests/fixtures/ui-style-fixes.svelte` and `tests/fixtures/button-system-audit.svelte` (no references; `voice-picker-audit.svelte` stays, it is used) and `scripts/dev/i18n-svelte.mjs` (the one-off that wrapped static markup for the English catalog; only mentioned in this log, whose older entry now says it was removed).
