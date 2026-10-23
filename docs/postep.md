@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — Windows CI job (T-0028, T-0010)
+
+`.github/workflows/ci.yml` gains: `concurrency` with cancel-in-progress; a `windows` job (`npm ci`, `test:structure`, `test:ui`, `npm run build` first because `tauri::generate_context!` embeds `../dist`, `Swatinem/rust-cache`, `cargo check --locked`, `cargo test --locked`, `cargo clippy --locked --all-targets -D warnings`); and a `tauri-build` job (`npm run desktop:build`) that runs its steps only when `src-tauri/` or the npm manifests changed (decided by a `git diff` step, so the job always reports a status and can be made required). The Ubuntu job is unchanged. The interactive hotkey test in `dictation_desktop.rs` is already `#[ignore]`, so no extra skip list is needed; the other `#[cfg(windows)]` test only reads `GetForegroundWindow`.
+
+Checks: workflow parsed as YAML (3 jobs); the same commands run locally on Windows with the results recorded in the previous entries (`test:ui`, `test:structure`, `cargo test` 50 passed / 2 ignored, clippy clean); `test:ui` passes on this Windows machine, so the "UI checks only ever ran on Ubuntu" risk did not show up here. NOT verified: the workflow on GitHub (nothing is pushed, actions are not pinned yet: T-0034), `tauri-build` timing, the `windows-latest` image. Making the jobs required is T-0051 (owner).
+
 ## 23 October 2026 — clippy fix-up before the Rust gate (T-0028)
 
 Two lints blocked `cargo clippy -D warnings`: a needless borrow in `src-tauri/src/library.rs` and `Option::map_or(true, ..)` in `runtime.rs` (now `is_none_or`). No behaviour change.

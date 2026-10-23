@@ -2,6 +2,9 @@ name: Source checks
 on: [push, pull_request]
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   frontend-and-publication:
     runs-on: ubuntu-latest
@@ -23,3 +26,48 @@ jobs:
       - run: npm run test:structure
       - run: python -B tests/runtime/test_publication_check.py
       - run: python scripts/dev/publication_check.py
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:structure
+      - run: npm run test:ui
+      # tauri::generate_context! embeds ../dist, so the frontend is built first
+      - run: npm run build
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - run: cargo clippy --locked --all-targets --manifest-path src-tauri/Cargo.toml -- -D warnings
+  tauri-build:
+    # proves that the release binary links; limited to the paths that can break it
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changed
+        shell: bash
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null || git diff --name-only "$base" HEAD | grep -qE '^(src-tauri/|package(-lock)?\.json$)'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.changed.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.changed.outputs.run == 'true'
+        run: npm ci
+      - if: steps.changed.outputs.run == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - if: steps.changed.outputs.run == 'true'
+        run: npm run desktop:build
