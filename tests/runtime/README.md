@@ -2,7 +2,7 @@
 
 `tests/manifest-python.json` lists every Python file under `tests/runtime/` and `tests/frontend/` and says whether CI runs it. `python tools/dev/run_runtime_tests.py` runs the `ci` group (one process per file) and fails when a file is missing from the manifest, so a new test is never skipped by accident. CI installs `requirements-ci.txt` (no torch, no engine) in a virtual environment and runs the group on Windows, then `ruff check .` with the small rule set in `ruff.toml`.
 
-Measured on 23 October 2026 on Windows with CPython 3.12 (28 pass, one command, about 90 s). The CI image uses CPython 3.11 and was not run there yet. `tools/dev/test_runtime.py` runs every `tests/runtime/test_*.py` with the real private runtime and the extracted engine; use it before changing the engine adapters.
+Measured on 23 October 2026 on Windows with CPython 3.12 (27 pass, one command, about 90 s). The CI image uses CPython 3.11 and was not run there yet. `tools/dev/test_runtime.py` runs every `tests/runtime/test_*.py` with the real private runtime and the extracted engine; use it before changing the engine adapters.
 
 | File | Group | Why |
 | --- | --- | --- |
@@ -10,7 +10,6 @@ Measured on 23 October 2026 on Windows with CPython 3.12 (28 pass, one command, 
 | `tests/runtime/test_ai_tagging.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_analytics_switch.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_audio_cpp_acceptance.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
-| `tests/runtime/test_audiobook_streaming.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_bootstrap.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_completeness.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_engine_bundle.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
@@ -43,3 +42,4 @@ Measured on 23 October 2026 on Windows with CPython 3.12 (28 pass, one command, 
 | `tests/runtime/license_onboarding_ui_check.py` | manual | browser acceptance, needs Playwright/Chromium and a built dist |
 | `tests/frontend/speech_settings_backend_check.py` | manual | reads a path outside the repository that this checkout does not have |
 | `tests/frontend/audit_upstream.py` | helper | the upstream audit module that test_audit_upstream.py loads; not a test |
+| `tests/runtime/test_audiobook_streaming.py` | needs-ffmpeg | 2 of 5 tests need a real ffmpeg, which the GitHub Windows runner does not have (found on the first runner run) |

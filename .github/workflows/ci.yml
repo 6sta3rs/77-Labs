@@ -47,7 +47,11 @@ jobs:
       - run: python -m venv .venv
       - run: .venv/Scripts/python -m pip install -r requirements-ci.txt ruff==0.17.2
       - run: .venv/Scripts/ruff check .
-      - run: .venv/Scripts/python tools/dev/run_runtime_tests.py
+      # The runner's default temp folder has an 8.3 short name (RUNNER~1) that several path-identity checks reject: use a long one.
+      - run: |
+          New-Item -ItemType Directory -Force C:\ci-tmp | Out-Null
+          $env:TEMP = 'C:\ci-tmp'; $env:TMP = 'C:\ci-tmp'
+          .venv/Scripts/python tools/dev/run_runtime_tests.py
       - run: npm run test:ui
       # tauri::generate_context! embeds ../dist, so the frontend is built first
       - run: npm run build

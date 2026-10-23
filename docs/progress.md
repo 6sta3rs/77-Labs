@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — what the Windows runner showed about the Python checks
+
+With readable output, the six failures of the first runner run have two causes. (1) Five checks (`test_acceptance_guards`, `test_bootstrap`, `test_engine_bundle`, `test_native_publication`, `test_runtime_backup`) compare paths that the checks build from the temp folder: on the runner the temp folder is `C:\Users\RUNNER~1\...` (an 8.3 short name) while resolving gives `runneradmin`, so identity checks reject or mismatch. The CI step now sets `TEMP` and `TMP` to a long folder, `C:\ci-tmp`, for the runner only. (2) `test_audiobook_streaming` needs a real ffmpeg for 2 of 5 tests and the runner has none; it moved from the `ci` group to `skipped` ("needs-ffmpeg"), so the CI group is 27 files. `numbers.md` and `tests/runtime/README.md` follow. Not yet confirmed: that the temp-folder change turns the other five green on the runner; it takes another push to see.
+
 ## 23 October 2026 — runner output encoding
 
 The failing-check output added in the previous commit crashed on the runner (`UnicodeEncodeError`: the Windows runner prints with cp1252 and the checks print Polish letters). `run_runtime_tests.py` now switches its stdout to UTF-8 with replacement. Checked locally: 28/28 still pass.

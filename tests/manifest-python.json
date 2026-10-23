@@ -5,7 +5,6 @@
     "runtime/test_ai_tagging.py",
     "runtime/test_analytics_switch.py",
     "runtime/test_audio_cpp_acceptance.py",
-    "runtime/test_audiobook_streaming.py",
     "runtime/test_bootstrap.py",
     "runtime/test_completeness.py",
     "runtime/test_engine_bundle.py",
@@ -39,6 +38,7 @@
     "runtime/bootstrap_docopt_regression.py": "manual: builds docopt on Windows with explicit arguments, never installs the runtime",
     "runtime/license_onboarding_ui_check.py": "manual: browser acceptance, needs Playwright/Chromium and a built dist",
     "frontend/speech_settings_backend_check.py": "manual: reads a path outside the repository that this checkout does not have",
-    "frontend/audit_upstream.py": "helper: the upstream audit module that test_audit_upstream.py loads; not a test"
+    "frontend/audit_upstream.py": "helper: the upstream audit module that test_audit_upstream.py loads; not a test",
+    "runtime/test_audiobook_streaming.py": "needs-ffmpeg: 2 of 5 tests need a real ffmpeg, which the GitHub Windows runner does not have (found on the first runner run)"
   }
 }
