@@ -23,6 +23,8 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm run test:ui
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - run: npm run test:structure
       - run: python -B tests/runtime/test_publication_check.py
       - run: python -B tests/runtime/test_analytics_switch.py

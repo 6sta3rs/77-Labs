@@ -32,3 +32,6 @@ desktop/gen/
 *.mov
 *.webm
 !public/demo/interface-tone.wav
+.ruff_cache/
+test-results/
+playwright-report/

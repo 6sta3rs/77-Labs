@@ -84,7 +84,7 @@
   "frontend/src/shell/shell.css": { "over200": 5, "over400": 3, "longest": 4472 },
   "frontend/src/shell/ShellTopbar.svelte": { "over200": 1, "over400": 0, "longest": 349 },
   "frontend/src/shell/SidebarFooter.svelte": { "over200": 1, "over400": 1, "longest": 1096 },
-  "frontend/src/shell/SidebarHeader.svelte": { "over200": 1, "over400": 1, "longest": 422 },
+  "frontend/src/shell/SidebarHeader.svelte": { "over200": 1, "over400": 0, "longest": 383 },
   "frontend/src/styles.css": { "over200": 7, "over400": 6, "longest": 20711 },
   "frontend/src/styles/ui-fields.css": { "over200": 2, "over400": 0, "longest": 222 },
   "frontend/src/styles/ui.css": { "over200": 15, "over400": 2, "longest": 695 },

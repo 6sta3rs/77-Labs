@@ -16,6 +16,7 @@
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build --no-bundle",
     "desktop:release": "node tools/release/build-update.mjs",
+    "test:e2e": "playwright test",
     "test:structure": "node tools/dev/check-structure.mjs",
     "i18n:status": "node tools/dev/i18n-lang.mjs status",
     "i18n:missing": "node tools/dev/i18n-lang.mjs missing",
@@ -30,6 +31,8 @@
     "svelte": "5.57.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tauri-apps/cli": "2.12.3",
     "@types/node": "^22.20.5",

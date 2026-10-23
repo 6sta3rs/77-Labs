@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — Playwright smoke and axe scan (T-0030) and the first fix (T-0044)
+
+New: `@playwright/test` 1.64.1 and `@axe-core/playwright` 4.14.0 (dev dependencies, exact versions), `playwright.config.mjs` (serves the built `dist/` with `vite preview` on port 4320 and uses Chromium, locale `pl-PL`) and `tests/e2e/`: `mock-runtime.mjs` answers every `/backend` request of the browser build with canned JSON (nothing leaves the test, no engine), `pages.spec.mjs` has one test per named page (Pulpit, Tekst na mowę, Ustawienia → Ogólne, Silnik, Modele: renders without page errors and with no serious or critical axe violation) and a Tab-order test (14 Tab presses: focus is always on an element, never repeats, and follows the document order). `npm run test:e2e` runs it (after `npm run build` and `npx playwright install chromium` once); the Ubuntu CI job installs the browser and runs it.
+
+The scan found exactly one blocking issue, on the Pulpit and the Tekst na mowę pages: the sidebar search button had `aria-label="Szukaj i przejdź do"` while its visible text is "Szukaj… Ctrl K" (axe `label-content-name-mismatch`, WCAG 2.5.3). Fixed by removing the aria-label (the visible text is now the name; `aria-haspopup` and `aria-keyshortcuts` stay). That shortened a long line, so the long-line baseline was lowered.
+
+Checks: `npm run test:e2e` 6/6 after the fix (2 of 6 failed before, both the same rule); `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0. Limits, stated plainly: the mock returns `{}` for most calls, so pages are scanned in their empty or default state; the axe scan covers what is visible after load, not every dialog and state; the roadmap's "two steps" were done as one; the Tab test checks order and traps, not that every control is reachable. Not verified: the new CI step on GitHub (`--with-deps` on ubuntu-latest). T-0044 stays limited to what this scan found; a scan of open dialogs and other pages remains open work.
+
 ## 23 October 2026 — fix: coverage document path list
 
 The previous commit's coverage document wrote the `--source` argument as a comma list of two folders, which the documented-path check reads as an untracked path and fails; it is now `--source=scripts/runtime` (same files). `npm run test:structure` PASS. Lesson kept for this series: run the gate before every commit; the commit helper only runs the publication check.
