@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — publication check allows the runner's account
+
+After the 0.2.3 push the Ubuntu job ran the Playwright install in 10 s and 11/11 browser tests passed (T-0103 confirmed), then failed at `publication_check.py`: the earlier runner note quotes the runner's temp path `C:\Users\RUNNER~1\...`, which the personal-home-path rule flags in the file and in two history blobs. `RUNNER~1` and `runneradmin` (the GitHub Windows runner's account) are now allowed names like `Public` and `Default`. Checked: the publication check with the private deny list no longer reports `docs/progress.md`; `tests/runtime/test_publication_check.py` passes.
+
 ## 23 October 2026 — release 0.2.3
 
 Version 0.2.3 in all five manifests and a `CHANGELOG.md` section (with Polish update notes) for the user-visible changes since 0.2.2: the "77" icon, number and plural formatting by interface language, analytics guaranteed off, translation and accessibility fixes. Checked before tagging: `npm run check` 0 errors, `npm run build`, `npm run test:ui` 76/76, `npm run test:structure` PASS, `cargo test --locked` 51 passed, 2 ignored. The installer is built and signed locally with `npm run desktop:release` because the GitHub `release` environment and its signing secrets are not set up yet (owner setup in `docs/publishing.md`); the tag push therefore also starts `release.yml`, whose build job cannot sign without those secrets.

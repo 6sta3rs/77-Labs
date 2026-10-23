@@ -21,7 +21,6 @@ Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engi
 | T-0024 | Test the update from 0.2.1 to 0.2.2 | blocked | Partly verified against the real feed (reachable, asset identical to the local build, signature valid for the embedded key). The install step is blocked: this machine has a real installation of the same identifier; owner question and steps in `specs/T-0024-update-test.md`. Gate for T-0033. | `.tmp/qa/T-0024/` |
 | T-0026 | Right-to-left layout | blocked | Only when the first RTL language is added: the stylesheets use physical left/right properties; `dir: 'rtl'` is already set on the document. | `docs/features/i18n.md` |
 | T-0027 | Load language catalogs on demand | blocked | Only when more than about five languages exist (about 0.4 MB of text each, imported statically in `languages.ts`). | `docs/features/i18n.md` |
-| T-0103 | CI: Playwright browser install hung for 25 min | doing | Drop `--with-deps` (apt-get), add step and job timeouts; confirm on the next push. | ci.yml |
 | T-0028 | Windows CI job (includes T-0010) | doing | Local gates pass (cargo check/test/clippy, test:ui, test:structure); the first green GitHub run is only possible after a push. Then T-0051 (owner) can make the jobs required. | council 23 Oct |
 | T-0029 | Python runtime tests in CI | doing | Everything is built and passes locally (28 of 28 in a `.venv` with `requirements-ci.txt`, also on CPython 3.11). Open: the first green run of the Windows job on GitHub. | commits 5485461 |
 | T-0030 | Playwright smoke and axe scan | doing | 11 browser tests pass locally. Open: the first green run of the Ubuntu job on GitHub; scans of dialogs and further pages (T-0044). | commits 64eb989, bc1e96d |
@@ -41,6 +40,7 @@ Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engi
 | T-0100 | `filemap` Rust file-tree scanner | c367daa |
 | T-0101 | 600-line limit with an exceptions list | 9a8cd6f |
 | T-0018 | Commit the pending working tree (the three untracked tests are in git, `test:ui` no longer depends on untracked files) | 71043fc, c111710 |
+| T-0103 | CI: Playwright browser install hung for 25 min | done | Install without `--with-deps`, step and job timeouts; runner install took 10 s. | 8c290a9 |
 | T-0102 | Audits: ponytail, knip and the three-model council review of the ponytail report (score 5/10) | no code change |
 | T-0001 | Remove dead exports | 5fc91bb |
 | T-0003 | `hashlib.file_digest` in bootstrap | 44b59fa |

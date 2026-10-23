@@ -24,7 +24,8 @@ ANONYMOUS = ("Seventy Seven Labs contributors", "contributors@example.invalid")
 TOKEN = re.compile(r"\b(?:sk-(?:proj-)?[A-Za-z0-9_-]{32,}|hf_[A-Za-z0-9]{24,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AIza[0-9A-Za-z_-]{30,}|AKIA[0-9A-Z]{16})\b")
 EMBEDDED_AUDIO = re.compile(r"data:audio/[^;,\s]+(?:;[^,\s]+)*;base64,[A-Za-z0-9+/]{64,}", re.I)
 PERSONAL_HOME = re.compile(r"[A-Za-z]:[/\\]{1,2}Users[/\\]{1,2}([^/\\\s\"'`]+)", re.I)
-EXAMPLE_USERS = {"Alice", "Bob", "Public", "Default", "User", "Example", "private-user", "First"}
+# RUNNER~1 and runneradmin are the GitHub Windows runner's account, not a person.
+EXAMPLE_USERS = {"Alice", "Bob", "Public", "Default", "User", "Example", "private-user", "First", "RUNNER~1", "runneradmin"}
 PRIVATE_KEYS = tuple("-----BEGIN " + kind + " PRIVATE KEY-----" for kind in ("RSA", "EC", "OPENSSH")) + ("-----BEGIN " + "PRIVATE KEY-----",)
 
 
