@@ -1,5 +1,14 @@
 # Public project progress
 
+## 23 October 2026 — supply-chain hygiene (T-0034)
+
+- Every GitHub Action in `.github/workflows/` is pinned to a full commit SHA with the version in a comment (`actions/checkout` 4.4.0, `actions/setup-node` 4.4.0, `actions/setup-python` 5.6.0, `Swatinem/rust-cache` 2.9.3: the latest of the majors already in use; the SHAs come from `git ls-remote --tags` of each repository, peeled for annotated tags). `npm run test:structure` fails for an unpinned `uses:` (proved with a temporary unpinned workflow).
+- `.github/dependabot.yml`: weekly update pull requests for GitHub Actions, npm (`/`) and Cargo (`/desktop`).
+- `.github/workflows/audit.yml` (weekly and on demand): `npm audit --omit=dev --audit-level=high` and `cargo audit` on `desktop/Cargo.lock`, with the three `zip` 4.6.1 advisories ignored for the reason in the previous entry.
+- `tools/release/build-update.mjs` writes `<installer>.sha256` next to the installer and the signature, so a manual download can be verified (`certutil -hashfile <installer> SHA256`); the "checksum for the NSIS download" of the roadmap is read this way.
+
+Checks: all three YAML files parse; `npm audit --omit=dev` finds 0 vulnerabilities; `cargo audit` with the ignores exits clean; `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0; `node --check tools/release/build-update.mjs`. Not verified: the new workflows on GitHub (nothing is pushed; `cargo install cargo-audit` takes minutes on the runner), Dependabot's handling of the `# vX.Y.Z` comments, a release build that writes the checksum file (needs the signing key). Branch protection that would make these checks required is T-0051 (owner).
+
 ## 23 October 2026 — known advisories in the Rust dependencies fixed (T-0034, step 1)
 
 Running `cargo audit` once for the first time (cargo-audit 0.22.2 installed under the ignored `.tmp/`; the advisory database is fetched live) reported 9 vulnerabilities in `desktop/Cargo.lock`. Fixed by `cargo update`: `tokio` 1.54.0 to 1.54.1 (RUSTSEC-2026-0384, a race in `time::Interval`), `rustls-webpki` 0.103.15 to 0.103.16 (RUSTSEC-2026-0382, distrusted intermediates accepted), `webpki-roots` 1.0.9 to 1.0.11 (RUSTSEC-2026-0381); and by moving the direct `zip` dependency from 2 to 9 (`desktop/Cargo.toml`; RUSTSEC-2026-0367/0368/0369 are about `extract()` creating symlinks and keeping SUID bits; the installer only copies one entry by hand, but the fix costs nothing). No code change was needed for the new `zip` API.

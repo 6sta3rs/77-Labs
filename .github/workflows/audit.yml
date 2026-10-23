@@ -1,0 +1,25 @@
+name: Dependency audit
+# Weekly and on demand. Failures here mean a known advisory, not a broken build.
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: npm audit --omit=dev --audit-level=high
+  cargo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: cargo install cargo-audit --locked
+      # zip 4.6.1 comes from tauri-plugin-updater (cannot be bumped here); the advisories concern ZipArchive::extract,
+      # which the Windows updater (an NSIS installer) does not use. Revisit when the plugin updates.
+      - run: cargo audit --file desktop/Cargo.lock --ignore RUSTSEC-2026-0367 --ignore RUSTSEC-2026-0368 --ignore RUSTSEC-2026-0369

@@ -67,7 +67,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | 8948226 |
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | a800b78 |
 | T-0032 | Release guards | b7de7c2 |
-| T-0050 | Engine analytics kill switch and privacy doc | (next) |
+| T-0050 | Engine analytics kill switch and privacy doc | efd5fea |
 
 ## Rejected (do not propose again without new evidence)
 

@@ -3,6 +3,7 @@
 // Signing key: TAURI_SIGNING_PRIVATE_KEY (path or content), default %USERPROFILE%\.tauri\seventy-seven-labs-updater.key (never in the repo).
 // Output: .tmp/release/v<version>/ with the installer, its .sig and latest.json. Publishing is a separate, explicit step (printed at the end).
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -42,6 +43,9 @@ const out = join(root, '.tmp/release', `v${version}`);
 mkdirSync(out, { recursive: true });
 copyFileSync(join(nsis, setup), join(out, asset));
 copyFileSync(join(nsis, `${setup}.sig`), join(out, `${asset}.sig`));
+// A checksum next to the installer lets anyone verify a manual download (`certutil -hashfile <file> SHA256`).
+const sha256 = createHash('sha256').update(readFileSync(join(out, asset))).digest('hex');
+writeFileSync(join(out, `${asset}.sha256`), `${sha256}  ${asset}\n`);
 const feed = {
   version, notes, pub_date: new Date().toISOString(),
   platforms: { 'windows-x86_64': { signature: readFileSync(join(nsis, `${setup}.sig`), 'utf8').trim(), url: `https://github.com/${REPO}/releases/download/v${version}/${asset}` } },

@@ -1,0 +1,18 @@
+# Weekly update pull requests. Action pins in .github/workflows are commit SHAs with the version in a comment;
+# Dependabot understands that form and bumps both.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: cargo
+    directory: /desktop
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

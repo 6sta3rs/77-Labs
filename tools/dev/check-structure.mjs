@@ -60,6 +60,10 @@ for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = 
 // Build output and local folders that docs may mention but a fresh clone does not contain.
 const generatedRoots = ['desktop/target', 'desktop/gen', 'dist', 'node_modules'];
 const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file));
+// Akcje GitHub muszą być przypięte do pełnego SHA commitu (wersja w komentarzu), nie do ruchomego taga.
+for (const file of trackedAll.filter(path => /^\.github\/workflows\/.+\.ya?ml$/.test(path))) {
+  for (const [, action] of read(file).matchAll(/^\s*-?\s*uses:\s*(\S+)/gm)) check(action.startsWith('./') || /@[0-9a-f]{40}$/.test(action), `${file}: akcja ${action} nie jest przypięta do SHA.`);
+}
 // Pięć plików z wersją (package.json, package-lock.json, tauri.conf.json, Cargo.toml, Cargo.lock) musi się zgadzać.
 for (const mismatch of versionMismatches(root)) failures.push(`Wersje: ${mismatch}`);
 // Katalogi, które przestały istnieć, nie mogą wracać do bieżących dokumentów (historia je opisuje: patrz `historyFiles`).
