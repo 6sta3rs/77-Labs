@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — `postcss` declared as a dev dependency (T-0020)
+
+`tests/frontend/ui-colors-check.mjs` imports `postcss`, which only a transitive dependency provided. It is now a pinned devDependency (8.5.31, the version already in the lockfile); `package-lock.json` gained only the root entry.
+
+Checks: `node tests/frontend/ui-colors-check.mjs` exit 0, `npm run test:structure` PASS. Not verified: a clean `npm ci` on CI.
+
 ## 23 October 2026 — `hashlib.file_digest` in the bootstrap (T-0003)
 
 `sha256()` in `scripts/runtime/install/bootstrap.py` used a hand-written chunked loop; it now calls `hashlib.file_digest` (Python 3.11+, the version bootstrap runs under; `launcher.py` and `engine_installation.py` already use it).
