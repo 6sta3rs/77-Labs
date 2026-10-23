@@ -14,7 +14,7 @@ The 28 engine-free checks of `tests/manifest-python.json` (see `tests/runtime/RE
 
 Best covered: `preview_cache` 96%, `tts_catalog` 96%, `audiobook_streaming` 95%, `private_environment` 94%, `engine_catalogue_metadata` 91%, `activity` 90%. Weakest: `general_settings`, `system_settings` and `prepare` 0% (their tests need the engine or the private runtime and are not in the CI group), `windows_runtime_paths` 29%, `tts_worker` 34%, `prepare_tts` 40%, `ai_tagging` 45%, `tts_extensions` 47%, `model_management` 49%.
 
-Reproduce: in a virtual environment with `requirements-ci.txt` and `coverage`, run each `ci` file of the manifest as `python -m coverage run -p --data-file=<dir>/.coverage --source=scripts/runtime/app,scripts/runtime/install tests/<file>`, then `coverage combine --data-file=<dir>/.coverage <dir>` and `coverage report`.
+Reproduce: in a virtual environment with `requirements-ci.txt` and `coverage`, run each `ci` file of the manifest as `python -m coverage run -p --data-file=<dir>/.coverage --source=scripts/runtime tests/<file>`, then `coverage combine --data-file=<dir>/.coverage <dir>` and `coverage report`.
 
 ## Rust (`desktop/src`)
 

@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — fix: coverage document path list
+
+The previous commit's coverage document wrote the `--source` argument as a comma list of two folders, which the documented-path check reads as an untracked path and fails; it is now `--source=scripts/runtime` (same files). `npm run test:structure` PASS. Lesson kept for this series: run the gate before every commit; the commit helper only runs the publication check.
+
 ## 23 October 2026 — coverage baselines (T-0052)
 
 `docs/verification/coverage.md` (linked from `docs/README.md`) records the first measured numbers: Python runtime (`scripts/runtime/app` and `install`) 67% of 5,845 statements by the 28 engine-free checks; Rust (`desktop/src`) 41.4% of 2,746 lines and 29.5% of functions by `cargo llvm-cov` (51 tests). Per-file extremes and the commands to reproduce are in the document. No threshold and no gate: the point is to see where checks are thin (`dictation_desktop.rs` 17%, `library.rs` 12%, `main.rs` 0%, the 0% Python modules that need the engine). The tools were installed under the ignored `.tmp/` (cargo-llvm-cov 0.9.1, `llvm-tools-preview` component, `coverage` in the CI venv).
