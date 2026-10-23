@@ -23,13 +23,11 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0026 | Right-to-left layout | blocked | Only when the first RTL language is added: the stylesheets use physical left/right properties; `dir: 'rtl'` is already set on the document. | `docs/features/i18n.md` |
 | T-0027 | Load language catalogs on demand | blocked | Only when more than about five languages exist (about 0.4 MB of text each, imported statically in `languages.ts`). | `docs/features/i18n.md` |
 | T-0028 | Windows CI job (includes T-0010) | doing | Local gates pass (cargo check/test/clippy, test:ui, test:structure); the first green GitHub run is only possible after a push. Then T-0051 (owner) can make the jobs required. | council 23 Oct |
-| T-0029 | Python runtime tests in CI | open | After T-0012: the 27-module table first (CI / Windows-only / needs engine), then `requirements-ci.txt` with only what the tests import, the green subset gated, a manifest failing on unlisted files, then `ruff`. | `specs/ROADMAP-to-8.md` |
 | T-0030 | Playwright smoke and axe scan | open | After T-0011. Mocked runtime API, five named pages, 0 serious/critical violations, a Tab-order assertion; two steps (mock server plus two pages, then three more). Size L. | |
 | T-0031 | Release workflow on tag | doing | Workflows written (release.yml, verify-release.yml), gates and feed verification tested locally; the first real run needs the owner's one-time setup (environment, secrets, reviewers) and a push. See docs/publishing.md. |  |
 | T-0033 | Updater key rotation, two-feed scheme | blocked | Owner. Design, steps and acceptance in `specs/T-0033-updater-key-rotation.md`; build script already takes `--feed`. Needs T-0024 (real install) first. | `build-update.mjs:15,26` |
 | T-0037 | Free open-source code signing | blocked | Owner: apply to SignPath Foundation or Azure Trusted Signing (eligibility unverified), wire into `release.yml` if granted. | |
 | T-0039 | Split large modules, ratchet limits | open | Burn-down. Split `runtime.rs` (tests into their own file) and `engine_catalogue_metadata.py`; ratchet every exception to its current size; per-file longest-line ratchet (`App.svelte`: 85 lines over 200 characters); no non-data file over 1000 lines. Size XL. | |
-| T-0040 | Silent-error rule | open | Empty `catch {}` and statement-less `catch {` without a `// reason` fail in `check-structure`; `App.svelte:164` shows a toast when `saveAppearance` returns false. | |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | open | Bundle size and test counts written by a script into `docs/verification/`; user-facing `CHANGELOG.md`; extend `CONTRIBUTING.md` (add a tool, language, task; run each gate). | |
 | T-0044 | Accessibility fixes | open | Fixes from the axe scan and Tab-order assertion (T-0030). | |
 | T-0046 | Bundle budget and lazy `en` | open | Dynamic imports for settings shell, tool workspaces, landing orb; `en` loaded on demand (language initialised before mount); a build-failing budget set from the measured numbers (`App` chunk is 895 kB today). | |
@@ -68,6 +66,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0034 | Supply-chain hygiene | c207430 |
 | T-0036 | Security docs | 33539c5 |
 | T-0038 | `check-structure` rules | 8d5a1b0 |
+| T-0040 | Silent-error rule | 96db58d |
+| T-0029 | Python runtime tests in CI | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

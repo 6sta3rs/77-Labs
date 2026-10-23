@@ -1,0 +1,43 @@
+{
+  "comment": "Every tests/runtime/*.py and tests/frontend/*.py file must be listed here (tools/dev/run_runtime_tests.py fails on an unlisted one). 'ci' files run on a Windows runner with requirements-ci.txt; the others are skipped with their reason. Measured 23 October 2026 on Windows with CPython 3.12.",
+  "ci": [
+    "runtime/test_acceptance_guards.py",
+    "runtime/test_ai_tagging.py",
+    "runtime/test_analytics_switch.py",
+    "runtime/test_audio_cpp_acceptance.py",
+    "runtime/test_audiobook_streaming.py",
+    "runtime/test_bootstrap.py",
+    "runtime/test_completeness.py",
+    "runtime/test_engine_bundle.py",
+    "runtime/test_engine_catalogue_metadata.py",
+    "runtime/test_engine_installation.py",
+    "runtime/test_integration_settings.py",
+    "runtime/test_license_onboarding_fixture.py",
+    "runtime/test_model_onboarding.py",
+    "runtime/test_native_publication.py",
+    "runtime/test_preview_cache.py",
+    "runtime/test_private_tts_identity.py",
+    "runtime/test_publication_check.py",
+    "runtime/test_release_cpu_smoke.py",
+    "runtime/test_remote_backend.py",
+    "runtime/test_runtime_backup.py",
+    "runtime/test_storage_settings.py",
+    "runtime/test_tts_extensions.py",
+    "runtime/test_watch_folder_acceptance.py",
+    "runtime/activity_check.py",
+    "runtime/runtime_stop_check.py",
+    "runtime/watchdog_check.py",
+    "frontend/test_audit_upstream.py"
+  ],
+  "skipped": {
+    "runtime/test_general_settings.py": "needs-engine: imports the engine's torch-based modules",
+    "runtime/test_system_settings.py": "needs-engine: takes --engine <extracted engine.zip>, needs torch and PyYAML",
+    "runtime/test_tts_registry.py": "needs-engine: imports torch",
+    "runtime/test_model_management.py": "needs-runtime: 13 of 14 tests pass on a runner; one needs the real private-runtime layout (.venv and engine/backend/core/contained_subprocess.py)",
+    "runtime/test_windows_runtime_paths.py": "needs-runtime: needs the private runtime .venv with the mcp package",
+    "runtime/bootstrap_docopt_regression.py": "manual: builds docopt on Windows with explicit arguments, never installs the runtime",
+    "runtime/license_onboarding_ui_check.py": "manual: browser acceptance, needs Playwright/Chromium and a built dist",
+    "frontend/speech_settings_backend_check.py": "manual: reads a path outside the repository that this checkout does not have",
+    "frontend/audit_upstream.py": "helper: the upstream audit module that test_audit_upstream.py loads; not a test"
+  }
+}

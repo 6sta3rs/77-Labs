@@ -1,0 +1,12 @@
+# What tests/runtime needs on a runner without torch (see tests/runtime/README.md). Versions are the ones the table was measured with.
+fastapi==0.161.1
+httpx==0.28.1
+cryptography==50.0.2
+uvicorn==0.54.0
+starlette==1.9.0
+websockets==17.3
+python-multipart
+psutil
+tqdm
+numpy
+soundfile

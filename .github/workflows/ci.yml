@@ -37,6 +37,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:structure
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      # The interpreter lives in a folder named .venv: one runtime test checks for that, like the private runtime layout.
+      - run: python -m venv .venv
+      - run: .venv/Scripts/python -m pip install -r requirements-ci.txt ruff==0.17.2
+      - run: .venv/Scripts/ruff check .
+      - run: .venv/Scripts/python tools/dev/run_runtime_tests.py
       - run: npm run test:ui
       # tauri::generate_context! embeds ../dist, so the frontend is built first
       - run: npm run build

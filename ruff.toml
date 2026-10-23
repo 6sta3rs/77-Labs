@@ -1,0 +1,11 @@
+# A deliberately small rule set: syntax errors, undefined names, broken comparisons and redefined names.
+# Style, unused imports and unused variables are not enforced (many modules import for side effects).
+extend-exclude = [".tmp", "node_modules", "dist", "desktop", "scripts/runtime/vendor"]
+
+[lint]
+select = ["E9", "F63", "F7", "F811", "F821"]
+
+[lint.per-file-ignores]
+# FastAPI resolves these Pydantic body models lazily from string annotations.
+"scripts/runtime/app/preview_cache.py" = ["F821"]
+"scripts/runtime/app/remote_backend.py" = ["F821"]
