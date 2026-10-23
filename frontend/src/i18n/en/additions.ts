@@ -983,6 +983,7 @@ export const enAdditions: Record<string, string> = {
   "Model głosowy": "Voice model",
   "Wczytywanie środowiska modelu": "Loading the model runtime",
   "Ładowanie wag modelu": "Loading model weights",
+  "Oczekiwanie na start modelu": "Waiting for the model to start",
   "Optymalizacja modelu": "Optimising the model",
   "Potwierdź działanie": "Confirm action",
   "Usuń": "Delete",

@@ -2,14 +2,15 @@
   import { uiLanguage, createUiTranslator } from "../i18n"
   const tr = $derived(createUiTranslator($uiLanguage))
 
+  import { untrack } from 'svelte';
   import { get } from 'svelte/store';
   import { Check, Circle, Info, LoaderCircle, ChevronDown, TriangleAlert, X } from '@lucide/svelte';
   import Button from '../ui/Button.svelte';
   import { modelStatus } from './api';
-  import type { RuntimeStatus } from './runtime';
+  import { readEngineAutostart, readEnginePreload, type RuntimeStatus } from './runtime';
   import { engineCatalog, modelsCatalog } from '../tools/studio-tools';
   import { engineCatalogSnapshot } from '../models/engine-catalog-state';
-  import { readModelWarmup, startupFraction, startupRows, warmupNote, type ModelWarmup, type WarmupNote } from './engine-startup';
+  import { awaitingWarmup, readModelWarmup, startupFraction, startupRows, warmupNote, type ModelWarmup, type WarmupNote } from './engine-startup';
 
   // Bottom-right card shown only while the engine starts or the TTS model warms up; nothing here starts the engine.
   // `onmodels` opens Ustawienia → Modele from the "model skipped" note.
@@ -17,10 +18,13 @@
   let model = $state<ModelWarmup | null>(null), seen = $state(false), finished = $state(false), expanded = $state(true);
   let note = $state<WarmupNote>(), dismissed = $state(false);
   let elapsed = $state(0);
+  // True from "engine ready" until the warm-up reports a status: keeps one card across the gap instead of closing and reopening it.
+  let waiting = $state(false);
 
   const engineState = $derived(runtime.state); // by value: App replaces `runtime` on every poll
-  const rows = $derived(startupRows(runtime, model));
-  const working = $derived(engineState === 'starting' || model?.status === 'loading');
+  const shownModel = $derived(waiting && model?.status !== 'loading' ? awaitingWarmup : model);
+  const rows = $derived(startupRows(runtime, shownModel));
+  const working = $derived(engineState === 'starting' || model?.status === 'loading' || waiting);
   const visible = $derived(working || finished);
   const active = $derived(rows.find(row => row.state === 'active'));
   const title = $derived(finished ? 'Silnik i model są gotowe' : engineState === 'starting' ? 'Uruchamianie silnika' : 'Ładowanie modelu głosowego');
@@ -39,7 +43,9 @@
   // Once the engine answers, follow the model warm-up. A model that never starts loading (no licence or no
   // weights installed) stays "idle" and polling stops after a minute and a half.
   $effect(() => {
-    if (engineState !== 'ready') { model = null; note = undefined; return; }
+    if (engineState !== 'ready') { model = null; note = undefined; waiting = false; return; }
+    // Same rule as runtime.ts: the engine warms the model only with preload and autostart on.
+    waiting = untrack(() => seen) && readEnginePreload() && readEngineAutostart();
     const began = Date.now();
     let stop = false, explained = false, timer: ReturnType<typeof setTimeout> | undefined, hide: ReturnType<typeof setTimeout> | undefined;
     // The engine does not report why it skipped the preload, so after a quiet 15 s derive it from the catalogue.
@@ -47,12 +53,13 @@
       try {
         const family = get(engineCatalogSnapshot)?.catalog.tts ?? (await engineCatalog()).tts;
         const weights = (await modelsCatalog()).models;
-        if (!stop && model?.status === 'idle') { note = warmupNote(model, family, weights); dismissed = false; }
+        if (!stop && model?.status === 'idle') { note = warmupNote(model, family, weights); dismissed = false; if (note) waiting = false; }
       } catch { /* no catalogue: leave the card without a note */ }
     };
     const poll = async () => {
       try { if (!stop) model = readModelWarmup(await modelStatus()); } catch { /* the engine may be stopping */ }
       if (stop) return;
+      if (model && model.status !== 'idle') waiting = false;
       if (model?.status === 'ready') {
         note = undefined;
         if (seen) { finished = true; hide = setTimeout(() => { finished = false; seen = false; }, 3000); }
@@ -60,7 +67,9 @@
       else if (model?.status === 'loading') { note = undefined; timer = setTimeout(poll, 1000); }
       else {
         if (!explained && Date.now() - began > 15_000) { explained = true; void explain(); }
-        if (Date.now() - began < 90_000) timer = setTimeout(poll, 1000);
+        // The warm-up can start ~1.5 min after the engine answers (profile reconcile on a slow disk): wait longer when it is expected.
+        if (Date.now() - began < (waiting ? 180_000 : 90_000)) timer = setTimeout(poll, 1000);
+        else waiting = false;
       }
     };
     void poll();
@@ -79,7 +88,7 @@
       {#if working}<span class="time">{clock(elapsed)}</span>{/if}
       <button type="button" class="fold" aria-expanded={expanded} aria-label={tr("Pokaż szczegóły uruchamiania")} onclick={() => expanded = !expanded}><ChevronDown size={15} class={expanded ? '' : 'flip'}/></button>
     </header>
-    <progress max="1" value={startupFraction(rows, model)} aria-label={tr(title)}></progress>
+    <progress max="1" value={startupFraction(rows, shownModel)} aria-label={tr(title)}></progress>
     {#if working && active}<p class="now">{tr(active.label)}{#if active.detail} · {tr(active.detail)}{/if}</p>{/if}
     {#if detail}<p class="note">{tr(detail)}</p>{/if}
     {#if expanded}

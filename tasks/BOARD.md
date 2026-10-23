@@ -41,6 +41,7 @@ Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engi
 | T-0101 | 600-line limit with an exceptions list | 9a8cd6f |
 | T-0018 | Commit the pending working tree (the three untracked tests are in git, `test:ui` no longer depends on untracked files) | 71043fc, c111710 |
 | T-0103 | CI: Playwright browser install hung for 25 min | done | Install without `--with-deps`, step and job timeouts; runner install took 10 s. | 8c290a9 |
+| T-0104 | Engine start card closed and reopened before the model warm-up | done | One card from engine start to model ready; checked with a mocked engine, not yet in the EXE. | see progress |
 | T-0102 | Audits: ponytail, knip and the three-model council review of the ponytail report (score 5/10) | no code change |
 | T-0001 | Remove dead exports | 5fc91bb |
 | T-0003 | `hashlib.file_digest` in bootstrap | 44b59fa |

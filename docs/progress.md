@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — one start-up card until the model is ready (T-0104)
+
+Reported by the owner: the bottom-right start-up card closed as soon as the engine answered and opened again a moment later for the voice-model warm-up. Cause: `EngineStartup.svelte` showed the card only while the engine was `starting` or `/model/status` said `loading`; between "engine ready" and the warm-up's first `loading` status the model is `idle`, so the card disappeared. Now, when the card was shown for this start and the warm-up is expected (the same rule as `runtime.ts`: preload and autostart on), it stays open, with the model row active and "Oczekiwanie na start modelu", until the warm-up reports a status, the engine explains a skip (licence, missing weights), or 3 minutes pass (it was 90 s of polling; the warm-up can start ~1.5 min after the engine answers on a slow disk). A failed status read keeps waiting instead of closing the card. The timer no longer restarts between the two phases.
+
+Checks: `npm run check` 0 errors; `npm run build`; `npm run test:ui` 76/76 (the startup check covers the waiting row); `npm run test:structure` PASS. Behaviour: the component mounted on a temporary page with a mocked `/model/status` (starting, ready with the model idle for 5 s, loading, ready) — the old component showed no card during the idle gap and then a second one; the new one keeps one card through the gap and closes 3 s after "Silnik i model są gotowe". Not checked in the EXE with the real engine.
+
 ## 23 October 2026 — publication check allows the runner's account
 
 After the 0.2.3 push the Ubuntu job ran the Playwright install in 10 s and 11/11 browser tests passed (T-0103 confirmed), then failed at `publication_check.py`: the earlier runner note quotes the runner's temp path `C:\Users\RUNNER~1\...`, which the personal-home-path rule flags in the file and in two history blobs. `RUNNER~1` and `runneradmin` (the GitHub Windows runner's account) are now allowed names like `Public` and `Default`. Checked: the publication check with the private deny list no longer reports `docs/progress.md`; `tests/runtime/test_publication_check.py` passes.

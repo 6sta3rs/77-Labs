@@ -19,6 +19,9 @@ export type StepState = 'done' | 'active' | 'pending';
 export type StartupRow = { id: string; label: string; state: StepState; detail?: string };
 export type ModelWarmup = { status: 'idle' | 'loading' | 'ready' | 'error'; stage?: string; progress?: number; error?: string };
 
+/** Shown on the model row between "engine ready" and the warm-up's first status, so the card does not close and reopen. */
+export const awaitingWarmup: ModelWarmup = { status: 'loading', stage: 'Oczekiwanie na start modelu' };
+
 const modelStages: Record<string, string> = {
   importing: 'Wczytywanie środowiska modelu',
   loading_weights: 'Ładowanie wag modelu',

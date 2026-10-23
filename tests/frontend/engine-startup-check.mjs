@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 const source = (await readFile(new URL('../../frontend/src/platform/engine-startup.ts', import.meta.url), 'utf8')).replace(/^import .*$/gm, '');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { startupSteps, readModelWarmup, startupRows, startupFraction, warmupNote } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
+const { awaitingWarmup, startupSteps, readModelWarmup, startupRows, startupFraction, warmupNote } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 
 const rust = await readFile(new URL('../../desktop/src/runtime.rs', import.meta.url), 'utf8');
 const stages = rust.match(/const STAGES: \[&str; \d+\] = \[([^\]]+)\]/)[1].match(/"([^"]+)"/g).map(id => id.slice(1, -1));
@@ -21,6 +21,9 @@ const warming = startupRows({ state: 'ready' }, loading);
 assert.equal(states(warming), 'dddddddddda');
 assert.equal(warming.at(-1).detail, 'Ładowanie wag modelu · 40%');
 assert.ok(Math.abs(startupFraction(warming, loading) - (10.4 / 11)) < 1e-9);
+const awaiting = startupRows({ state: 'ready' }, awaitingWarmup);
+assert.equal(states(awaiting), 'dddddddddda', 'between engine ready and the first warm-up status the model row stays active');
+assert.equal(awaiting.at(-1).detail, 'Oczekiwanie na start modelu');
 assert.equal(states(startupRows({ state: 'ready' }, readModelWarmup({ loaded: true, status: 'ready' }))), 'ddddddddddd');
 assert.equal(startupFraction(startupRows({ state: 'ready' }, { status: 'ready' }), { status: 'ready' }), 1);
 assert.equal(readModelWarmup({ status: 'idle', loaded: false }).status, 'idle');
