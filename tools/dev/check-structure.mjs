@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -108,20 +108,51 @@ for (const [folder, readme] of [['tools', 'tools/README.md'], ['tests/acceptance
     indexed++;
   }
 }
-// Limit długości plików kodu: nowe pliki ponad limit nie przechodzą, a istniejące wyjątki (z powodem) nie mogą rosnąć.
+// Limit długości plików kodu (ratchet): plik ponad limit wymaga wpisu z powodem; wpis ma dokładnie bieżący rozmiar
+// (rośnie → błąd, maleje → trzeba obniżyć wpis: `node tools/dev/check-structure.mjs --write-baselines`); plik niebędący danymi
+// nie przekracza 1000 linii; to samo dla najdłuższej linii (linie ponad 200 i 400 znaków oraz najdłuższa) w każdym pliku.
 const lineLimit = Number(process.env.LINE_LIMIT) || 600;
-const exceptions = JSON.parse(read('tools/dev/line-limit-exceptions.json'));
+const hardLimit = 1000;
+const exceptionsPath = 'tools/dev/line-limit-exceptions.json';
+const baselinePath = 'tools/dev/line-length-baseline.json';
+const exceptions = JSON.parse(read(exceptionsPath));
+const lengthBaseline = JSON.parse(read(baselinePath));
 let oversized = 0;
-const sourceFiles = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => /\.(svelte|ts|mjs|js|py|rs|css)$/.test(file) && existsSync(resolve(root, file)));
+const sourceFiles = trackedAll.filter(file => /\.(svelte|ts|mjs|js|py|rs|css)$/.test(file) && existsSync(resolve(root, file)));
+const measured = {};
 for (const file of sourceFiles) {
-  const lines = read(file).split('\n').length - 1;
+  const rows = read(file).split('\n');
+  const lengths = rows.map(row => row.replace(/\r$/, '').length);
+  const lines = rows.length - 1;
+  const metrics = { over200: lengths.filter(length => length > 200).length, over400: lengths.filter(length => length > 400).length, longest: Math.max(0, ...lengths) };
+  if (metrics.over200 > 0) measured[file] = metrics;
   const exception = exceptions[file];
-  if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w tools/dev/line-limit-exceptions.json.`);
-  else if (exception && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
+  if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w ${exceptionsPath}.`);
   else if (exception && lines <= lineLimit) failures.push(`${file}: ${lines} linii mieści się w limicie ${lineLimit}; usuń wyjątek.`);
+  else if (exception && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
+  else if (exception && lines < exception.max) failures.push(`${file}: ${lines} linii, wyjątek wynosi ${exception.max}; obniż go (node tools/dev/check-structure.mjs --write-baselines).`);
+  if (lines > hardLimit && !(exception?.data)) failures.push(`${file}: ${lines} linii; plik niebędący danymi nie może mieć więcej niż ${hardLimit}.`);
   if (exception) oversized++;
 }
-for (const file of Object.keys(exceptions)) check(sourceFiles.includes(file), `line-limit-exceptions.json: brak śledzonego pliku ${file}`);
+if (process.argv.includes('--write-baselines')) {
+  const sizes = Object.fromEntries(sourceFiles.map(file => [file, read(file).split('\n').length - 1]));
+  const entries = Object.entries(exceptions).map(([file, value]) => `  ${JSON.stringify(file)}: { "max": ${sizes[file] ?? value.max}, "reason": ${JSON.stringify(value.reason)}${value.data ? ', "data": true' : ''} }`);
+  writeFileSync(resolve(root, exceptionsPath), `{\n${entries.join(',\n')}\n}\n`);
+  const rows = Object.entries(measured).sort(([a], [b]) => a.localeCompare(b)).map(([file, m]) => `  ${JSON.stringify(file)}: { "over200": ${m.over200}, "over400": ${m.over400}, "longest": ${m.longest} }`);
+  writeFileSync(resolve(root, baselinePath), `{\n${rows.join(',\n')}\n}\n`);
+  console.log(`Zapisano ${entries.length} wyjątków i ${rows.length} wpisów najdłuższych linii; sprawdź git diff.`);
+  process.exit(0);
+}
+for (const file of Object.keys(exceptions)) check(sourceFiles.includes(file), `${exceptionsPath}: brak śledzonego pliku ${file}`);
+for (const [file, current] of Object.entries(measured)) {
+  const base = lengthBaseline[file];
+  if (!base) { failures.push(`${file}: ma linię dłuższą niż 200 znaków (najdłuższa ${current.longest}); nowe pliki nie mogą ich mieć.`); continue; }
+  const worse = ['over200', 'over400', 'longest'].filter(key => current[key] > base[key]);
+  const better = ['over200', 'over400', 'longest'].filter(key => current[key] < base[key]);
+  if (worse.length) failures.push(`${file}: długie linie urosły (${worse.map(key => `${key} ${base[key]} → ${current[key]}`).join(', ')}); podziel linię.`);
+  else if (better.length) failures.push(`${file}: długich linii jest mniej (${better.map(key => `${key} ${base[key]} → ${current[key]}`).join(', ')}); obniż próg: node tools/dev/check-structure.mjs --write-baselines.`);
+}
+for (const file of Object.keys(lengthBaseline)) if (!measured[file]) failures.push(`${baselinePath}: ${file} nie ma już linii ponad 200 znaków albo nie istnieje; obniż próg (--write-baselines).`);
 for (const failure of failures) console.error(failure);
 assert.equal(failures.length, 0, `Struktura projektu: ${failures.length} błędów`);
 console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji, ${quoted} ścieżek w dokumentach, ${named} nazw plików, ${indexed} narzędzi w indeksach i limit ${lineLimit} linii (${oversized} wyjątków).`);

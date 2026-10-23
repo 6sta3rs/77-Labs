@@ -85,10 +85,10 @@ sources. It does not install libraries, download models, or run inference.
    runtime. Local path adapters are not an extra dependency of the installed app.
 6. Do not change Tauri identifiers, data keys, an existing VoiceStudio
    installation, or shared weights and libraries while tidying code.
-7. Keep source files under 600 lines. `npm run test:structure` enforces it;
+7. Keep source files under 600 lines (a file that is not data never exceeds 1000). `npm run test:structure` enforces it;
    a file that legitimately needs more (a translation or colour table) is
    listed with a reason in `tools/dev/line-limit-exceptions.json`, and a
-   listed file may not grow past its `max`.
+   listed file's `max` must equal its current size (it fails when the file grows, and when it shrinks until the limit is lowered with `node tools/dev/check-structure.mjs --write-baselines`; an entry with `"data": true` is a table). The same ratchet covers long lines: `tools/dev/line-length-baseline.json` records, for each file with a line over 200 characters, how many lines are over 200 and over 400 and the longest; none of these may grow, and a new file may have no line over 200.
 
 ## Scope of this reorganization
 

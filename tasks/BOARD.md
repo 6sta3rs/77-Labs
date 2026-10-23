@@ -61,13 +61,13 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0010 | Run `test:structure` in CI | f79cbaf |
 | T-0012 | Create `tools/` with an index of what each tool is for | 887fa1e |
 | T-0015 | English names for docs | bf62bdb |
-| T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | 8948226 |
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | a800b78 |
 | T-0032 | Release guards | b7de7c2 |
 | T-0050 | Engine analytics kill switch and privacy doc | efd5fea |
 | T-0034 | Supply-chain hygiene | c207430 |
 | T-0036 | Security docs | 33539c5 |
+| T-0038 | `check-structure` rules | 8d5a1b0 |
 
 ## Rejected (do not propose again without new evidence)
 

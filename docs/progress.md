@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — ratchets on file size and line length (T-0039, step 2)
+
+`tools/dev/check-structure.mjs` now: requires every line-limit exception to equal the file's current size (growth fails as before; shrinking fails until `node tools/dev/check-structure.mjs --write-baselines` lowers the entry); forbids a file that is not marked `"data": true` (the three English tables and the palette table) from exceeding 1000 lines; and keeps `tools/dev/line-length-baseline.json` (302 files with a line over 200 characters: lines over 200, over 400 and the longest per file). None of the three numbers may grow, a new file may have no line over 200, and a shrinking number must be recorded. `App.svelte` is frozen at 85 lines over 200 characters (30 over 400, longest 2,139). Tried: an appended 250-character line in a tracked file and a changed `App.svelte` size both fail the check as intended, and both were reverted.
+
+Not done: shortening `App.svelte`'s long lines. Wrapping them adds roughly 180 lines to a 507-line component, which would exceed the 600-line limit and needs a real split of the component first; it stays open in T-0039 together with the other long-line files (EnginePage, ProductionWorkspace, AiPage, StoriesWorkspace). Remaining exceptions are frozen at their current sizes (14, three of them over 1000 lines only as data).
+
+Checks: `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0.
+
 ## 23 October 2026 — two oversized modules split (T-0039, step 1)
 
 - `scripts/runtime/app/engine_catalogue_metadata.py` (1,950 lines) held a 1,400-line JSON blob of declarations. The blob is now `scripts/runtime/app/engine_catalogue_data.json`, loaded next to the module (`_DATA`); the module is 543 lines and its line-limit exception is gone. `desktop/src/runtime.rs` embeds and writes the JSON beside the module at every start (a new `include_str!`), `tests/acceptance/engine_benchmark.py` copies it, and `check-structure.mjs` reads the pinned catalogue hash from the JSON.
