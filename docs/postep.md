@@ -1,5 +1,17 @@
 # Public project progress
 
+## 23 October 2026 — frontend layout decision (T-0011)
+
+User request: audit why every frontend folder sits under `src/lib/` and what the layout should be; the owner then chose `frontend/src/` instead of `lib`.
+
+Finding: the project is plain Vite + Svelte 5 (no SvelteKit; `svelte.config.js` is empty), there is no `$lib` alias and no `$lib` import (about 790 relative imports), so `lib` groups nothing; it matches the Vite Svelte template layout. The publication history starts with a squashed commit, so the original reason cannot be read from it.
+
+Decision recorded in `tasks/specs/T-0011-rename-src-folders.md` and `tasks/BOARD.md`: `frontend/` (UI configuration and HTML entries) with `frontend/src/` (App.svelte, main.ts, styles.css, data.ts and the 16 area folders directly, no `lib`), `desktop/` with `desktop/src/` for the Rust sources, `package.json` stays in the root. The spec lists the blast radius: 113 imports from `src/` into `./lib/`, 1 import leaving `lib`, 75 non-source files and 28 documents mentioning `src/lib`, 24 files mentioning `src-tauri`.
+
+Checks: counts taken with `git grep` and a small import-resolution script; `npm run test:structure` PASS. Not done: no file was moved or renamed; a full `tauri build` on the new layout is untested; Vite `root`/`outDir` and Tauri `frontendDist` behaviour for the moved configuration is unverified.
+
+Limitations: the layout is shown only in the ignored HTML map (`.tmp/qa/filemap-proposal.html`).
+
 ## 23 October 2026 — audit task list as a checklist with test steps
 
 User request: the agent should have the task list from the 22 October audit with real tasks and instructions for testing them (the way one task was verified in the audit-verification thread), and the owner wants to see in HTML which files each task modifies.
