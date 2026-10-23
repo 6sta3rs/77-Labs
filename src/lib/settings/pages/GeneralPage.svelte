@@ -2,7 +2,7 @@
   // "Ogólne": interface language, dubbing review and default translation mode (all local preferences).
   import { onDestroy } from 'svelte';
   import { ChevronRight } from '@lucide/svelte';
-  import { uiLanguage, createUiTranslator, getUiLanguageError, setUiLanguage, type UiLanguage } from '../../i18n';
+  import { uiLanguage, createUiTranslator, getUiLanguageError, setUiLanguage, LANGUAGES, type UiLanguage } from '../../i18n';
   import { generalPreferences, saveGeneralPreferences, type GeneralPreferences, type TranslationQuality } from '../general-settings';
   import type { SettingsSection } from '../settings-catalog';
   import Button from '../../ui/Button.svelte';
@@ -46,7 +46,7 @@
       <div class="p-rows">
         <div class="p-row">
           <div class="t"><b>{tr('Język interfejsu')}</b><span>{tr('Język menu i przycisków. Nie zmienia języka narracji ani głosów.')}</span></div>
-          <div class="inline"><span class="saved" class:on={saved.lang}>{tr('Zapisano')}</span><Select ariaLabel={tr('Język interfejsu')} value={lang} options={[{ value: 'pl', label: 'Polski' }, { value: 'en', label: 'English' }]} onchange={changeLanguage}/></div>
+          <div class="inline"><span class="saved" class:on={saved.lang}>{tr('Zapisano')}</span><Select ariaLabel={tr('Język interfejsu')} value={lang} options={LANGUAGES.map(entry => ({ value: entry.code, label: entry.name }))} onchange={changeLanguage}/></div>
         </div>
         {#if languageError}<p class="p-field-err" role="alert">{languageError}</p>{/if}
         <div class="p-row">

@@ -2,7 +2,7 @@ export const enCore: Record<string, string> = {
   "Kontrolki — Seventy Seven Labs": "Controls — Seventy Seven Labs",
   "Dyktowanie — Seventy Seven Labs": "Dictation — Seventy Seven Labs",
   "Nie udało się odczytać języka interfejsu. Włączono polski.": "The interface language could not be read. Polish is active.",
-  "Wybierz język polski lub angielski.": "Choose Polish or English.",
+  "Wybierz obsługiwany język interfejsu.": "Choose a supported interface language.",
   "Nie udało się zapisać języka interfejsu. Poprzedni język pozostaje aktywny.": "The interface language could not be saved. The previous language is still active.",
   "Nie udało się wczytać biblioteki kontrolek. Odśwież okno.": "The component gallery could not be loaded. Refresh the window.",
   "Nie udało się wczytać okna dyktowania.": "The dictation window could not be loaded.",

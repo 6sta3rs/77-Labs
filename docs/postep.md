@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — more interface languages
+
+User request: make it possible to add more interface languages later (only English existed next to Polish).
+
+Change: a language registry `src/lib/i18n/languages.ts` (code, name in the language itself, locale, optional `dir`, `complete` flag, catalog) replaces the hard-coded `'pl' | 'en'` in `src/lib/i18n/index.ts`; `UiLanguage` is derived from it and the language picker in Ustawienia → Ogólne is built from it. The English dictionaries moved from `src/lib/i18n/en-*.ts` to `src/lib/i18n/en/` (merged by `en/index.ts`, same merge order). Translation falls back from the language to English to the Polish source; text already translated (an English engine message) is mapped back through all catalogs. The document gets `lang` and `dir`. The error text "Wybierz język polski lub angielski." became "Wybierz obsługiwany język interfejsu." The translator API (`tr(...)`, `tr.locale`) is unchanged, so the 96 components that use it did not change (only the picker in `GeneralPage.svelte`). New: `scripts/dev/i18n-lang.mjs` with `npm run i18n:status`, `i18n:missing -- <code>` (a JSON of Polish source plus English reference for translators) and `i18n:add -- <code> "<Name>" <locale> [rtl]` (creates the catalog and registers it), `tests/frontend/i18n-languages-check.mjs` (registry rules, empty values, orphan keys, `{placeholder}` parity, `complete` languages, fallback chain, a runtime-added language, the `add` scaffold in a temporary copy) and `docs/features/i18n.md`.
+
+Checks: `npm run check` 0/0, `npm run build` PASS, `npm run test:ui` PASS (new `i18n-languages-check` 5/5; `i18n-check` 14/14 and `i18n-coverage-check` unchanged results), `npm run test:structure` PASS, `npm run i18n:status` (English: 4,524 of 4,524 keys). Not verified: the picker with a third language in the running app (none is registered yet; only the runtime test added one), the real EXE.
+
+Limitations (documented in `docs/features/i18n.md`, tracked as T-0025 to T-0027): plurals are Polish-based (`plural.ts`), a few places format with a fixed `pl-PL` or `pl` locale, the layout is not mirrored for right-to-left languages (about 105 stylesheet lines use physical left/right), engine and Rust messages are translated only when they match a catalog key, and all catalogs are bundled statically (about 0.4 MB of text per language).
+
 ## 23 October 2026 — new application icon "77"
 
 User request: design a new logo in the style of T3 Code (black rounded square with a bold silver mark) and use variant A of three options.

@@ -21,6 +21,7 @@ Start with the [project map](architecture/struktura-projektu.md), the [project c
 - [Voice orb style Płyn](features/kula-plyn.md)
 - [Shared controls](features/t3-controls.md)
 - [Labs themes and palettes](features/motywy-t3-code.md)
+- [Interface languages and adding a new one](features/i18n.md)
 - [Safe interface preview (demo data)](features/tts-demo.md)
 - [Speech synthesis parameters](features/parametry-tts.md)
 - [WAV format, presets, and voice design](features/parametry-wav-0.5.7.md)

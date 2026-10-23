@@ -1,4 +1,4 @@
-import { enToolsExtra } from './en-tools-extra';
+import { enToolsExtra } from './tools-extra';
 
 /** English UI messages for engine settings and production tools. */
 export const enTools: Record<string, string> = {

@@ -28,8 +28,8 @@ globalThis.localStorage = { getItem: () => null, setItem() {} }
 globalThis.document = { documentElement: { lang: '', dataset: {} }, title: '' }
 const en = (await import(await moduleUrl(path.join(root, 'src/lib/i18n/index.ts')))).createUiTranslator('en')
 const keys = new Set()
-for (const file of (await readdir(path.join(root, 'src/lib/i18n'))).filter(f => /^en-.*\.ts$/.test(f)))
-  for (const key of Object.keys(Object.values(await import(await moduleUrl(path.join(root, 'src/lib/i18n', file))))[0])) keys.add(key)
+for (const file of (await readdir(path.join(root, 'src/lib/i18n/en'))).filter(f => /\.ts$/.test(f) && f !== 'index.ts'))
+  for (const key of Object.keys(Object.values(await import(await moduleUrl(path.join(root, 'src/lib/i18n/en', file))))[0])) keys.add(key)
 const covered = s => en(s) !== s || en(s.trim()) !== s.trim()
 
 const PL = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/
@@ -156,7 +156,7 @@ for (const [file, texts] of Object.entries(baseline)) for (const text of texts)
   if (!current[file]?.includes(text)) stale.push(`${file}  ${text}`)
 if (stale.length) console.log(`NOTE ${stale.length} baseline entries are now translated or gone; lower the baseline with --update`)
 if (fresh.length) {
-  console.error(`FAIL ${fresh.length} Polish UI string(s) without an English key (add them to src/lib/i18n/en-*.ts):`)
+  console.error(`FAIL ${fresh.length} Polish UI string(s) without an English key (add them to src/lib/i18n/en/*.ts):`)
   for (const line of fresh.slice(0, 80)) console.error(`  ${line}`)
   process.exit(1)
 }
