@@ -83,7 +83,7 @@ ruff check .
 python tools/dev/publication_check.py --deny-file <private-list-outside-repo>.json
 ```
 
-CI runs the same commands (`.github/workflows/ci.yml`); the weekly jobs are the dependency audit and the EXE start check. Release steps are in [publishing](docs/publishing.md).
+`.github/workflows/ci.yml` runs these on every push; `release.yml` repeats only the source gates (check, build, `test:ui`, `test:structure`, the publication check, Rust tests and clippy); the weekly jobs are the dependency audit and the EXE start check. Release steps are in [publishing](docs/publishing.md).
 
 ## Adding things
 

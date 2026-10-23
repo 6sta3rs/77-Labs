@@ -294,7 +294,7 @@ export const enSettingsAi: Record<string, string> = {
   'Przejdź do tagowania': 'Go to tagging',
   'Silnik przechowuje jeden model na dostawcę. Wybór zmienia model tego dostawcy dla wszystkich funkcji, które go używają.': 'The engine keeps one model per provider. Your choice changes the model of that provider for every feature that uses it.',
   'Włączone, ale Codex niezalogowany. Zaloguj Codex poleceniem codex login, a potem sprawdź połączenie w zakładce „Modele językowe”. Do tego czasu tagowanie nie działa.': 'Turned on, but Codex is not signed in. Sign in to Codex with codex login, then check the connection in the "Language models" tab. Tagging does not work until then.',
-  'Brak modelu językowego. Połącz dostawcę w „AI i klucze”.': 'No language model. Connect a provider in "AI i klucze".',
+  'Brak modelu językowego. Połącz dostawcę w „AI i klucze”.': 'No language model. Connect a provider in "AI and keys".',
   'Potrzebny jest dostawca z kluczem API lub lokalny.': 'A provider with an API key, or a local one, is required.',
-  'Otwórz „AI i klucze”': 'Open "AI i klucze"',
+  'Otwórz „AI i klucze”': 'Open "AI and keys"',
 }

@@ -6,34 +6,34 @@ Measured on 23 October 2026 on Windows with CPython 3.12 (28 pass, one command, 
 
 | File | Group | Why |
 | --- | --- | --- |
-| `tests/runtime/test_acceptance_guards.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_ai_tagging.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_analytics_switch.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_audio_cpp_acceptance.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_audiobook_streaming.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_bootstrap.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_completeness.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_engine_bundle.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_engine_catalogue_metadata.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_engine_installation.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_integration_settings.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_launcher_contract.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_license_onboarding_fixture.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_model_onboarding.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_native_publication.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_preview_cache.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_private_tts_identity.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_publication_check.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_release_cpu_smoke.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_remote_backend.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_runtime_backup.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_storage_settings.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_tts_extensions.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/test_watch_folder_acceptance.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/activity_check.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/runtime_stop_check.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/runtime/watchdog_check.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
-| `tests/frontend/test_audit_upstream.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
+| `tests/runtime/test_acceptance_guards.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_ai_tagging.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_analytics_switch.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_audio_cpp_acceptance.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_audiobook_streaming.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_bootstrap.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_completeness.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_engine_bundle.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_engine_catalogue_metadata.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_engine_installation.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_integration_settings.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_launcher_contract.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_license_onboarding_fixture.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_model_onboarding.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_native_publication.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_preview_cache.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_private_tts_identity.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_publication_check.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_release_cpu_smoke.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_remote_backend.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_runtime_backup.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_storage_settings.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_tts_extensions.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/test_watch_folder_acceptance.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/activity_check.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/runtime_stop_check.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/runtime/watchdog_check.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
+| `tests/frontend/test_audit_upstream.py` | CI | passes in a Windows venv with `requirements-ci.txt` (CPython 3.12 here and 3.11; not yet run on a GitHub runner) |
 | `tests/runtime/test_general_settings.py` | needs-engine | imports the engine's torch-based modules |
 | `tests/runtime/test_system_settings.py` | needs-engine | takes --engine <extracted engine.zip>, needs torch and PyYAML |
 | `tests/runtime/test_tts_registry.py` | needs-engine | imports torch |

@@ -13,8 +13,10 @@ const frontendChecks = readdirSync(join(root, 'tests/frontend')).filter(name => 
 const rustTests = tracked.filter(file => file.startsWith('desktop/src/') && file.endsWith('.rs')).reduce((sum, file) => sum + (read(file).match(/#\[test\]/g)?.length ?? 0), 0);
 const rustIgnored = tracked.filter(file => file.startsWith('desktop/src/') && file.endsWith('.rs')).reduce((sum, file) => sum + (read(file).match(/#\[ignore/g)?.length ?? 0), 0);
 const python = JSON.parse(read('tests/manifest-python.json'));
-const e2eSpec = read('tests/e2e/pages.spec.mjs');
-const e2e = (e2eSpec.match(/^\s*\['[^']+', async/gm)?.length ?? 0) + (e2eSpec.match(/^test\(/gm)?.length ?? 0);
+const e2e = tracked.filter(file => /^tests\/e2e\/.*\.spec\.mjs$/.test(file)).reduce((sum, file) => {
+  const text = read(file);
+  return sum + (text.match(/^\s*\['[^']+', async/gm)?.length ?? 0) + (text.match(/^test\(/gm)?.length ?? 0);
+}, 0);
 const acceptance = tracked.filter(file => file.startsWith('tests/acceptance/') && /\.(py|mjs|ps1)$/.test(file)).length;
 
 let bundle = '_dist/ is not built; run `npm run build` first._';

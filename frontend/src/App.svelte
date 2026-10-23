@@ -79,7 +79,7 @@
   import { productionJson } from './tools/production/production';
   import type { IntegrationState } from './platform/integrations';
   import { normalizeTtsModels } from './models/model-picker';
-  import { loadAppearance, applyAppearance, saveAppearance, defaultAppearance, type AppearanceSettings } from './settings/appearance';
+  import { loadAppearance, applyAppearance, defaultAppearance, type AppearanceSettings } from './settings/appearance';
   import { voices as previewVoices, durationLabel, type Voice, type Render, type Page, type Project } from './data';
   import { autoTagText, type SpeechBlock } from './tts/tags';
   import { audioPeaks, loadRecordings, saveRecording } from './projects/library';
@@ -162,8 +162,8 @@
 
   function notify(message:string,kind:'info'|'bad'='info'){toast[kind](tr(message));}
   function changeAppearance(value:AppearanceSettings){
+    // Appearance.svelte saved the settings before calling this (and shows its own error if that fails).
     appearance=value;applyAppearance(value);
-    if(!saveAppearance(value))notify('Nie udało się zapisać wyglądu. Zmiana działa do zamknięcia aplikacji.','bad');
   }
   let projectSaveTimer:ReturnType<typeof setTimeout>|undefined;
   let projectSaveDeadline:ReturnType<typeof setTimeout>|undefined;
@@ -182,7 +182,7 @@
   function scheduleProjectSave(){clearTimeout(projectSaveTimer);projectSaveTimer=setTimeout(persistProject,250);projectSaveDeadline??=setTimeout(persistProject,1500);}
   function changeBlocks(value:SpeechBlock[]){blocks=value;scheduleProjectSave();}
   function changeSpeechSettings(value:SpeechSettings){speechSettings=value;scheduleProjectSave();}
-  function openProject(project:Project){persistProject();const saved=projects.find(item=>item.id===project.id)||project;projectId=saved.id;projectName=saved.name;blocks=saved.blocks.map(block=>({...block}));speechSettings=readStoredSpeechSettings(saved.speechSettings);goToPage('studio');if(saved.generationEngine&&generationEngine&&saved.generationEngine!==generationEngine)notify(`Projekt używał silnika ${saved.generationEngine}. Bieżący silnik pozostaje wybrany; sprawdź jego głos i ustawienia przed generowaniem.`);if(demoMode)return;try{localStorage.setItem('voicestudio.activeProject.v2',projectId);}catch{/* the backup copy is optional */}}
+  function openProject(project:Project){persistProject();const saved=projects.find(item=>item.id===project.id)||project;projectId=saved.id;projectName=saved.name;blocks=saved.blocks.map(block=>({...block}));speechSettings=readStoredSpeechSettings(saved.speechSettings);goToPage('studio');if(saved.generationEngine&&generationEngine&&saved.generationEngine!==generationEngine)notify(`Projekt używał silnika ${saved.generationEngine}. Bieżący silnik pozostaje wybrany; sprawdź jego głos i ustawienia przed generowaniem.`);if(demoMode)return;try{localStorage.setItem('voicestudio.activeProject.v2',projectId);}catch{/* the active project id is remembered on a best-effort basis */}}
   function newProject(){if(running){notify('Poczekaj na zakończenie generowania.');return;}persistProject();projectId=crypto.randomUUID();projectName='Nowa narracja';blocks=[{id:crypto.randomUUID(),voiceId:voices[0].id,text:''}];speechSettings=resetPresetForEngine(defaultSpeechSettings(),generationBackend,generationCapabilities.preset_voice);goToPage('studio');persistProject();}
   function chooseVoice(voice:Voice){cancelVoicePreview();linkedVoiceId='';const id=voiceBlockId||blocks[0]?.id;changeBlocks(blocks.map(block=>block.id===id?{...block,voiceId:voice.id}:block));modal=null;query='';voiceFilter='all';}
   async function refreshVoices(){

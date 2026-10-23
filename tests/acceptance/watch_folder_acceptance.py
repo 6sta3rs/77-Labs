@@ -164,7 +164,7 @@ async def scan_after(page, timestamp):
 
 
 async def automation_panel(page):
-    await page.get_by_role("button", name="Szukaj i przejdź do", exact=True).press("Enter")
+    await page.locator(".sidebar-search").first.press("Enter")
     await page.get_by_role("textbox", name="Szukaj ekranu", exact=True).fill("Automatyzacja")
     await page.get_by_role("dialog").get_by_role("button", name="Automatyzacja", exact=True).press("Enter")
     panel = page.get_by_role("region", name="Obserwowany folder", exact=True)

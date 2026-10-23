@@ -143,6 +143,20 @@ for (const file of sourceFiles) {
   if (exception) oversized++;
 }
 if (process.argv.includes('--write-baselines')) {
+  const growth = [];
+  for (const [file, m] of Object.entries(measured)) {
+    const base = lengthBaseline[file];
+    if (!base) growth.push(`${file}: new long lines`);
+    else for (const key of ['over200', 'over400', 'longest']) if (m[key] > base[key]) growth.push(`${file}: ${key} ${base[key]} -> ${m[key]}`);
+  }
+  for (const [file, value] of Object.entries(exceptions)) {
+    const size = read(file).split('\n').length - 1;
+    if (!value.data && size > value.max) growth.push(`${file}: lines ${value.max} -> ${size}`);
+  }
+  if (growth.length && !process.argv.includes('--allow-growth')) {
+    console.error(`Odmowa: baseline rosnąłby (użyj --allow-growth tylko z powodem w commicie):\n${growth.join('\n')}`);
+    process.exit(1);
+  }
   const sizes = Object.fromEntries(sourceFiles.map(file => [file, read(file).split('\n').length - 1]));
   const entries = Object.entries(exceptions).map(([file, value]) => `  ${JSON.stringify(file)}: { "max": ${sizes[file] ?? value.max}, "reason": ${JSON.stringify(value.reason)}${value.data ? ', "data": true' : ''} }`);
   writeFileSync(resolve(root, exceptionsPath), `{\n${entries.join(',\n')}\n}\n`);

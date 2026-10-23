@@ -22,6 +22,9 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0026 | Right-to-left layout | blocked | Only when the first RTL language is added: the stylesheets use physical left/right properties; `dir: 'rtl'` is already set on the document. | `docs/features/i18n.md` |
 | T-0027 | Load language catalogs on demand | blocked | Only when more than about five languages exist (about 0.4 MB of text each, imported statically in `languages.ts`). | `docs/features/i18n.md` |
 | T-0028 | Windows CI job (includes T-0010) | doing | Local gates pass (cargo check/test/clippy, test:ui, test:structure); the first green GitHub run is only possible after a push. Then T-0051 (owner) can make the jobs required. | council 23 Oct |
+| T-0029 | Python runtime tests in CI | doing | Everything is built and passes locally (28 of 28 in a `.venv` with `requirements-ci.txt`, also on CPython 3.11). Open: the first green run of the Windows job on GitHub. | commits 5485461 |
+| T-0030 | Playwright smoke and axe scan | doing | 11 browser tests pass locally. Open: the first green run of the Ubuntu job on GitHub; scans of dialogs and further pages (T-0044). | commits 64eb989, bc1e96d |
+| T-0049 | Weekly EXE start check | doing | `tests/acceptance/exe_smoke.py` passes locally on the built EXE. Open: the first run of `exe-smoke.yml` on a Windows runner, then record `runnerSeconds` in `tests/acceptance/cold-start-baseline.json`. | commits 87beb6f |
 | T-0031 | Release workflow on tag | doing | Workflows written (release.yml, verify-release.yml), gates and feed verification tested locally; the first real run needs the owner's one-time setup (environment, secrets, reviewers) and a push. See docs/publishing.md. |  |
 | T-0033 | Updater key rotation, two-feed scheme | blocked | Owner. Design, steps and acceptance in `specs/T-0033-updater-key-rotation.md`; build script already takes `--feed`. Needs T-0024 (real install) first. | `build-update.mjs:15,26` |
 | T-0037 | Free open-source code signing | blocked | Owner: apply to SignPath Foundation or Azure Trusted Signing (eligibility unverified), wire into `release.yml` if granted. | |
@@ -59,13 +62,10 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0036 | Security docs | 33539c5 |
 | T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0040 | Silent-error rule | 96db58d |
-| T-0029 | Python runtime tests in CI | 5485461 |
 | T-0048 | Launcher contract test | 5383cc6 |
 | T-0052 | Coverage baselines | 3295c79, 3251508 |
-| T-0030 | Playwright smoke and axe scan | 64eb989 |
 | T-0044 | Accessibility fixes (the scan found one issue; dialogs and more pages are not scanned) | 64eb989 |
 | T-0047 | Cold-start baseline and busy port | 87beb6f |
-| T-0049 | Weekly EXE start check | 87beb6f |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | d014260, 81c21ef |
 | T-0025 | Locale-aware formatting and plurals for new languages | 017107a |
 

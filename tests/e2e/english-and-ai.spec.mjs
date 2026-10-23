@@ -6,7 +6,7 @@ import { mockRuntime } from './mock-runtime.mjs';
 
 const POLISH = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
 // Product and demo names that really contain Polish letters, and Spanish-origin language names from CLDR.
-const ALLOWED = [/Róża/, /Michał/, /Arequipa|Rayón/];
+const ALLOWED = [/Róża/, /Michał/, /Arequipa-la unión quechua/, /Rayón zoque/];
 
 async function english(page) {
   await page.addInitScript(() => {
@@ -27,7 +27,8 @@ async function visibleTexts(page) {
     return out;
   });
 }
-const polishIn = texts => texts.filter(text => POLISH.test(text) && !ALLOWED.some(pattern => pattern.test(text)));
+const stripAllowed = text => ALLOWED.reduce((rest, pattern) => rest.replace(new RegExp(pattern.source, 'g'), ''), text);
+const polishIn = texts => texts.filter(text => POLISH.test(stripAllowed(text)));
 const openSettings = async (page, section) => {
   await page.getByRole('button', { name: 'Settings', exact: true }).first().click();
   await page.locator('.settings-navigation nav').getByRole('button', { name: section, exact: true }).click();
@@ -64,8 +65,10 @@ test('the old localStorage provider list moves to the engine and the old key is 
   });
   const ollama = { id: 'ollama', display_name: 'Ollama', local: true, base_url: 'http://127.0.0.1:11434', model: '', has_key: false, configured: false };
   const seen = await mockRuntime(page, { '/api/settings/llm-providers': { providers: [ollama], active: null } });
-  await page.goto('/'); await openSettings(page, 'AI and keys'); await page.waitForTimeout(2500);
-  expect(seen.writes.filter(write => write.path.endsWith('added-llm-providers')).map(write => write.body)).toEqual([{ ids: ['ollama'] }]);
+  await page.goto('/'); await openSettings(page, 'AI and keys');
+  const migrated = () => seen.writes.filter(write => write.path.endsWith('added-llm-providers')).map(write => write.body);
+  await expect.poll(migrated, { timeout: 10_000 }).toEqual([{ ids: ['ollama'] }]);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('voicestudio.ai.providers.v1')), { timeout: 5_000 }).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('voicestudio.ai.providers.v1'))).toBeNull();
 });
 

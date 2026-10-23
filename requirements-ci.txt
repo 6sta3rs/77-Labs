@@ -1,4 +1,4 @@
-# What tests/runtime needs on a runner without torch (see tests/runtime/README.md). Versions are the ones the table was measured with.
+# What tests/runtime needs on a runner without torch (see tests/runtime/README.md). The six web and crypto packages are pinned to the versions the table was measured with; the other five are not pinned yet.
 fastapi==0.161.1
 httpx==0.28.1
 cryptography==50.0.2

@@ -90,7 +90,7 @@ with sync_playwright() as driver:
             duration=wav.getnframes()/wav.getframerate();rate=wav.getframerate()
         check('Downloaded result is a real WAV',len(data)>1000 and duration>0.1,bytes=len(data),duration=duration,sampleRate=rate,sha256=hashlib.sha256(data).hexdigest())
         page.reload(wait_until='domcontentloaded')
-        page.get_by_role('button',name='Szukaj i przejdź do',exact=True).click()
+        page.locator('.sidebar-search').first.click()
         page.get_by_role('textbox',name='Szukaj ekranu',exact=True).fill('Nagrania')
         page.locator('.search-results').get_by_role('button',name='Nagrania',exact=True).click()
         page.get_by_role('button',name='Odtwórz QA ustawienia i odtwarzanie',exact=True).click()

@@ -18,8 +18,8 @@ const measured = {
 let failed = false;
 for (const [key, limit] of Object.entries(budget.bytes)) {
   const value = measured[key];
-  const state = value > limit ? 'OVER' : value < limit * 0.9 / 1.05 ? 'lower the budget' : 'ok';
-  if (value > limit) failed = true;
+  const state = value === 0 ? 'MISSING (chunk renamed?)' : value > limit ? 'OVER' : value < limit * 0.9 / 1.05 ? 'lower the budget' : 'ok';
+  if (value > limit || value === 0) failed = true;
   console.log(`${key.padEnd(11)} ${String(value).padStart(9)} / ${limit}  ${state}`);
 }
 if (failed) { console.error('Bundle budget exceeded (tools/dev/bundle-budget.json).'); process.exit(1); }

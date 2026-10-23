@@ -1,4 +1,4 @@
-"""Isolated smoke of the built EXE over CDP: the window starts, the 12 settings pages mount, Settings -> Silnik renders, no page errors.
+"""Isolated smoke of the built EXE over CDP: the window starts, the settings pages mount (at least 12), Settings -> Silnik renders, no page errors.
 Usage: python tests/acceptance/exe_smoke.py <exe> <out-dir> [--baseline-seconds N] [--max-factor 1.5] [--busy-port]
 --busy-port occupies 127.0.0.1:4312 first, presses "Uruchom silnik" and expects the Polish "jest zajęty" message within 5 s.
 Fresh LOCALAPPDATA/APPDATA/WebView profile in %TEMP%; no engine start, no synthesis, no network use by this script.
@@ -33,7 +33,7 @@ async def main(exe: Path, out: Path, baseline=None, factor=1.5, busy=False):
         blocker = socket.socket(); blocker.bind(("127.0.0.1", 4312)); blocker.listen(1)
     started = time.monotonic()
     process = subprocess.Popen([str(exe)], cwd=exe.parent, env=env, stdin=subprocess.PIPE,
-                               stdout=(session / "desktop.log").open("wb"), stderr=subprocess.STDOUT, creationflags=0x08000000)
+                               stdout=(out / "desktop.log").open("wb"), stderr=subprocess.STDOUT, creationflags=0x08000000)
     try:
         async with async_playwright() as driver:
             for _ in range(200):
@@ -76,11 +76,11 @@ async def main(exe: Path, out: Path, baseline=None, factor=1.5, busy=False):
                 await page.get_by_text("jest zajęty").first.wait_for(timeout=5000)
                 check("busy_port_message_within_5_seconds", True, seconds=round(time.monotonic() - pressed, 2))
     finally:
+        (out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=True), encoding="utf8")
         if blocker: blocker.close()
         process.terminate()
         try: process.wait(10)
         except Exception: process.kill()
-    (out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=True), encoding="utf8")
     ok = all(c["passed"] for c in report["checks"])
     print("RESULT", "PASS" if ok else "FAIL")
     return ok
