@@ -4,10 +4,6 @@ import { redactDiagnosticText } from '../platform/runtime-diagnostics'
 import { userMessage } from '../platform/user-message'
 
 export type SystemSection = 'network' | 'sharing' | 'credentials' | 'compute' | 'usage' | 'remote-workers' | 'privacy' | 'permissions' | 'preflight' | 'audio-tools' | 'logs'
-export const systemSectionTitles: Record<SystemSection, string> = {
-  network: 'Sieć', sharing: 'Udostępnianie i dostęp zdalny', credentials: 'Poświadczenia', compute: 'Urządzenie obliczeń', usage: 'Użycie',
-  'remote-workers': 'Pracownicy zdalni', privacy: 'Prywatność', permissions: 'Uprawnienia', preflight: 'Kontrola systemu', 'audio-tools': 'Narzędzia audio', logs: 'Dzienniki',
-}
 export type CredentialState = { hf: { set: boolean; masked?: string; source: string; verified?: boolean | null; user?: string }; fields: Array<{ key: string; label: string; secret: boolean; set: boolean; masked?: string; value: string }> }
 export type ProxyState = { set: boolean; address: string; has_credentials: boolean }
 export type HfMirrorState = {
@@ -65,8 +61,4 @@ export function settingsTimeout(value: string | number): number {
 export function durationLabel(value: number): string {
   const seconds = Math.max(0, Math.round(Number(value) || 0))
   return seconds < 60 ? `${seconds} s` : seconds < 3600 ? `${Math.floor(seconds / 60)} min ${seconds % 60} s` : `${Math.floor(seconds / 3600)} godz. ${Math.floor(seconds % 3600 / 60)} min`
-}
-export function sharingLinks(state: NetworkState): string[] {
-  if (!state.enabled || !state.pin || !state.share_port) return []
-  return state.lan_addresses.filter(address => /^(?:\d{1,3}\.){3}\d{1,3}$/.test(address)).map(address => `http://${address}:${state.share_port}/?pin=${encodeURIComponent(state.pin!)}`)
 }

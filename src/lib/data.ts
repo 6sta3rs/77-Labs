@@ -6,5 +6,4 @@ export const voices: Voice[] = [
   { id: 'preview-lektor', name: 'Lektor', initials: 'L', description: 'Przykładowa karta głosu · podgląd interfejsu', language: 'Polski', color: 'peach', kind: 'Podgląd', demo: true },
   { id: 'preview-narrator', name: 'Narrator', initials: 'N', description: 'Przykładowa karta głosu · podgląd interfejsu', language: 'Polski', color: 'purple', kind: 'Podgląd', demo: true },
 ];
-export const initialText = '';
 export function durationLabel(seconds: number) { const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0; return `${Math.floor(safe / 60)}:${Math.floor(safe % 60).toString().padStart(2, '0')}`; }

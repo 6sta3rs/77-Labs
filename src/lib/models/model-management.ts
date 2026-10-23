@@ -7,7 +7,6 @@ export type ModelJobs = { jobs: ModelDownload[]; storage: ModelStorage };
 export type ManagedModel = Model & { engines?: string[]; note?: string; gated?: boolean; curated?: boolean; license?: string; dependencies?: Array<{ repo_id: string }> };
 export const activeDownload = (job?: ModelDownload) => !!job && ['starting', 'planning', 'downloading', 'verifying', 'cancelling'].includes(job.state);
 export const modelFamily = (role: string) => ({ tts: 'tts', asr: 'asr', llm: 'llm' }[role.toLowerCase()] || 'other') as 'tts' | 'asr' | 'llm' | 'other';
-export const downloadLabels: Record<ModelDownload['state'], string> = { starting: 'Uruchamianie pobierania', planning: 'Sprawdzanie plików i miejsca na dysku', downloading: 'Pobieranie', verifying: 'Sprawdzanie pobranych wag', cancelling: 'Anulowanie pobierania', cancelled: 'Pobieranie anulowane', interrupted: 'Pobieranie przerwane — można wznowić', complete: 'Pobieranie ukończone', failed: 'Pobieranie nie powiodło się' };
 export function byteLabel(bytes: number) {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
   const unit = Math.min(3, Math.floor(Math.log(bytes) / Math.log(1024)));

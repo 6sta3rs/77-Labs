@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — remove dead exports (T-0001)
+
+Deleted exports that nothing used (verified by `git grep` before and after): `BUILT_IN_THEMES`, `BuiltInThemeId`, `MobileThemeId`, `UNPUBLISHABLE_THEME_IDS`, `MOBILE_THEME_IDS`, `MOBILE_DEFAULT_THEME_ID` (`themes/t3-palettes.ts`), `systemSectionTitles`, `sharingLinks` (`settings/system-settings.ts`), `remoteProxyPath`, `remoteSocketUrl` (`platform/remote-backend.ts`), `initialText` (`data.ts`), `downloadLabels` (`models/model-management.ts`). 47 lines removed.
+
+Checks: `npm run check` 0/0, `npm run build` PASS, `npm run test:ui` exit 0, `npm run test:structure` PASS. Not verified: the app in a running window (no behaviour depends on these symbols).
+
 ## 23 October 2026 — dev origins only with a dev flag (T-0035)
 
 Before, the engine trusted `http://127.0.0.1:4310` and `http://localhost:4310` (the Vite dev server) in every build, so a page served on that port could call the production engine. Now `launcher.py` (`OMNIVOICE_ALLOWED_ORIGINS`), `ai_tagging.py` (`origin_allowed`), `remote_backend.py` (WebSocket origin) and `integration_settings.py` (MCP allowed hosts) add the dev origins only when `VOICESTUDIO_DEV_ORIGINS=1`. `src-tauri/src/runtime.rs` sets the flag from `cfg!(debug_assertions)` (so `tauri dev` keeps working, the release EXE does not trust 4310); `scripts/dev/ai-dev.ts` sets it for the dev AI adapter. Documented in `docs/architecture/runtime.md`. The per-run token is deliberately not part of the criterion: it is not an access control.
