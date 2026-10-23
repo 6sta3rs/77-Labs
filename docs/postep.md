@@ -1,5 +1,17 @@
 # Public project progress
 
+## 23 October 2026 — roadmap from 6/10 to about 8/10
+
+User request: score the whole repository, then work out what is needed to reach 8 to 10 out of 10 and have the plan tested by the council until it comes close.
+
+Process: a three-model council (Opus 5.5, Fable 5.1, Sonnet 5.5; independent answers, anonymous peer review, chairman checks in code) scored the repository 6/10 (structure 7, code 7-7.5, tests+CI 4.5, security 6.5-7, build/release 5-5.5, docs 7-8, UX/i18n/a11y 6.5, performance 6). A roadmap was then reviewed in two rounds; its projected score was 7.4 / 7.4 / 7.6 for version 1 and 7.5 / 7.6 / 7.5 for version 2. The user stopped the iteration at that point.
+
+Change: `tasks/specs/ROADMAP-to-8.md` (version 3: what 8 means per area, the order in five milestones, what is dropped) and 23 new or re-scoped rows in `tasks/BOARD.md` (T-0028 to T-0052; T-0010, T-0013, T-0019, T-0024, T-0025 re-scoped), `tasks/specs/T-0012` updated (`tests/acceptance` stays; extra path-rewrite targets). Facts the chairman verified on the way and the plan relies on: 27 runtime test modules (not 34), `SECURITY.md` and `CONTRIBUTING.md` already exist (the latter cites a missing `scripts/tag-check.mjs`), `cargo` needs a built `dist`, the updater endpoint is fixed at build time (`build-update.mjs:15,26`), 273 local `refs/t3`, the engine ships PostHog analytics code that the launcher does not switch off, `tests/runtime_paths.py` hard-codes `scripts/build` and `tests/acceptance`, 32 fixed Polish locale uses outside `i18n/`.
+
+Checks: `npm run test:structure` PASS; the board and the roadmap were read back. Not verified: version 3 was NOT re-scored by the council, so 8 is a target, not a result; a real score needs a council run on the finished repository. Open assumptions listed at the end of the roadmap (free code-signing eligibility, `tauri build` on a renamed `desktop/`, how many Python modules run on Windows CI, the two-feed updater scheme).
+
+Limitations: none of the roadmap tasks has been started; 10/10 is not a target (certificate, external audit, reproducible builds, several shipped languages).
+
 ## 23 October 2026 — audit checklist paths after the i18n move
 
 The generator of `tasks/audit-2026-10-22.md` validates every listed file against git; after the English catalogs moved to `src/lib/i18n/en/` it reported two stale paths (`en-additions.ts`, `en-settings-engine.ts` in A-23 and A-26). Both lines now point to `src/lib/i18n/en/additions.ts` and `en/settings-engine.ts`. A comment in `src/lib/gallery/tts-demo.ts` named `i18n/en-demo.ts` and was corrected to `i18n/en/demo.ts`.

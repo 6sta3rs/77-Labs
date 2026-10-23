@@ -4,9 +4,9 @@
 
 **Plan.**
 1. Create `tools/README.md`: one table, `tool | purpose | when to run | called by`. Start from the inventory in `.tmp/qa` (ignored) and re-verify each row.
-2. Move `scripts/dev` to `tools/dev`, `scripts/preview` to `tools/preview`, `scripts/release` and `scripts/build` to `tools/release`, and `tests/acceptance` to `tools/acceptance`. `scripts/runtime/` stays where it is: it is the backend embedded in the EXE through `include_str!`.
+2. Move `scripts/dev` to `tools/dev`, `scripts/preview` to `tools/preview`, `scripts/release` and `scripts/build` to `tools/release`. `tests/acceptance` STAYS where it is (it holds tests; decision of the 23 October roadmap review). `scripts/runtime/` stays where it is: it is the backend embedded in the EXE through `include_str!`.
 3. Naming rule: `.mjs` files kebab-case, `.py` files snake_case. Rename the outliers (`test-runtime.py` to `test_runtime.py`, `capture_screenshots.py` stays).
-4. Update `package.json`, `ci.yml`, docs, `check-structure.mjs` and the line-limit exceptions list for the new paths.
+4. Update `package.json`, `ci.yml`, docs, `check-structure.mjs` and the line-limit exceptions list for the new paths. Also: `AGENTS.md` (`python scripts/dev/publication_check.py`), `CONTRIBUTING.md`, `tests/runtime/test_publication_check.py`, and `tests/runtime_paths.py` (it hard-codes `scripts/build` and `tests/acceptance`). Acceptance for the rewrite: all 27 `tests/runtime/test_*.py` modules still import.
 
 **Checks.** `npm run test:structure`, `npm run check`, `npm run build`, `python scripts/dev/publication_check.py` (path of the moved tool updated in CI), docs links.
 
