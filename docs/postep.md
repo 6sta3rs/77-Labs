@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — orphan fixtures and a one-off script removed (T-0005)
+
+Deleted `tests/fixtures/ui-style-fixes.svelte` and `tests/fixtures/button-system-audit.svelte` (no references; `voice-picker-audit.svelte` stays, it is used) and `scripts/dev/i18n-svelte.mjs` (the one-off that wrapped static markup for the English catalog; only mentioned in this log, whose older entry now says it was removed).
+
+Checks: `git grep` for the three names finds only this log and the task board; `npm run check`, `build`, `test:ui`, `test:structure` exit 0. Not verified: nothing else (no runtime effect).
+
 ## 23 October 2026 — `postcss` declared as a dev dependency (T-0020)
 
 `tests/frontend/ui-colors-check.mjs` imports `postcss`, which only a transitive dependency provided. It is now a pinned devDependency (8.5.31, the version already in the lockfile); `package-lock.json` gained only the root entry.
@@ -309,7 +315,7 @@ Checks: `npm run check` 0/0, `runtime-client-check.mjs` 7/7, `npm run test:ui` P
 
 ## 21 October 2026 — English interface option ported and completed
 
-The unfinished English UI translation (prepared on the earlier flat layout) is now part of the current code. Visible Polish strings are wrapped with `tr(...)`/`translateUi(...)` and the interface language is chosen in **Ustawienia → Ogólne** (Settings → General); Polish stays the default and its output is unchanged. `src/lib/i18n/` holds the module (`index.ts`) and dictionaries; strings added since the original work and those it had left untranslated are in `en-additions.ts` (3221 keys in total). Tools: `scripts/dev/i18n-svelte.mjs` (wraps static markup), `tests/frontend/i18n-check.mjs` (core behaviour, now part of `test:ui`). Also included from the same work: the orb music demo (`orb-demo.html`, `src/OrbMusicDemo.svelte`, `scripts/dev/generate_demo_music.py`; the generated WAV is not tracked).
+The unfinished English UI translation (prepared on the earlier flat layout) is now part of the current code. Visible Polish strings are wrapped with `tr(...)`/`translateUi(...)` and the interface language is chosen in **Ustawienia → Ogólne** (Settings → General); Polish stays the default and its output is unchanged. `src/lib/i18n/` holds the module (`index.ts`) and dictionaries; strings added since the original work and those it had left untranslated are in `en-additions.ts` (3221 keys in total). Tools: `scripts/dev/i18n-svelte.mjs` (wrapped static markup; a one-off, removed in T-0005), `tests/frontend/i18n-check.mjs` (core behaviour, now part of `test:ui`). Also included from the same work: the orb music demo (`orb-demo.html`, `src/OrbMusicDemo.svelte`, `scripts/dev/generate_demo_music.py`; the generated WAV is not tracked).
 
 Node test harnesses that load single modules now get the real i18n module from `tests/helpers/i18n.mjs`. Stale tests fixed on the way: `runtime-startup-check.mjs` (startup budget is 305 s; one-time idle sync excluded), `audio-diagnostics-check.mjs` (source path), `voice-profile-check.mjs` (missing collaborators).
 
