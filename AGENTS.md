@@ -17,6 +17,12 @@
 - Do not push, rewrite history, amend commits, or delete branches without the user's instruction. A missing remote does not prevent local commits.
 - After committing, check `git status --short` and report the commit's short hash and check results. If a commit or check fails, explain the cause; do not claim completion or a passing result.
 
+## Tasks
+
+- Planned and finished work lives in `tasks/BOARD.md` (rules in `tasks/README.md`). Check it before starting a request; reuse the matching `T-NNNN` or add a row with the next free ID.
+- Set `doing` when you start. Set `done` with the short commit hash only after the checks below passed. A decision that belongs to the owner is `blocked` with the question written down.
+- Put task evidence in the ignored `.tmp/qa/T-NNNN/`; keep conclusions in `tasks/specs/` or `docs/postep.md`.
+
 ## Verification and project rules
 
 - Match checks to the change. For Svelte/TypeScript code, run `npm run check` and `npm run build`; for tags, also run `node tests/frontend/tag-check.mjs`. Also run `npm run test:structure` when moving files or editing docs links.

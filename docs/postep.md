@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — task board
+
+User request: agents had no single place to put tasks and carry them out; plans lived in the ignored `.tmp/qa`.
+
+Change: `tasks/README.md` (statuses and rules for agents), `tasks/BOARD.md` (19 open or blocked tasks, 4 done, 8 rejected proposals with reasons) and three specs (`T-0007` unrun checks, `T-0011` renaming `src` and `src-tauri`, `T-0012` the `tools/` folder). `AGENTS.md` got a "Tasks" section. The tasks come from the ponytail over-engineering audit, a knip run, a three-model review of that audit (score 5/10; its wrong or unsafe items are recorded as rejected) and the structure review.
+
+Checks: `npm run test:structure` PASS (docs and `AGENTS.md` links). Not verified: the board entries were re-checked by hand only for T-0001 (dead exports), T-0002 (stale doc paths), T-0006 (repeated kittentts check), T-0007 (36 of 69 checks unrun) and T-0008 (broken preview paths); the other rows rely on the audit and the council. The publication check still fails on four old local T3 checkpoint refs (T-0019); the working tree itself has 0 findings.
+
+Limitations: the board is a Markdown table, so IDs are assigned by hand and nothing validates it yet. The `tasks/` content is in English like the other public docs.
+
 ## 23 October 2026 — audit task list implemented and verified, version 0.2.2
 
 User request: check whether the 31 tasks of the 22 October audit list were really implemented (the UI of 0.2.1 lacked them), mark each as done or not, implement what was missing, test in a running environment, and publish a new version.
