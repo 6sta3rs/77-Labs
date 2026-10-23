@@ -1,0 +1,5 @@
+{
+  "localSeconds": 0.8,
+  "runnerSeconds": null,
+  "note": "Seconds from starting the release EXE to the mounted interface (fresh WebView profile), median of 4 runs on the development machine on 23 October 2026. runnerSeconds stays null until the weekly job has measured the GitHub runner; then the job fails at 1.5 times that value."
+}

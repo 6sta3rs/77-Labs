@@ -29,8 +29,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0039 | Split large modules, ratchet limits | open | Burn-down. Split `runtime.rs` (tests into their own file) and `engine_catalogue_metadata.py`; ratchet every exception to its current size; per-file longest-line ratchet (`App.svelte`: 85 lines over 200 characters); no non-data file over 1000 lines. Size XL. | |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | open | Bundle size and test counts written by a script into `docs/verification/`; user-facing `CHANGELOG.md`; extend `CONTRIBUTING.md` (add a tool, language, task; run each gate). | |
 | T-0046 | Bundle budget and lazy `en` | open | Dynamic imports for settings shell, tool workspaces, landing orb; `en` loaded on demand (language initialised before mount); a build-failing budget set from the measured numbers (`App` chunk is 895 kB today). | |
-| T-0047 | Cold-start baseline and busy port | open | (a) baseline in `docs/verification/` re-checked weekly (fail at +50%); (b) a busy engine port gives a clear Polish message within 5 s. Dynamic port deferred (CSP and about 57 files). | |
-| T-0049 | Weekly EXE start check | open | Start the built EXE on isolated data on a Windows runner and check over CDP that the UI loads. `/health` plus synthesis stays manual until the runtime can be cached. | |
 | T-0051 | Branch protection | blocked | Owner: required checks on `main` (Windows job, structure, publication), so the gates are not advisory. | |
 | T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
 
@@ -68,6 +66,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0052 | Coverage baselines | (next) |
 | T-0030 | Playwright smoke and axe scan | (next) |
 | T-0044 | Accessibility fixes | (next) |
+| T-0047 | Cold-start baseline and busy port | (next) |
+| T-0049 | Weekly EXE start check | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

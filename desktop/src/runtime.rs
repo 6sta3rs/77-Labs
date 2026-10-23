@@ -623,13 +623,14 @@ impl Runtime {
         let preload_tts = inner.preload_tts;
         let result = (|| -> Result<(Process, RuntimeStatus), String> {
             let root = runtime_root()?;
-            let (python, source) = python(&root)?;
+            // A busy port is reported at once, before anything else that could fail or take time.
             let listener =
                 TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], PORT))).map_err(|_| {
                     format!(
                         "Port {PORT} jest zajęty. Seventy Seven Labs nie przejmie obcego procesu."
                     )
                 })?;
+            let (python, source) = python(&root)?;
             fs::write(root.join("launcher.py"), LAUNCHER).map_err(|e| e.to_string())?;
             fs::write(root.join("audiobook_streaming.py"), AUDIOBOOK_STREAMING).map_err(|e| e.to_string())?;
             fs::write(root.join("ai_tagging.py"), AI_TAGGING).map_err(|e| e.to_string())?;

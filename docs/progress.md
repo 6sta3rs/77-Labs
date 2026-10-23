@@ -1,5 +1,14 @@
 # Public project progress
 
+## 23 October 2026 — weekly EXE start check, cold-start baseline, busy port (T-0049, T-0047)
+
+`desktop/src/runtime.rs` already refused to start when `127.0.0.1:4312` was taken by a foreign program ("Port 4312 jest zajęty. Seventy Seven Labs nie przejmie obcego procesu."), but it looked up the private Python first, so on an installation without a runtime the user saw the Python message instead. The port check now runs first.
+
+Checks: the release EXE rebuilt (about 4 minutes), started on a fresh `LOCALAPPDATA`/WebView profile with a foreign listener on port 4312, **Uruchom silnik** pressed on Settings → Silnik: the Polish "jest zajęty" message appeared after 0.03 s (limit in the roadmap: 5 s), with no Python installed (the script is `tests/acceptance/exe_smoke.py --busy-port`, committed next). `cargo test --locked` 51 passed, clippy clean. Not verified: the message when a Python runtime is installed and the port is busy (same code path, earlier in the function) and a foreign listener that answers HTTP (the adoption check `owns_healthy_listener` runs before this code and is unchanged).
+
+T-0049 and T-0047 a: `tests/acceptance/exe_smoke.py` (the CDP smoke used for T-0011, now committed and indexed) starts the built EXE on isolated data, checks that the window mounts, the 12 settings pages render and no page error occurs, prints the cold start, can fail above a baseline (`--baseline-seconds`, `--max-factor`) and can prove the busy-port message (`--busy-port`). `.github/workflows/exe-smoke.yml` runs it weekly on a Windows runner after building the EXE (SHA-pinned actions, artifact upload); `tests/acceptance/cold-start-baseline.json` and the new `docs/verification/performance.md` hold the numbers: 0.8 s locally (0.78 to 0.81 s over four runs); the runner value is `null` until the first weekly run, so no threshold is enforced on GitHub yet. The engine warm-up and `/health` with synthesis stay manual. The `.github` job and the smoke on GitHub were not run (nothing is pushed).
+
+
 ## 23 October 2026 — Playwright smoke and axe scan (T-0030) and the first fix (T-0044)
 
 New: `@playwright/test` 1.64.1 and `@axe-core/playwright` 4.14.0 (dev dependencies, exact versions), `playwright.config.mjs` (serves the built `dist/` with `vite preview` on port 4320 and uses Chromium, locale `pl-PL`) and `tests/e2e/`: `mock-runtime.mjs` answers every `/backend` request of the browser build with canned JSON (nothing leaves the test, no engine), `pages.spec.mjs` has one test per named page (Pulpit, Tekst na mowę, Ustawienia → Ogólne, Silnik, Modele: renders without page errors and with no serious or critical axe violation) and a Tab-order test (14 Tab presses: focus is always on an element, never repeats, and follows the document order). `npm run test:e2e` runs it (after `npm run build` and `npx playwright install chromium` once); the Ubuntu CI job installs the browser and runs it.
