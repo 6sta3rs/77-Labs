@@ -1,0 +1,80 @@
+name: Release
+# A tag v<version> builds the signed installer and the updater feed, attests their provenance and creates a DRAFT release.
+# A draft is never the "latest" release, so no installed copy is offered the update until a human publishes it
+# (publishing triggers verify-release.yml). See docs/publishing.md for the one-time setup (environment, secrets, reviewers).
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  gates:
+    # The same gates as the source checks, run on the tagged commit before anything is built or signed.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run test:ui
+      - run: npm run test:structure
+      - run: python tools/dev/publication_check.py
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: desktop
+      - run: cargo test --locked --manifest-path desktop/Cargo.toml
+      - run: cargo clippy --locked --all-targets --manifest-path desktop/Cargo.toml -- -D warnings
+      - name: Release notes exist for this version
+        shell: bash
+        run: node tools/release/changelog-notes.mjs "${GITHUB_REF_NAME#v}"
+  build:
+    needs: gates
+    runs-on: windows-latest
+    # A protected environment: required reviewers approve the run, and only this job can read the signing secrets.
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: desktop
+      - run: npm ci
+      # Guards inside build-update.mjs: clean tree, HEAD is the tag, five versions agree. Takes 20-30 minutes (LTO).
+      - run: npm run desktop:release
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: .tmp/release/${{ github.ref_name }}/*.exe
+      - name: Create the draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          dir=".tmp/release/${GITHUB_REF_NAME}"
+          node tools/release/changelog-notes.mjs "$version" > "$RUNNER_TEMP/notes.txt"
+          gh release create "$GITHUB_REF_NAME" "$dir"/*.exe "$dir"/*.sig "$dir"/*.sha256 "$dir"/latest.json \
+            --draft --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.txt"

@@ -1,5 +1,7 @@
 // Builds a signed NSIS installer and the updater feed `latest.json` for GitHub Releases.
-// Usage: npm run desktop:release -- [--notes "Co nowego"] [--skip-guards]
+// Usage: npm run desktop:release -- [--notes "Co nowego"] [--feed latest.json] [--skip-guards]
+// Without --notes the notes come from the CHANGELOG.md section of this version. --feed names the feed file the build polls
+// (default latest.json; another name is for the two-feed key rotation scheme in tasks/specs/T-0033-updater-key-rotation.md).
 // Signing key: TAURI_SIGNING_PRIVATE_KEY (path or content), default %USERPROFILE%\.tauri\seventy-seven-labs-updater.key (never in the repo).
 // Output: .tmp/release/v<version>/ with the installer, its .sig and latest.json. Publishing is a separate, explicit step (printed at the end).
 import { spawnSync } from 'node:child_process';
@@ -7,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { changelogNotes } from './changelog-notes.mjs';
 import { releaseGuardErrors } from './release-guards.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -14,7 +17,10 @@ const root = resolve(import.meta.dirname, '../..');
 const origin = spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: root, encoding: 'utf8' }).stdout.trim();
 const REPO = origin.match(/github\.com[:/]([^/]+\/[^/.]+?)(?:\.git)?$/)?.[1];
 if (!REPO) throw new Error(`origin is not a GitHub repository: ${origin}`);
-const ENDPOINT = `https://github.com/${REPO}/releases/latest/download/latest.json`;
+const feedAt = process.argv.indexOf('--feed');
+const feedName = feedAt > -1 ? process.argv[feedAt + 1] ?? '' : 'latest.json';
+if (!/^[\w.-]+\.json$/.test(feedName)) throw new Error(`--feed needs a file name such as latest.json, got "${feedName}"`);
+const ENDPOINT = `https://github.com/${REPO}/releases/latest/download/${feedName}`;
 const { version } = JSON.parse(readFileSync(join(root, 'desktop/tauri.conf.json'), 'utf8'));
 // A release is built from a tagged, clean commit with all five version manifests in agreement.
 // --skip-guards is for a local trial build only and must never produce a published release.
@@ -24,7 +30,7 @@ else {
   if (errors.length) throw new Error(['Release guards failed:', ...errors.map(error => `- ${error}`)].join('\n'));
 }
 const at = process.argv.indexOf('--notes');
-const notes = at > -1 ? process.argv[at + 1] || '' : '';
+const notes = at > -1 ? process.argv[at + 1] || '' : changelogNotes(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), version) ?? '';
 const key = process.env.TAURI_SIGNING_PRIVATE_KEY || join(homedir(), '.tauri', 'seventy-seven-labs-updater.key');
 if (!process.env.TAURI_SIGNING_PRIVATE_KEY && !existsSync(key)) throw new Error(`Missing signing key: ${key}`);
 
@@ -50,5 +56,5 @@ const feed = {
   version, notes, pub_date: new Date().toISOString(),
   platforms: { 'windows-x86_64': { signature: readFileSync(join(nsis, `${setup}.sig`), 'utf8').trim(), url: `https://github.com/${REPO}/releases/download/v${version}/${asset}` } },
 };
-writeFileSync(join(out, 'latest.json'), JSON.stringify(feed, null, 2) + '\n');
-console.log(`\nReady in ${out}\nPublish (after review):\n  gh release create v${version} "${join(out, asset)}" "${join(out, `${asset}.sig`)}" "${join(out, 'latest.json')}" --repo ${REPO} --title "v${version}" --notes "${notes.replaceAll('"', "'")}"`);
+writeFileSync(join(out, feedName), JSON.stringify(feed, null, 2) + '\n');
+console.log(`\nReady in ${out}\nPublish (after review):\n  gh release create v${version} "${join(out, asset)}" "${join(out, `${asset}.sig`)}" "${join(out, feedName)}" --repo ${REPO} --title "v${version}" --notes "${notes.replaceAll('"', "'")}"`);

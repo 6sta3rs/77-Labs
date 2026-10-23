@@ -1,0 +1,27 @@
+name: Verify published release
+# Runs when a draft is published (and on demand): downloads the feed that installed copies poll, downloads the installer it
+# points to and checks its signature against the public key committed in desktop/tauri.conf.json.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Feed and signature
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          expect=()
+          if [ -n "$TAG" ]; then expect=(--expect-version "${TAG#v}"); fi
+          node tools/release/verify-feed.mjs "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/latest.json" "${expect[@]}"

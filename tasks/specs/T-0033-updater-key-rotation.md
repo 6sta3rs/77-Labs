@@ -1,0 +1,17 @@
+# T-0033: updater key with a password, two-feed scheme
+
+**Owner step.** Nothing here has been done and nothing may be done by an agent: generating a key, publishing a release and changing GitHub settings need the owner. The scripts it relies on already exist (`tools/release/build-update.mjs --feed`, `tools/release/verify-feed.mjs`, `.github/workflows/release.yml`).
+
+**Why.** The current updater key has no password and lives on one machine (`%USERPROFILE%\.tauri\seventy-seven-labs-updater.key`). A password and a protected CI secret are an improvement in hygiene. This is not compromise recovery: an attacker who already holds the old key can sign for every install that trusts it, and rotation only protects installs after they have moved to the new key.
+
+**The constraint.** The public key and the feed address are fixed inside every installed copy at build time. Copies that exist today trust the old public key and poll `.../releases/latest/download/latest.json`. They will accept only an installer whose signature verifies with the OLD key, so the old key must sign the bridge build, and the old feed address must keep resolving to something they can verify.
+
+**Scheme.**
+1. Generate the new key with a password (`npx tauri signer generate -w <path>`; choose a password, store the key and password in a password manager and as the secrets `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` of the protected GitHub environment `release`). Keep the OLD key file offline.
+2. Bridge release (for example 0.3.0): put the NEW public key in `desktop/tauri.conf.json` and build with the new feed name, `npm run desktop:release -- --feed latest-v2.json` (bridge installs poll `latest-v2.json` and verify with the new key). Sign the same installer a second time with the OLD key (`tauri signer sign`, the `.sig` file is reusable) and publish a feed named `latest.json` whose `platforms.windows-x86_64.signature` is that old-key signature and whose `url` is the bridge installer. Upload `latest-v2.json` (new-key signature) and `latest.json` (old-key signature) to the same release.
+3. Every later release: build and sign with the new key only and upload `latest-v2.json`. Also re-upload the unchanged bridge `latest.json` (the old-key signature file is reusable) to each new release, because `releases/latest/download/latest.json` resolves against the newest release and would 404 otherwise. Old installs therefore keep being offered the bridge version, move to it, and from there follow `latest-v2.json`.
+4. Keep the old key offline until the bridge has been published; destroy it only when the owner decides that the remaining pre-bridge installs no longer matter.
+
+**Acceptance.** A pre-bridge install (0.2.x) and a bridge install both update from the same release page; `node tools/release/verify-feed.mjs <url of latest.json>` is valid for the old key's public key and `... latest-v2.json` for the key in `tauri.conf.json` (the script reads the key from the repository, so verifying the old feed means checking out the old `tauri.conf.json` or passing the old key). Do this only after T-0024 (the update path from a real older install) has passed.
+
+**Risks and open points.** The scheme was reasoned from `build-update.mjs` and the Tauri updater documentation and has not been run. `verify-feed.mjs` currently verifies against the key in the working tree only. A second feed name is already a parameter of the build script (`--feed`); the workflow `release.yml` builds one feed and would need a second upload step for the bridge release.
