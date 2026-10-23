@@ -1,5 +1,7 @@
 # Task board
 
+The 31 tasks of the 22 October audit (implemented in 0.2.2) are in `audit-2026-10-22.md` with files and test steps; their open leftovers are T-0021 to T-0024.
+
 Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a three-model council (reports in the ignored `.tmp/qa/council/`) and the project-structure review.
 
 ## Open and blocked
@@ -25,6 +27,10 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | open | Review `.tmp/qa/zadania-audyt-2026-10-22.md` and `audyt-aplikacji-2026-10-22.md` for private data, then add them to `tasks/audits/` in English or as a summary. | |
 | T-0019 | Publication check fails on local T3 refs | blocked | `publication_check.py` reports four old T3 checkpoint snapshots (`refs/t3/...`). The working tree is clean (0 findings) and only `main` is public. Decide: ignore those refs in the check, or delete them. | |
 | T-0020 | Add `postcss` to devDependencies | open | `tests/frontend/ui-colors-check.mjs` imports it, only a transitive dependency provides it (knip). | |
+| T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audit-2026-10-22.md`. | audit list |
+| T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/postep.md` |
+| T-0023 | Pixel comparison of the "Wydajność i limity" report with the prototype (A-31) | open | Screenshots at 1280 and 900 px next to `.tmp/settings-redesign/real/ustawienia-prototyp.html` (needs T-0013 first, the prototype lives in the ignored `.tmp`). | known limitation of 0.2.2 |
+| T-0024 | Test the update from 0.2.1 to 0.2.2 | open | Install 0.2.1, publish or serve 0.2.2 in a test channel, press "Sprawdź aktualizacje" and "Pobierz i zainstaluj". Not tested yet. | `docs/postep.md` (0.2.2) |
 
 ## Done
 

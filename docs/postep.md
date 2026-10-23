@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — audit task list as a checklist with test steps
+
+User request: the agent should have the task list from the 22 October audit with real tasks and instructions for testing them (the way one task was verified in the audit-verification thread), and the owner wants to see in HTML which files each task modifies.
+
+Change: `tasks/audit-2026-10-22.md` lists the 31 tasks (A-01 to A-31) with status, how each was verified (APP / TEST / CODE, from the 0.2.2 verification), the files, the automated checks to run and the steps in the running app, plus a "How to test" section (the `AGENTS.md` gate, building the EXE, isolated data, WebView2 remote debugging as in `tests/acceptance/settings_desktop_acceptance.py`, evidence into `.tmp/qa/T-NNNN/`). `tasks/BOARD.md` got the open leftovers: T-0021 (Codex bridge), T-0022 (check in the app what was only checked in code), T-0023 (pixel comparison of "Wydajność i limity"), T-0024 (test the 0.2.1 to 0.2.2 update). The HTML map (`.tmp/qa/filemap-audit.html`, generated and ignored) shows the repository tree with the files of each task coloured by priority and the 88 files changed in `71043fc`.
+
+Checks: the generator confirmed every listed file exists in git; the map was opened in a headless browser (no script errors, task selection highlights the right files); `npm run test:structure` PASS. Not verified: the automated-check lists were mapped by area and file name and were not re-run for this document; 50 files are named in tasks and 43 files changed in `71043fc` belong to no task (supporting edits such as i18n tables and tests); 20 of the 31 file lists include files inferred from the diff because the audit list named none.
+
+Limitations: the HTML map and its generator live in the ignored `.tmp/qa` (they are not part of the repository); the checklist is plain Markdown and is not validated by a script.
+
 ## 23 October 2026 — task board
 
 User request: agents had no single place to put tasks and carry them out; plans lived in the ignored `.tmp/qa`.
