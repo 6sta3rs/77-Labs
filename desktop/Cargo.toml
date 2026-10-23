@@ -9,7 +9,7 @@ license = "AGPL-3.0-only"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-sha2 = "0.10"
+sha2 = "0.11"
 zip = { version = "9", default-features = false, features = ["deflate"] }
 tauri = { version = "2", features = [] }
 tauri-plugin-http = "2"
