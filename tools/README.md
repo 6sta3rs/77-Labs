@@ -4,7 +4,7 @@ Everything a developer runs by hand lives here; nothing under `tools/` ships in 
 
 Rules:
 - `.mjs` and `.ts` files are kebab-case, `.py` files are snake_case.
-- Every file under `tools/` has a row in the table below (a test is planned for this, T-0038).
+- Every file under `tools/` has a row in the table below (`npm run test:structure` fails for a missing one).
 - A tool that nothing calls says so in the last column; it is a candidate for deletion, not a promise.
 
 Folders: `tools/dev` (checks and generators run before commits), `tools/preview` (standalone preview pages and servers), `tools/release` (installer, update feed and engine archive builders).
@@ -13,13 +13,14 @@ Folders: `tools/dev` (checks and generators run before commits), `tools/preview`
 
 - `tools/preview/voice-audit-preview.mjs` and `voice-picker-preview.mjs` resolve their root one folder too high and serve check scripts from `scripts/<name>.js`, which does not exist; there is no runner for `voice-audit-build.mjs`. Owner decision T-0008 (keep or delete).
 - `tools/preview/feature-preview.mjs`, `tools-workspace-preview.mjs` and `ui-performance-preview.mjs` serve check scripts from paths that do not exist (`tools-workspace-check.js` is missing from the repository), so `npm run qa:ui` does not work as documented. Manual previews are part of the owner decision T-0009.
+- `tests/frontend/voice-audit-build.mjs` (used by the voice-audit tools): the full mode no longer builds since the move to `frontend/` (its page imports `/src/main.ts` against the repository root); only `--fixture-only` works. Part of T-0008.
 - `tools/preview/orb_product_preview.py` computes the repository root one level too high.
 
 ## Tools
 
 | Tool | Purpose | When to run | Called by |
 | --- | --- | --- | --- |
-| `tools/dev/ai-dev.ts` | Vite plugin that runs AI in development without starting the GPU/TTS backend (spawns a dev AI server on a free port). | Automatically with npm run dev (loaded by vite.config.ts). Needs: none. | `docs/architecture/runtime.md`, `vite.config.ts` |
+| `tools/dev/ai-dev.ts` | Vite plugin that runs AI in development without starting the GPU/TTS backend (spawns a dev AI server on a free port). | Automatically with npm run dev (loaded by frontend/vite.config.ts). Needs: none. | `docs/architecture/runtime.md`, `frontend/vite.config.ts` |
 | `tools/dev/check-structure.mjs` | Asserts repository structure rules (frontend/src layout, pinned engine archive hash vs provenance, TTS catalogue contract, line-limit exceptions point at tracked files). | Before every commit; npm run test:structure; when moving files or editing docs links. Needs: none. | `package.json` |
 | `tools/dev/filemap/` | Rust crate (std only) that scans the repo incl. ignored files and writes .tmp/qa/filemap.tsv and filemap.html. | Manually, or via the map refresh helper after a change. Needs: none (cargo to build). | documentation only |
 | `tools/dev/generate_demo_music.py` | Creates Signal Bloom, original deterministic music for the public orb demo (no samples or models). | Manually, only when regenerating public/demo/orb-music.wav. Needs: none. | documentation only |

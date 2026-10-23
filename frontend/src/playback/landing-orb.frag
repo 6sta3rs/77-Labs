@@ -1,5 +1,5 @@
 // Adapted from the ElevenLabs homepage fragment captured on 2026-10-20.
-// Source, pinned digest and transformations: docs/features/kula-plyn.md.
+// Source, pinned digest and transformations: docs/features/orb-flow.md.
 #extension GL_OES_standard_derivatives : enable
 precision highp float;
 

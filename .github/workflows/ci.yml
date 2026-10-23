@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           base="${{ github.event.pull_request.base.sha || github.event.before }}"
-          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null || git diff --name-only "$base" HEAD | grep -qE '^(desktop/|scripts/runtime/|frontend/|public/|package(-lock)?\.json$|rust-toolchain\.toml$|\.github/workflows/ci\.yml$)'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null || git diff --name-only "$base" HEAD | grep -qE '^(desktop/|scripts/runtime/|frontend/|public/|package(-lock)?\.json$|rust-toolchain\.toml$|tools/dev/ai-dev\.ts$|\.github/workflows/ci\.yml$)'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.changed.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:

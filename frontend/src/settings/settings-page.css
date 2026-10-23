@@ -1,4 +1,4 @@
-/* Shared layout of the settings pages (`p-` classes). Tokens only. Imported once from main.ts. Rules: docs/features/ustawienia-styl.md. */
+/* Shared layout of the settings pages (`p-` classes). Tokens only. Imported once from main.ts. Rules: docs/features/settings-style.md. */
 
 /* page column */
 /* amber for warnings; also read by StatusBadge and Toaster outside .p-page */

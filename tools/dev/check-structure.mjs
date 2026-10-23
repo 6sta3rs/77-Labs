@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const failures = [];
+const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
 function check(condition, message) { if (!condition) failures.push(message); }
 function files(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -16,10 +17,10 @@ function files(directory) {
   });
 }
 
-const flat = readdirSync(resolve(root, 'frontend/src'), { withFileTypes: true }).filter(entry => entry.isFile()).map(entry => entry.name).sort();
-check(JSON.stringify(flat) === JSON.stringify(['App.svelte', 'OrbMusicDemo.svelte', 'data.ts', 'gallery.ts', 'main.ts', 'orb-music-demo.ts', 'styles.css']), 'frontend/src powinien zawierać tylko pliki wejściowe, wspólny data.ts oraz foldery obszarów.');
+const directlyIn = folder => trackedAll.filter(file => dirname(file) === folder).map(file => file.split('/').pop()).sort();
+check(JSON.stringify(directlyIn('frontend/src')) === JSON.stringify(['App.svelte', 'OrbMusicDemo.svelte', 'data.ts', 'gallery.ts', 'main.ts', 'orb-music-demo.ts', 'styles.css']), 'frontend/src powinien zawierać tylko pliki wejściowe, wspólny data.ts oraz foldery obszarów.');
 for (const directory of ['scripts', 'scripts/runtime']) {
-  check(readdirSync(resolve(root, directory), { withFileTypes: true }).every(entry => entry.isDirectory()), `${directory}: pliki powinny należeć do odpowiedniego podfolderu.`);
+  check(directlyIn(directory).length === 0, `${directory}: pliki powinny należeć do odpowiedniego podfolderu.`);
 }
 let embedded = 0;
 for (const file of files(resolve(root, 'desktop/src')).filter(path => path.endsWith('.rs'))) {
@@ -38,24 +39,36 @@ for (const command of Object.values(JSON.parse(read('package.json')).scripts)) {
   for (const [, file] of command.matchAll(/\bnode\s+([^\s&]+)/g)) check(existsSync(resolve(root, file)), `package.json: brak skryptu ${file}`);
 }
 let links = 0;
-for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith('.md')), resolve(root, 'README.md'), resolve(root, 'AGENTS.md')]) {
-  for (const [, destination] of readFileSync(file, 'utf8').matchAll(/\]\(([^\s)]+)\)/g)) {
+for (const file of trackedAll.filter(path => path.endsWith('.md') && path !== 'docs/progress.md')) {
+  for (const [, destination] of read(file).matchAll(/\]\(([^\s)]+)\)/g)) {
     if (/^(?:https?:|mailto:|#)/.test(destination)) continue;
     const path = decodeURIComponent(destination.split('#')[0]);
     if (!path) continue;
-    check(existsSync(resolve(dirname(file), path)), `${file}: brak celu odnośnika ${destination}`);
+    check(existsSync(resolve(root, dirname(file), path)), `${file}: brak celu odnośnika ${destination}`);
     links++;
   }
+}
+for (const [name, command] of Object.entries(JSON.parse(read('package.json')).scripts)) {
+  for (const [, file] of command.matchAll(/--(?:config|tsconfig)\s+(\S+)/g)) check(existsSync(resolve(root, file)), `package.json (${name}): brak pliku ${file}`);
 }
 // Ścieżki w znakach `...` w dokumentacji muszą istnieć. Jedna lista katalogów głównych; historia (progress.md) opisuje stan z przeszłości; plik, którego jeszcze nie ma lub już nie ma, oznacz „(planned)” albo „(removed)” tuż po znaku.
 const pathRoots = ['scripts', 'tools', 'tests', 'frontend', 'desktop', 'docs', 'tasks', 'assets', 'public', '.github'];
 const historical = new Set(['docs/progress.md']);
-const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
 const trackedPaths = new Set(trackedAll);
 for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = dirname(dir)) trackedPaths.add(dir);
 // Build output and local folders that docs may mention but a fresh clone does not contain.
 const generatedRoots = ['desktop/target', 'desktop/gen', 'dist', 'node_modules'];
 const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file));
+// Katalogi, które przestały istnieć, nie mogą wracać do bieżących dokumentów (historia je opisuje: patrz `historyFiles`).
+const retiredRoots = ['src/', 'src-tauri/', 'scripts/dev/', 'scripts/preview/', 'scripts/release/', 'scripts/build/'];
+const historyFiles = new Set(['docs/progress.md', 'tasks/BOARD.md', 'tasks/specs/ROADMAP-to-8.md', 'tasks/specs/T-0011-rename-src-folders.md', 'tasks/audits/app-audit-2026-10-22.md']);
+for (const file of trackedAll.filter(path => path.endsWith('.md') && !historyFiles.has(path))) {
+  for (const [, token] of read(file).matchAll(/`([^`\s]+)`/g)) check(!retiredRoots.some(old => token.startsWith(old)), `${file}: \`${token}\` należy do układu sprzed przeniesienia.`);
+}
+for (const file of trackedAll.filter(path => /^docs\/.+\.md$/.test(path))) {
+  const name = file.split('/').pop();
+  if (!['README.md', 'PRD.md'].includes(name)) check(/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[0-9]+)*\.md$/.test(name), `${file}: nazwa dokumentu powinna być angielska, w kebab-case.`);
+}
 let quoted = 0;
 for (const file of documents) {
   const text = read(file);
