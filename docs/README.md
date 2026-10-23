@@ -14,6 +14,7 @@ Start with the [project map](architecture/project-structure.md), the [project co
 - [Project context for new sessions](architecture/project-context.md)
 - [Project map - where do I change X?](architecture/project-structure.md)
 - [Private engine runtime](architecture/runtime.md)
+- [Privacy: what can leave the computer](architecture/privacy.md)
 
 ## Features and guides
 

@@ -10,7 +10,7 @@
   import FilePicker from '../../ui/FilePicker.svelte'
   import StatusBadge from '../../ui/StatusBadge.svelte'
   import { productionJson } from '../../tools/production/production'
-  import { longDurationLabel, putSettings, settingsError, type AnalyticsState, type SystemInfo, type UsageState } from '../system-settings'
+  import { ANALYTICS_OFFERED, longDurationLabel, putSettings, settingsError, type AnalyticsState, type SystemInfo, type UsageState } from '../system-settings'
   import { parseWatermarkResult, watermarkFileError, watermarkSettingsPath, watermarkTitle, type WatermarkResult, type WatermarkSettings } from '../../platform/integrations'
 
   let { ready = false, onnavigate }: { ready?: boolean; onnavigate?: (id: SettingsSection) => void } = $props()
@@ -117,8 +117,8 @@
     <p class="p-notice info">{tr('Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy włączysz analitykę albo użyjesz zdalnego dostawcy tłumaczenia.')}</p>
     <div class="p-rows">
       {#if analytics}
-      <div class="p-row"><div class="t"><b>{tr('Zgoda na analitykę produktu')}</b><span>{analytics.available ? tr('Dobrowolna. Wysyła tylko dane o użyciu programu, bez tekstów i nagrań.') : tr('Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.')}</span></div>
-        <div class="pv-inline">{#if analyticsOk}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Switch label={tr('Zgoda na analitykę produktu')} bind:checked={analyticsOn} disabled={locked || !analytics.available} onchange={saveAnalytics}/></div></div>
+      <div class="p-row"><div class="t"><b>{tr('Zgoda na analitykę produktu')}</b><span>{analytics.available && ANALYTICS_OFFERED ? tr('Dobrowolna. Wysyła tylko dane o użyciu programu, bez tekstów i nagrań.') : tr('Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.')}</span></div>
+        <div class="pv-inline">{#if analyticsOk}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Switch label={tr('Zgoda na analitykę produktu')} bind:checked={analyticsOn} disabled={locked || !analytics.available || !ANALYTICS_OFFERED} onchange={saveAnalytics}/></div></div>
       {/if}
       {#if info}
       <div class="p-row"><div class="t"><b>{tr('Dostawca tłumaczenia')}</b><span>{tr('Zdalny dostawca otrzymuje tylko tekst, który tłumaczysz. Zmienisz go w „AI i klucze”.')}</span></div>

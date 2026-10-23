@@ -26,7 +26,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0029 | Python runtime tests in CI | open | After T-0012: the 27-module table first (CI / Windows-only / needs engine), then `requirements-ci.txt` with only what the tests import, the green subset gated, a manifest failing on unlisted files, then `ruff`. | `specs/ROADMAP-to-8.md` |
 | T-0030 | Playwright smoke and axe scan | open | After T-0011. Mocked runtime API, five named pages, 0 serious/critical violations, a Tab-order assertion; two steps (mock server plus two pages, then three more). Size L. | |
 | T-0031 | Release workflow on tag | open | `release.yml`: gates first, signing secrets from a protected environment with reviewers, provenance attestation, DRAFT release, post-release job verifying the feed signature. After T-0032 and T-0033. Size L. | |
-| T-0032 | Release guards | open | `build-update.mjs`: clean tree, HEAD = tag (also detached), version parity of package.json, package-lock.json, tauri.conf.json, Cargo.toml, Cargo.lock (also in `test:structure`). | |
 | T-0033 | Updater key rotation, two-feed scheme | blocked | Owner. New key with a password; new-key builds use a new endpoint (for example `latest-v2.json`), every later release re-uploads the bridge `latest.json` with its old-key `.sig`; old key kept offline until the bridge is published. After T-0024. | `build-update.mjs:15,26` |
 | T-0034 | Supply-chain hygiene | open | SHA-pinned actions, `dependabot.yml`, scheduled `npm audit --omit=dev` and `cargo audit`, checksum for the NSIS download. | |
 | T-0036 | Security docs | open | Extend `SECURITY.md`, add `docs/architecture/security.md` (planned) (token is a marker, CSP `unsafe-inline` rationale, trust boundaries). | |
@@ -39,7 +38,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0047 | Cold-start baseline and busy port | open | (a) baseline in `docs/verification/` re-checked weekly (fail at +50%); (b) a busy engine port gives a clear Polish message within 5 s. Dynamic port deferred (CSP and about 57 files). | |
 | T-0048 | Launcher contract test | open | The wrapper and middleware (`launcher.py:359`, `activity.py:477`) under `TestClient` with a stub app, no torch in CI. | |
 | T-0049 | Weekly EXE start check | open | Start the built EXE on isolated data on a Windows runner and check over CDP that the UI loads. `/health` plus synthesis stays manual until the runtime can be cached. | |
-| T-0050 | Engine analytics kill switch and privacy doc | open | The engine ships `backend/core/analytics.py` (PostHog, switch `OMNIVOICE_ANALYTICS_DISABLED`) and `launcher.py` does not set it. Verify the default, set the switch, negative test, `docs/architecture/privacy.md` (planned). | verified in `engine.zip` |
 | T-0051 | Branch protection | blocked | Owner: required checks on `main` (Windows job, structure, publication), so the gates are not advisory. | |
 | T-0052 | Coverage baselines | open | Publish Python `coverage` (CI modules) and `cargo llvm-cov` numbers, no threshold yet. | |
 | T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
@@ -68,6 +66,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | 8948226 |
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | a800b78 |
+| T-0032 | Release guards | b7de7c2 |
+| T-0050 | Engine analytics kill switch and privacy doc | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

@@ -218,6 +218,8 @@ def configure_environment():
         "OMNIVOICE_STARTUP_WATCHDOG_S": "120",
         "OMNIVOICE_ALLOWED_ORIGINS": "http://tauri.localhost,tauri://localhost" + (",http://127.0.0.1:4310,http://localhost:4310" if os.environ.get("VOICESTUDIO_DEV_ORIGINS") == "1" else ""),
         "OMNIVOICE_DESKTOP_CONTAINED": "1",
+        # The engine ships opt-in PostHog analytics with an upstream destination; this app never sends it.
+        "OMNIVOICE_ANALYTICS_DISABLED": "1",
         "PYTHONPYCACHEPREFIX": str(pycache), "PYTHONUTF8": "1",
     })
     os.environ.pop("PYTHONDONTWRITEBYTECODE", None)
