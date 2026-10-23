@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — `hashlib.file_digest` in the bootstrap (T-0003)
+
+`sha256()` in `scripts/runtime/install/bootstrap.py` used a hand-written chunked loop; it now calls `hashlib.file_digest` (Python 3.11+, the version bootstrap runs under; `launcher.py` and `engine_installation.py` already use it).
+
+Checks: `tests/runtime/test_bootstrap.py` 20 OK (run with CPython 3.12 here), `npm run test:structure` PASS, `cargo check` PASS (the file is embedded). Not verified: a real bootstrap run under the pinned CPython 3.11.14 (the 3.11 API is documented, not exercised here).
+
 ## 23 October 2026 — one `durationLabel` (T-0004)
 
 `src/lib/settings/system-settings.ts` exported a second `durationLabel` with a different format (seconds, minutes, hours with "godz."). It is renamed `longDurationLabel` (one user: `PrivacyPage.svelte`); `src/lib/data.ts` keeps `durationLabel` (the `m:ss` player format) with its five users.
