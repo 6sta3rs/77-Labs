@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — board correction (T-0024)
+
+A helper call in the previous commit moved T-0024 to the Done table by mistake. It is blocked, not done (the install step needs an owner decision, see `tasks/specs/T-0024-update-test.md`); the row is back in the open table with its status and evidence. No other change.
+
 ## 23 October 2026 — fixes from the independent review of M3
 
 A fresh read-only reviewer (Opus, clean clone, real feed) found no blocking defect: all action SHAs match their version tags, `verify-feed.mjs` is valid against the published feed, the `zip` 2 to 9 bump and the ignores are justified, a clean clone passes. Fixed from its list:
