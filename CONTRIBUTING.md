@@ -46,7 +46,7 @@ For a workflow change, show the screen or steps for manual acceptance testing.
 | Changed area | Required checks |
 | --- | --- |
 | Svelte / TypeScript | `npm run check` and `npm run build`; the relevant UI workflow. |
-| Narration tags | Also run `node scripts/tag-check.mjs`. |
+| Narration tags | Also run `node tests/frontend/tag-check.mjs`. |
 | Shared controls / UI behavior | Also run the relevant regressions in `npm run test:ui`; check keyboard use, focus, and relevant window sizes. |
 | Rust / Tauri | `cargo check --manifest-path src-tauri/Cargo.toml`; use the actual EXE for native behavior. |
 | Python / runtime | Syntax and tests for the changed module in an isolated environment; the runtime contract or workflow affected by the change. |
@@ -55,7 +55,7 @@ For a workflow change, show the screen or steps for manual acceptance testing.
 ```powershell
 npm run check
 npm run build
-node scripts/tag-check.mjs
+node tests/frontend/tag-check.mjs
 cargo check --manifest-path src-tauri/Cargo.toml
 git diff --check
 ```

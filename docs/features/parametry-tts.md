@@ -37,6 +37,6 @@ A client expecting a completed WAV Blob must not receive that stream. HTTP 200 d
 not prove completion if a later frame contains an error.
 Audiobook listening uses a separate [chunk queue](audiobook-porcjami.md).
 
-Regression check without models: `node scripts/speech-settings-check.mjs`.
+Regression check without models: `node tests/frontend/speech-settings-check.mjs`.
 Type checking, a build, and serialization tests do not validate how these
 parameters sound; a separate acceptance check on the selected model is required.

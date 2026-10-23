@@ -14,7 +14,7 @@ Weights, libraries, terms and active engine selection are separate steps.
 | Qwen3-TTS VoiceDesign | Voice description | CPU/CUDA. |
 | Fish S2 Pro | Recording and its transcript | Separate Linux/WSL service and local HTTP adapter. |
 
-Supported languages and exact revisions come from `scripts/runtime/tts_catalog.py`
+Supported languages and exact revisions come from `scripts/runtime/app/tts_catalog.py`
 and the active catalog. Selecting an unsupported language must produce a readable
 error; support for Polish must not be inferred from a family name alone.
 
@@ -43,14 +43,14 @@ the service on a public interface. Credentials in URLs and redirects are rejecte
 
 ## Where to change behavior
 
-- `scripts/runtime/tts_catalog.py` — revisions, files, languages and variants.
-- `scripts/runtime/tts_extensions.py` — registry, statuses and the `/next/tts/*` API.
-- `scripts/runtime/tts_worker.py` — synthesis parameters and execution.
-- `scripts/runtime/prepare_tts.py` — library preparation.
+- `scripts/runtime/app/tts_catalog.py` — revisions, files, languages and variants.
+- `scripts/runtime/app/tts_extensions.py` — registry, statuses and the `/next/tts/*` API.
+- `scripts/runtime/app/tts_worker.py` — synthesis parameters and execution.
+- `scripts/runtime/install/prepare_tts.py` — library preparation.
 - `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab, including the Fish connection).
 
-Regression checks: `scripts/runtime/test_tts_extensions.py`
-and `scripts/runtime/test_tts_registry.py`. They do not collectively verify
+Regression checks: `tests/runtime/test_tts_extensions.py`
+and `tests/runtime/test_tts_registry.py`. They do not collectively verify
 the sound of every model. Plan generation tests separately with clean data,
 recording the model and hardware in the report. See [model terms](licencje-modeli.md)
 and the [weights catalog](modele-produkcja.md).

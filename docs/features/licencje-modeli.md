@@ -42,7 +42,7 @@ model does not clear the first-use check.
 - `src/lib/settings/pages/ModelsPage.svelte` — entry point from the catalog.
 - `src/lib/platform/api.ts` — generation errors.
 
-Regression check: `node scripts/model-licenses-check.mjs`. Test acceptance and
+Regression check: `node tests/frontend/model-licenses-check.mjs`. Test acceptance and
 revocation must use controlled fixture state only. Do not accept real terms on
 the user's behalf. See [first-run setup](onboarding-modeli.md),
 [third-party notices](../../THIRD_PARTY_NOTICES.md) and

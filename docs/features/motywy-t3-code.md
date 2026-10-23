@@ -28,10 +28,10 @@ recoverable. There is no online synchronization or gallery.
 
 ## Where to make changes
 
-- `src/lib/Appearance.svelte`: cards, assignments, and settings.
-- `src/lib/ThemeDialog.svelte`: editor and imports.
+- `src/lib/settings/Appearance.svelte`: cards, assignments, and settings.
+- `src/lib/settings/ThemeDialog.svelte`: editor and imports.
 - `src/lib/themes/library.ts`: format, validation, and local library.
-- `src/lib/appearance.ts`: applying palettes and saving preferences.
+- `src/lib/settings/appearance.ts`: applying palettes and saving preferences.
 
 The library uses localStorage `voicestudio.themes.v1`; preferences use
 `voicestudio.appearance.v2`. Test in a separate profile to avoid changing your

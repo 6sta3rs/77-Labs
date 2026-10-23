@@ -39,11 +39,11 @@ the state has been read back.
 
 - `src/lib/models/ModelLicenseOnboarding.svelte`, `src/lib/models/license-onboarding.ts` — UI and state.
 - `src/lib/models/ModelLicenseReview.svelte` — individual decisions.
-- `scripts/runtime/model_management.py` — the plan.
+- `scripts/runtime/app/model_management.py` — the plan.
 
-Regression checks: `node scripts/license-onboarding-check.mjs`,
-`node scripts/model-licenses-check.mjs` and
-`node scripts/model-onboarding-monitor-check.mjs`.
+Regression checks: `node tests/frontend/license-onboarding-check.mjs`,
+`node tests/frontend/model-licenses-check.mjs` and
+`node tests/frontend/model-onboarding-monitor-check.mjs`.
 Use an isolated fixture for UI acceptance testing, without real decisions or models.
 See [model terms](licencje-modeli.md), [installation](instalacja-runtime.md)
 and [verification status](../verification/weryfikacja.md).

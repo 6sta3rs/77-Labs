@@ -41,10 +41,10 @@ It is not a data migration mechanism or a restoration of historical GPU workers.
 
 - `src/lib/settings/pages/NetworkPage.svelte` — settings and explicit actions.
 - `src/lib/platform/remote-backend.ts`, `src/lib/platform/remote-state.ts`, `src/lib/platform/remote-routing.ts` — state.
-- `scripts/runtime/remote_backend.py` — session and proxy.
+- `scripts/runtime/app/remote_backend.py` — session and proxy.
 - `src/lib/platform/api.ts`, `src/lib/tools/dictation/dictation.ts` — transport selection for operations.
 
-Regression checks: `scripts/runtime/test_remote_backend.py`, run in an isolated
+Regression checks: `tests/runtime/test_remote_backend.py`, run in an isolated
 environment. A controlled loopback server does not validate a public deployment,
 reverse proxy authentication or inference. See [data protection](../../SECURITY.md)
 and [verification status](../verification/weryfikacja.md).

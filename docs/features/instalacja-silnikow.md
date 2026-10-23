@@ -35,16 +35,16 @@ a recipe is not a complete lockfile with hashes for every external environment.
 
 ## Files and checks
 
-- `scripts/runtime/engine_installation.py` — catalog extraction from the AST,
+- `scripts/runtime/install/engine_installation.py` — catalog extraction from the AST,
   worker and status reporting.
-- `scripts/runtime/private_environment.py` — atomic configuration writes.
+- `scripts/runtime/install/private_environment.py` — atomic configuration writes.
 - `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab).
 - `src/lib/models/engine-installation.ts` — transport and approval of the selected recipe.
 
 Checks that do not require expensive inference:
-`python -S scripts/runtime/test_engine_installation.py`
+`python -S tests/runtime/test_engine_installation.py`
 
-and `node scripts/engine-installation-check.mjs`.
+and `node tests/frontend/engine-installation-check.mjs`.
 Fixture tests do not verify installation of every engine on every Windows setup.
 See [base runtime installation](instalacja-runtime.md),
 [additional TTS models](dodatkowe-modele-tts.md) and [model terms](licencje-modeli.md).

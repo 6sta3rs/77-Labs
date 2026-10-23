@@ -8,8 +8,8 @@ components and the scope of their licenses. It does not modify their terms.
 
 - Source: [debpalash/VoiceStudio](https://github.com/debpalash/VoiceStudio),
   version 0.5.7, commit `7a6c8980bb9c04db145357a8190a37a0e9f462da`.
-- Bundled sources: `scripts/runtime/engine.zip`; file manifest and SHA-256:
-  `scripts/runtime/engine-provenance.json`.
+- Bundled sources: `scripts/runtime/vendor/engine.zip`; file manifest and SHA-256:
+  `scripts/runtime/vendor/engine-provenance.json`.
 - Upstream application license: **AGPL-3.0-only**.
 - Copyright 2024-present Palash Debnath and VoiceStudio contributors.
 - The original `LICENSE` and `LICENSE-NOTICE.md` remain in the archive.

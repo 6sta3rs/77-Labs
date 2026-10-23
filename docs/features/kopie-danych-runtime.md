@@ -1,6 +1,6 @@
 # Data backups before updates
 
-`scripts/runtime/runtime_backup.py` creates a restore point for the private DATA
+`scripts/runtime/app/runtime_backup.py` creates a restore point for the private DATA
 directory before importing the backend and running migrations for a new version.
 The launcher supplies the SHA of the verified archive. A `BackupError` stops
 startup before migration.
@@ -38,7 +38,7 @@ manually, stop every process using DATA, verify all hashes and check backend
 version compatibility. Preserve the current data before replacing it.
 
 Check the module with temporary data:
-`python -S scripts/runtime/test_runtime_backup.py`.
+`python -S tests/runtime/test_runtime_backup.py`.
 That check does not verify restoration of a private installation.
 See [engine updates](aktualizacja-silnika.md), the [runtime guide](../architecture/runtime.md)
 and [data protection](../../SECURITY.md).

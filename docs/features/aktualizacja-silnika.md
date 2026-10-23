@@ -1,7 +1,7 @@
 # Updating the engine source
 
 The Seventy Seven Labs engine combines pinned third-party sources with local
-adapters. Imported backend code is stored in `scripts/runtime/engine.zip`.
+adapters. Imported backend code is stored in `scripts/runtime/vendor/engine.zip`.
 The adjacent `engine-provenance.json` records its source, version, upstream
 commit and individual file hashes. [Third-party notices](../../THIRD_PARTY_NOTICES.md)
 identify the source project, authors, and licenses. A version number alone does
@@ -9,13 +9,13 @@ not identify the contents.
 
 ## Preparing the source
 
-`scripts/runtime/bundle.py` reads the selected commit through `git archive`,
+`scripts/build/bundle.py` reads the selected commit through `git archive`,
 without importing the backend. Write a candidate to a separate directory
 instead of overwriting the active ZIP. For example, with your own upstream checkout:
 
 ```powershell
-python scripts/runtime/bundle.py .tmp/upstream --commit <full-upstream-SHA> --version <version> --output .tmp/engine-candidate/engine.zip
-python scripts/runtime/check_engine_candidate.py --current scripts/runtime/engine.zip --candidate .tmp/engine-candidate/engine.zip --report .tmp/engine-candidate/report.json --prepare
+python scripts/build/bundle.py .tmp/upstream --commit <full-upstream-SHA> --version <version> --output .tmp/engine-candidate/engine.zip
+python tests/acceptance/check_engine_candidate.py --current scripts/runtime/vendor/engine.zip --candidate .tmp/engine-candidate/engine.zip --report .tmp/engine-candidate/report.json --prepare
 python -m unittest discover -s scripts/runtime -p test_engine_bundle.py -v
 ```
 

@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — stale documentation paths fixed and checked (T-0002)
+
+`npm run test:structure` now also checks every path written in backticks or in a fenced block in `docs/**` (except this log, which is history), `tasks/**`, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md` and `THIRD_PARTY_NOTICES.md`. Paths are recognised by one list of roots in `scripts/dev/check-structure.mjs` (`pathRoots`), so the check survives later moves (T-0012, T-0011 only edit that list); a path that does not exist yet or any more is marked `(planned)` or `(removed)` right after it. The first run found 67 stale paths in 17 documents (the old flat `src/lib/*.ts` and `scripts/runtime/*.py` layout, `scripts/*-check.mjs`, `scripts/controls-preview.mjs`, `CONTRIBUTING.md` citing `scripts/tag-check.mjs`); each was replaced by the unique tracked file of the same name, and the i18n example uses `src/lib/i18n/<code>/index.ts`. The check now covers 502 paths.
+
+Board: T-0001, T-0003, T-0004, T-0005, T-0006, T-0016, T-0020, T-0035 moved to Done with their hashes; T-0028 is `doing` (local gates pass, the first green GitHub run needs a push).
+
+Checks: `npm run test:structure` PASS (502 documented paths), `python tests/runtime/test_publication_check.py` OK, publication check 0 file findings. Not verified: that each auto-corrected path is the one the author meant beyond a basename match (spot-checked `aktualizacja-silnika.md`).
+
 ## 23 October 2026 — one helper for the legacy KittenTTS check (T-0006)
 
 The condition `engine_id == "kittentts" and not environment_python(...).is_file()` was repeated four times in `scripts/runtime/app/tts_extensions.py`; it is now `uses_legacy_kitten(engine_id, root)`.

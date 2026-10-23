@@ -23,11 +23,11 @@ remains in [LICENSE-T3](../../src/lib/themes/LICENSE-T3).
 | Area | File or directory |
 | --- | --- |
 | Component implementations | `src/lib/ui/` |
-| Input roles and geometry | `src/lib/ui.css` |
-| Palette colors | `src/lib/appearance.ts`, `src/lib/ui-colors.ts` |
+| Input roles and geometry | `src/lib/styles/ui.css` |
+| Palette colors | `src/lib/settings/appearance.ts`, `src/lib/styles/ui-colors.ts` |
 | Portal, positioning, and dismissal | `src/lib/ui/overlay.ts` |
 | Popup surfaces | `src/lib/ui/overlays.css` |
-| Focus intent | `src/lib/focus-intent.ts`, `src/lib/ui/focus-intent.css` |
+| Focus intent | `src/lib/styles/focus-intent.ts`, `src/lib/ui/focus-intent.css` |
 
 Checks: `npm run check`, `npm run build`, and the relevant regression checks in
 `npm run test:ui`. Separately check actual keyboard use, focus restoration,

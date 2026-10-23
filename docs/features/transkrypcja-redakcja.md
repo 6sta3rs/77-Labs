@@ -29,12 +29,12 @@ results without them are supported.
 
 ## Where to make changes
 
-- `src/lib/api.ts`: the `refine` field and transcription response.
-- `src/lib/transcription.ts`: normalization, history, and TXT text selection.
-- `src/lib/TranscriptionWorkspace.svelte`: comparison and applying the suggestion.
+- `src/lib/platform/api.ts`: the `refine` field and transcription response.
+- `src/lib/tools/transcription/transcription.ts`: normalization, history, and TXT text selection.
+- `src/lib/tools/transcription/TranscriptionWorkspace.svelte`: comparison and applying the suggestion.
 
-Regression checks: `node scripts/transcription-refinement-check.mjs`
-and `node scripts/transcription-check.mjs`. A transport test with a fixture does
+Regression checks: `node tests/frontend/transcription-refinement-check.mjs`
+and `node tests/frontend/transcription-check.mjs`. A transport test with a fixture does
 not validate ASR or an external LLM response. Acceptance checks should cover Polish
 characters, manual corrections, reverting, TXT/SRT/VTT, and reopening results.
 See [verification](../verification/weryfikacja.md) and [privacy](../../SECURITY.md).

@@ -41,10 +41,10 @@ describes file completeness, not a successful synthesis test.
 
 - `src/lib/settings/pages/ModelsPage.svelte`, `src/lib/models/model-management.ts` — catalog and UI.
 - `src/lib/settings/pages/StoragePage.svelte`, `src/lib/settings/storage-settings.ts` — model directory.
-- `scripts/runtime/model_management.py` — tasks, cache, downloads and removal.
-- `scripts/runtime/launcher.py` — effective process configuration.
+- `scripts/runtime/app/model_management.py` — tasks, cache, downloads and removal.
+- `scripts/runtime/app/launcher.py` — effective process configuration.
 
-Regression checks: `scripts/runtime/test_model_management.py`.
+Regression checks: `tests/runtime/test_model_management.py`.
 Full acceptance testing also requires an actual transfer, a restart, a test of
 the selected model and data checks. See [runtime installation](instalacja-runtime.md)
 and [additional TTS models](dodatkowe-modele-tts.md).

@@ -42,7 +42,7 @@ prove that the target application accepted the text.
 - `src/lib/tools/dictation/DictationWidget.svelte`: text, Start/Stop, and copying.
 - `src/lib/tools/dictation/dictation.ts`, `src/lib/tools/dictation/dictation-worklet.js`: PCM transport.
 
-Checks: `node scripts/dictation-desktop-check.mjs`
+Checks: `node tests/frontend/dictation-desktop-check.mjs`
 and `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.
 Contract tests do not replace testing with a physical microphone and the running
 EXE. Test pasting only in a controlled test window you own.

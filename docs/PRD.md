@@ -87,7 +87,7 @@ Demonstration data is illustrative.
 - **Tauri 2 and Rust** handle the Windows window, native commands, process
   isolation, files, installation, and runtime supervision.
 - **Python/FastAPI** runs the Seventy Seven Labs engine with pinned sources
-  and local extensions. `scripts/runtime/engine-provenance.json` records its
+  and local extensions. `scripts/runtime/vendor/engine-provenance.json` records its
   source and SHA-256; [third-party notices](../THIRD_PARTY_NOTICES.md) identify
   the imported components and their authors.
 - The supervised backend uses `127.0.0.1:4312`; the Vite preview uses port 4310

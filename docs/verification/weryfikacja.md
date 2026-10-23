@@ -35,7 +35,7 @@ These checks were performed on the public source tree, rather than copied from t
 | Publication scanner tests | 23 PASS, 1 SKIP: the Windows account could not create a test directory symlink. Coverage includes UTF-16, media without extensions, unreachable objects and Git trees, all index stages, and batch-response errors/completeness. |
 | Live demo preview | PASS — five checks: fictional data; WAV play/pause/seek/download link; voice library; appearance; no JavaScript errors or private-backend requests. |
 | README screenshots | Three 1440×960 PNGs from a fresh Chromium profile, visually reviewed for content and privacy. |
-| Audio preview generator | PASS — `node scripts/controls-preview.mjs --audio`; output in ignored `.tmp/qa` using the procedural tone. Opening it offline was checked. |
+| Audio preview generator | PASS — `node scripts/preview/controls-preview.mjs --audio`; output in ignored `.tmp/qa` using the procedural tone. Opening it offline was checked. |
 | Documentation | PASS — local links, character encoding, attributions, full AGPL/Apache texts, and retained MIT notices. |
 
 The T3 preview returned `Preview automation snapshot timed out after 15000ms.` twice. Screenshots and interactions were checked with Python Playwright in a separate Chromium instance, with backend requests blocked.

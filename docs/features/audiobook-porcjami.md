@@ -24,14 +24,14 @@ The chunk player and the ordinary preview should not play at the same time.
 
 ## Where to make changes
 
-- `scripts/runtime/audiobook_streaming.py`: splitting, cache, and events.
-- `src/lib/audiobook-playback.ts`: queue, pause, waiting, and seeking.
-- `src/lib/AudiobookPlayer.svelte`: playback interface.
-- `src/lib/ProductionWorkspace.svelte`: job handling and event delivery.
-- `scripts/runtime/launcher.py`, `src-tauri/src/runtime.rs`: adapter integration.
+- `scripts/runtime/app/audiobook_streaming.py`: splitting, cache, and events.
+- `src/lib/playback/audiobook-playback.ts`: queue, pause, waiting, and seeking.
+- `src/lib/playback/AudiobookPlayer.svelte`: playback interface.
+- `src/lib/tools/production/ProductionWorkspace.svelte`: job handling and event delivery.
+- `scripts/runtime/app/launcher.py`, `src-tauri/src/runtime.rs`: adapter integration.
 
-Regression checks: `node scripts/audiobook-playback-check.mjs`
-and `scripts/runtime/test_audiobook_streaming.py` in the appropriate environment.
+Regression checks: `node tests/frontend/audiobook-playback-check.mjs`
+and `tests/runtime/test_audiobook_streaming.py` in the appropriate environment.
 A procedural WAV fixture does not validate voice quality, a long book, or the GPU
 workflow. Cancellation and resuming, memory use, final output, and the running EXE
 need separate acceptance checks.

@@ -47,6 +47,23 @@ for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith
     links++;
   }
 }
+// Ścieżki w znakach `...` w dokumentacji muszą istnieć. Jedna lista katalogów głównych; historia (postep.md) opisuje stan z przeszłości; plik, którego jeszcze nie ma lub już nie ma, oznacz „(planned)” albo „(removed)” tuż po znaku.
+const pathRoots = ['scripts', 'tests', 'src', 'src-tauri', 'docs', 'tasks', 'assets', 'public', '.github'];
+const historical = new Set(['docs/postep.md']);
+const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
+const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file) && (/^(?:docs|tasks)\//.test(file) || !file.includes('/')));
+let quoted = 0;
+for (const file of documents) {
+  const text = read(file);
+  const spans = [...text.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map(match => match[1])
+    .concat([...text.replace(/```[\s\S]*?```/g, '').matchAll(/`([^`\n]+)`(?! \((?:planned|removed)\))/g)].map(match => match[1]));
+  for (const token of spans.flatMap(span => span.split(/\s+/))) {
+    if (!pathRoots.some(base => token.startsWith(base + '/')) || /[*{}<>$|]|\.\.\./.test(token)) continue;
+    const path = token.replace(/:\d+(?:-\d+)?$/, '').replace(/[.,;:]+$/, '');
+    check(existsSync(resolve(root, path)), `${file}: ścieżka w znakach \`${path}\` nie istnieje.`);
+    quoted++;
+  }
+}
 // Limit długości plików kodu: nowe pliki ponad limit nie przechodzą, a istniejące wyjątki (z powodem) nie mogą rosnąć.
 const lineLimit = Number(process.env.LINE_LIMIT) || 600;
 const exceptions = JSON.parse(read('scripts/dev/line-limit-exceptions.json'));
@@ -63,4 +80,4 @@ for (const file of sourceFiles) {
 for (const file of Object.keys(exceptions)) check(sourceFiles.includes(file), `line-limit-exceptions.json: brak śledzonego pliku ${file}`);
 for (const failure of failures) console.error(failure);
 assert.equal(failures.length, 0, `Struktura projektu: ${failures.length} błędów`);
-console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji i limit ${lineLimit} linii (${oversized} wyjątków).`);
+console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji, ${quoted} ścieżek w dokumentach i limit ${lineLimit} linii (${oversized} wyjątków).`);

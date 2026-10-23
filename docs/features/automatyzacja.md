@@ -49,12 +49,12 @@ Disabling watching blocks new inputs; jobs already saved keep their own state.
 
 ## Files and checks
 
-- `src/lib/AutomationWorkspace.svelte`, `src/lib/automation.ts`: panel and queue.
-- `src/lib/WatchFolderPanel.svelte`, `src/lib/watch-folder.ts`: file source.
+- `src/lib/tools/automation/AutomationWorkspace.svelte`, `src/lib/tools/automation/automation.ts`: panel and queue.
+- `src/lib/tools/automation/WatchFolderPanel.svelte`, `src/lib/tools/automation/watch-folder.ts`: file source.
 - `src-tauri/src/watch_folder.rs`: scanner, path ownership, and acknowledgments.
 
-Regression checks: `node scripts/automation-check.mjs`,
-`node scripts/watch-folder-check.mjs`, and `node scripts/automation-audio-check.mjs`.
+Regression checks: `node tests/frontend/automation-check.mjs`,
+`node tests/frontend/watch-folder-check.mjs`, and `node tests/frontend/automation-audio-check.mjs`.
 The real folder picker, Windows file handles, and ML recipes need separate
 acceptance checks.
 See [verification](../verification/weryfikacja.md) and the [data policy](../../SECURITY.md).

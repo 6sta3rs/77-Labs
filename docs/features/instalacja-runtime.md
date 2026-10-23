@@ -29,8 +29,8 @@ panel.
 
 ## Files and limitations
 
-- `scripts/runtime/bootstrap-provenance.json` — distribution sources and hashes.
-- `scripts/runtime/bootstrap.py` — dependency preparation and doctor checks.
+- `scripts/runtime/vendor/bootstrap-provenance.json` — distribution sources and hashes.
+- `scripts/runtime/install/bootstrap.py` — dependency preparation and doctor checks.
 - `src-tauri/src/installer.rs` — downloads, processes and activation.
 - `src/lib/settings/pages/EnginePage.svelte` (**Środowiska** tab), `src/lib/platform/runtime-installer.ts` —
   the panel and actual progress reporting.

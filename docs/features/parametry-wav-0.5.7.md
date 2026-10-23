@@ -31,14 +31,14 @@ data without optional metadata remains readable.
 
 ## Files and checks
 
-- `scripts/runtime/integration_settings.py`: source contract discovery.
-- `src/lib/speech-settings.ts`: validation and serialization.
-- `src/lib/AdvancedSpeechSettings.svelte`: controls.
-- `src/lib/audio.ts`: PCM/float decoding and joining.
+- `scripts/runtime/app/integration_settings.py`: source contract discovery.
+- `src/lib/tts/speech-settings.ts`: validation and serialization.
+- `src/lib/tts/AdvancedSpeechSettings.svelte`: controls.
+- `src/lib/playback/audio.ts`: PCM/float decoding and joining.
 - `src/App.svelte`, `src/lib/data.ts`: generation, persistence, and restoration.
 
-Regression checks: `node scripts/speech-settings-check.mjs`,
-`node scripts/wav-format-check.mjs`, and
-`node scripts/speech-app-contract-check.mjs`.
+Regression checks: `node tests/frontend/speech-settings-check.mjs`,
+`node tests/frontend/wav-format-check.mjs`, and
+`node tests/frontend/speech-app-contract-check.mjs`.
 Procedural WAV tests do not require voice cloning and do not validate TTS.
 See [model parameters](parametry-tts.md) and [model terms](licencje-modeli.md).

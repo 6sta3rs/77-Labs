@@ -41,11 +41,11 @@ reported explicitly. Code and model terms remain separate.
 
 - `src/lib/settings/pages/IntegrationsPage.svelte`, `src/lib/platform/integrations.ts` — UI and transport.
 - `src/lib/settings/pages/PrivacyPage.svelte`, `src/lib/settings/pages/UpdatesPage.svelte` — watermark and provenance.
-- `scripts/runtime/integration_settings.py` — configuration and diagnostics.
-- `scripts/runtime/windows_runtime_paths.py` — local Windows library paths.
+- `scripts/runtime/app/integration_settings.py` — configuration and diagnostics.
+- `scripts/runtime/install/windows_runtime_paths.py` — local Windows library paths.
 
-Regression checks: `node scripts/integrations-check.mjs`
-and `scripts/runtime/test_integration_settings.py` in the appropriate environment.
+Regression checks: `node tests/frontend/integrations-check.mjs`
+and `tests/runtime/test_integration_settings.py` in the appropriate environment.
 A successful handshake and catalog read do not verify tools/call, watermarking
 or inference. See the [runtime guide](../architecture/runtime.md),
 [verification status](../verification/weryfikacja.md) and
