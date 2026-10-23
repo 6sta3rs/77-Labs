@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — bundle budget, generated numbers, a fuller CONTRIBUTING (T-0046 part, T-0042)
+
+- **Bundle budget (T-0046, partly).** `tools/dev/check-bundle-budget.mjs` (`npm run test:bundle`, run in CI right after the build) fails when `dist/assets` outgrows `tools/dev/bundle-budget.json`: entry chunk 476,000 bytes (measured 452,793), App chunk 940,000 (895,088), all JS 2,342,000 (2,230,247), all CSS 279,000 (265,370), each 5% above the measurement of today; it says when a number could be lowered. Not done, deliberately, and documented in `docs/verification/performance.md`: loading the English catalog on demand (the i18n core builds reverse tables over all catalogs so English engine messages map back to Polish even in Polish mode, and the tests rely on synchronous catalogs) and lazy imports for the settings shell and workspaces (needs the `App.svelte` split, T-0039). The measured whole-window cost is about 0.8 s, so the budget only stops growth. T-0046 stays `doing`.
+- **Generated numbers (T-0042).** `tools/dev/write-numbers.mjs` (`npm run numbers`) writes `docs/verification/numbers.md`: test counts (74 frontend check files, 28 Python CI files with 9 listed as skipped, 53 Rust tests of which 2 are ignored, 6 browser tests, 40 acceptance scripts) and the bundle sizes; `performance.md` links it. `CHANGELOG.md` exists since T-0031.
+- **`CONTRIBUTING.md`**: a section "Every gate" (all commands in one list, the CI and weekly jobs) and "Adding things" (a tool, a test, an interface language, a task, what to do about a file over 600 lines); the stale page name "Modele i silnik" in the getting-started text now says Settings > Engine and Models.
+
+Checks: `npm run check` 0/0, `build`, `test:bundle` ok, `test:ui`, `test:structure` exit 0; the numbers script ran twice (a regex fix in between). Not verified: the new CI step on GitHub; `numbers.md` is not checked for staleness automatically (it goes out of date when tests are added).
+
 ## 23 October 2026 — weekly EXE start check, cold-start baseline, busy port (T-0049, T-0047)
 
 `desktop/src/runtime.rs` already refused to start when `127.0.0.1:4312` was taken by a foreign program ("Port 4312 jest zajęty. Seventy Seven Labs nie przejmie obcego procesu."), but it looked up the private Python first, so on an installation without a runtime the user saw the Python message instead. The port check now runs first.

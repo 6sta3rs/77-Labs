@@ -16,8 +16,10 @@
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build --no-bundle",
     "desktop:release": "node tools/release/build-update.mjs",
+    "test:bundle": "node tools/dev/check-bundle-budget.mjs",
     "test:e2e": "playwright test",
     "test:structure": "node tools/dev/check-structure.mjs",
+    "numbers": "node tools/dev/write-numbers.mjs",
     "i18n:status": "node tools/dev/i18n-lang.mjs status",
     "i18n:missing": "node tools/dev/i18n-lang.mjs missing",
     "i18n:add": "node tools/dev/i18n-lang.mjs add"

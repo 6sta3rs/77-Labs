@@ -13,3 +13,9 @@ Not measured: the engine warm-up (needs a real engine and weights; the bootstrap
 ## Busy engine port
 
 With a foreign program listening on `127.0.0.1:4312`, **Uruchom silnik** shows "Port 4312 jest zajęty. Seventy Seven Labs nie przejmie obcego procesu." after 0.03 s (limit: 5 s), also when no Python runtime is installed. Measured with `tests/acceptance/exe_smoke.py --busy-port` (the weekly job runs it as well). A dynamic port is deferred: it needs a CSP change (`connect-src` names the port) and changes in about 57 files.
+
+## Bundle size and what was not split
+
+`npm run test:bundle` (`tools/dev/check-bundle-budget.mjs`, budgets in `tools/dev/bundle-budget.json`) fails the build when `dist/assets` outgrows its budget; current sizes are in [numbers](numbers.md): the entry chunk 442 KiB, the App chunk 874 KiB, all JavaScript 2,178 KiB, CSS 259 KiB (budgets 5% above). The landing orb (484 KiB) is already a separate chunk.
+
+Two ideas of the roadmap were evaluated and **not** done: loading the English catalog on demand, and lazy imports for the settings shell and the tool workspaces. The English catalog cannot simply be lazy: `frontend/src/i18n/index.ts` builds reverse lookup tables over all catalogs so that English messages from the engine are mapped back to Polish even when Polish is active, and the i18n tests rely on synchronous catalogs. Splitting `App.svelte` and the workspaces needs the component split of T-0039 first. The measured cost is small (the whole window is interactive in about 0.8 s, see above), so the budget only prevents growth. T-0027 (language catalogs on demand) stays blocked until more than about five languages exist.

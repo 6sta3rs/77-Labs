@@ -1,0 +1,9 @@
+{
+  "comment": "Bytes, 5% above the measured dist/assets sizes of 23 October 2026 (entry chunk, App chunk, all JS, all CSS).",
+  "bytes": {
+    "entryChunk": 476000,
+    "appChunk": 940000,
+    "totalJs": 2342000,
+    "totalCss": 279000
+  }
+}

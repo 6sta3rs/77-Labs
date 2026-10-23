@@ -31,8 +31,8 @@ npm run desktop:build
 ```
 
 Synthesis requires a dedicated Python environment and model weights.
-Start setup explicitly in **Ustawienia > Modele i silnik**
-(Settings > Models and engine). See [runtime installation](docs/features/runtime-installation.md)
+Start setup explicitly in **Ustawienia > Silnik**
+(Settings > Engine; models are on **Modele**). See [runtime installation](docs/features/runtime-installation.md)
 and the [engine contract](docs/architecture/runtime.md). Do not copy a private database,
 profiles, or terms acknowledgments from another installation.
 
@@ -65,6 +65,33 @@ do not replace synthesis testing. Identify fixture-based transport tests
 as such. Do not present a historical result as a check performed during
 current work. A generation test should identify the model, revision, hardware,
 owned input, and acceptance limits.
+
+## Every gate
+
+```powershell
+npm ci
+npm run check            # svelte-check
+npm run build
+npm run test:bundle      # size budget of dist/
+npm run test:ui          # every tests/frontend check, one runner
+npm run test:structure   # layout, names, links, file sizes, version parity, pinned actions
+npm run test:e2e         # browser smoke and accessibility scan (needs: npx playwright install chromium)
+cargo test --manifest-path desktop/Cargo.toml
+cargo clippy --manifest-path desktop/Cargo.toml --all-targets -- -D warnings
+python tools/dev/run_runtime_tests.py   # needs a venv with requirements-ci.txt, see tests/runtime/README.md
+ruff check .
+python tools/dev/publication_check.py --deny-file <private-list-outside-repo>.json
+```
+
+CI runs the same commands (`.github/workflows/ci.yml`); the weekly jobs are the dependency audit and the EXE start check. Release steps are in [publishing](docs/publishing.md).
+
+## Adding things
+
+- **A developer tool.** Put it in `tools/dev`, `tools/preview` or `tools/release`, name it in kebab-case (`.mjs`, `.ts`) or snake_case (`.py`), and add a row to [tools/README.md](tools/README.md) (purpose, when to run, who calls it); `npm run test:structure` fails for an unlisted file. Acceptance scripts that need an engine, a browser or the EXE go to `tests/acceptance` with a row in its README.
+- **A test.** A frontend check is `tests/frontend/<name>-check.mjs` and is picked up by `npm run test:ui` without registration. A Python test goes into `tests/runtime` and must be listed in `tests/manifest-python.json` as `ci` or `skipped` with a reason.
+- **An interface language.** `npm run i18n:add -- <code> "<Name>" <locale>`, then translate; see [i18n](docs/features/i18n.md).
+- **A task.** Add a row to [tasks/BOARD.md](tasks/BOARD.md) with the next free `T-NNNN` (rules in [tasks/README.md](tasks/README.md)); a task that needs more than a line gets `tasks/specs/T-NNNN-<name>.md`.
+- **A file over 600 lines or a line over 200 characters.** Not allowed to appear: `test:structure` fails, and existing exceptions are ratcheted (they may not grow). Split the file instead; see [project map](docs/architecture/project-structure.md), rule 7.
 
 ## Clean data and screenshots
 

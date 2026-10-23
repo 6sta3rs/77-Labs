@@ -47,6 +47,7 @@ Start with the [project map](architecture/project-structure.md), the [project co
 - [Public release verification](verification/verification.md)
 - [Coverage baselines](verification/coverage.md)
 - [Performance baselines](verification/performance.md)
+- [Generated numbers](verification/numbers.md)
 
 ## Contributor rules
 
