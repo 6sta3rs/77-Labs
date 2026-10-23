@@ -8,6 +8,8 @@ Seconds from starting the release EXE (`desktop/target/release/seventy-seven-lab
 
 The weekly workflow `.github/workflows/exe-smoke.yml` builds the EXE on a Windows runner, runs the same script and fails when `runnerSeconds` is set and the start is more than 50% slower. `runnerSeconds` is `null` until the first run has measured the runner (a runner is slower than this machine, so the local value must not be used there); record it from that run's `window_starts_and_app_mounts` line.
 
+Caveat found on 23 October 2026: the very first start of a freshly built EXE took 19.0 s (the new file is scanned by the antivirus), the next starts 0.8 s. Measure the second start; the weekly workflow starts the EXE once unmeasured before the checked run.
+
 Not measured: the engine warm-up (needs a real engine and weights; the bootstrapped runtime downloads multi-GB packages, so it stays a manual measurement), and a first-ever start with an empty WebView2 profile on a cold disk.
 
 ## Busy engine port

@@ -4,7 +4,7 @@ The 31 tasks of the 22 October audit (implemented in 0.2.2) are in `audits/audit
 
 The path from 6/10 to about 8/10 (T-0028 to T-0052 and the re-scoped older rows) is in `specs/ROADMAP-to-8.md`.
 
-Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a three-model council (reports in the ignored `.tmp/qa/council/`) and the project-structure review.
+Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engineering audit reviewed by a three-model council (reports in the ignored `.tmp/qa/council/`), the project-structure review and `specs/ROADMAP-to-8.md`.
 
 ## Open and blocked
 
@@ -59,7 +59,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0032 | Release guards | b7de7c2 |
 | T-0050 | Engine analytics kill switch and privacy doc | efd5fea |
 | T-0034 | Supply-chain hygiene | c207430 |
-| T-0036 | Security docs | 33539c5 |
 | T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0040 | Silent-error rule | 96db58d |
 | T-0048 | Launcher contract test | 5383cc6 |
@@ -68,6 +67,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0047 | Cold-start baseline and busy port | 87beb6f |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | d014260, 81c21ef |
 | T-0025 | Locale-aware formatting and plurals for new languages | 017107a |
+| T-0036 | Security docs | 33539c5 |
 
 ## Rejected (do not propose again without new evidence)
 

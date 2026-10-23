@@ -32,6 +32,8 @@ jobs:
           baseline=$(node -p "require('./tests/acceptance/cold-start-baseline.json').runnerSeconds ?? ''")
           args=()
           if [ -n "$baseline" ]; then args=(--baseline-seconds "$baseline" --max-factor 1.5); fi
+          # The first start of a freshly built EXE can take many seconds (a virus scan of the new file): start it once, unmeasured.
+          python tests/acceptance/exe_smoke.py desktop/target/release/seventy-seven-labs.exe "$RUNNER_TEMP/exe-warmup"
           python tests/acceptance/exe_smoke.py desktop/target/release/seventy-seven-labs.exe "$RUNNER_TEMP/exe-smoke" "${args[@]}" --busy-port
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
