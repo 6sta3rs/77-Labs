@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
 
-const source = (await readFile(new URL('../../src/lib/tts/ai.ts', import.meta.url), 'utf8')).replace(/^import .*$/m, '')
+const source = (await readFile(new URL('../../frontend/src/tts/ai.ts', import.meta.url), 'utf8')).replace(/^import .*$/m, '')
 const exports = {}
 new Function('exports', ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(exports)
 const { bookTextChunks } = exports

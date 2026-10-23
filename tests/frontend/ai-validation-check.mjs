@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import { transpileModule, ModuleKind, ScriptTarget } from 'typescript';
 
 const compile = path => transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), { compilerOptions: { target: ScriptTarget.ES2022, module: ModuleKind.ESNext } }).outputText;
-const tagsUrl = `data:text/javascript;base64,${Buffer.from(compile('../../src/lib/tts/tags.ts')).toString('base64')}`;
-const source = compile('../../src/lib/tts/ai-validation.ts').replace("'./tags'", JSON.stringify(tagsUrl));
+const tagsUrl = `data:text/javascript;base64,${Buffer.from(compile('../../frontend/src/tts/tags.ts')).toString('base64')}`;
+const source = compile('../../frontend/src/tts/ai-validation.ts').replace("'./tags'", JSON.stringify(tagsUrl));
 const { validateTaggedTexts } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 validateTaggedTexts(['A. B.', 'Dalej.', ''], ['A. [pause] B.', '[sigh] Dalej.', '']);
 for (const [before, after] of [

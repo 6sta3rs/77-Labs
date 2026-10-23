@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
 
-const source = await readFile(new URL('../../src/lib/playback/read-along.ts', import.meta.url), 'utf8')
+const source = await readFile(new URL('../../frontend/src/playback/read-along.ts', import.meta.url), 'utf8')
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
 const exports = {}; new Function('exports', code)(exports)
 const { wordWeight, wordAtTime, readingAt } = exports

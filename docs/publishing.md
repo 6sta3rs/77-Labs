@@ -17,7 +17,7 @@ npm run build
 npm run test:ui
 python -B tests/runtime/test_publication_check.py
 python tools/dev/publication_check.py
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path desktop/Cargo.toml
 git diff --check
 git status --short
 ```

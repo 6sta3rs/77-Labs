@@ -3,8 +3,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { mkdir, writeFile, readFile, copyFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 await mkdir('.tmp',{recursive:true})
-await writeFile('.tmp/voice-audit.html','<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Odbiór wyboru głosu</title></head><body><div id="app"></div><script type="module">import {mount} from "svelte";import Fixture from "/tests/fixtures/voice-picker-audit.svelte";import "/src/styles.css";import "/src/lib/styles/ui.css";import "/src/lib/ui/product-controls.css";import "/src/lib/ui/overlays.css";mount(Fixture,{target:document.getElementById("app")});</script></body></html>')
-const input=process.argv.includes('--fixture-only')?{fixture:resolve('.tmp/voice-audit.html')}:{app:resolve('index.html'),fixture:resolve('.tmp/voice-audit.html')}
+await writeFile('.tmp/voice-audit.html','<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Odbiór wyboru głosu</title></head><body><div id="app"></div><script type="module">import {mount} from "svelte";import Fixture from "/tests/fixtures/voice-picker-audit.svelte";import "/frontend/src/styles.css";import "/frontend/src/styles/ui.css";import "/frontend/src/ui/product-controls.css";import "/frontend/src/ui/overlays.css";mount(Fixture,{target:document.getElementById("app")});</script></body></html>')
+const input=process.argv.includes('--fixture-only')?{fixture:resolve('.tmp/voice-audit.html')}:{app:resolve('frontend/index.html'),fixture:resolve('.tmp/voice-audit.html')}
 await build({configFile:false,plugins:[svelte()],build:{outDir:'.tmp/voice-audit-dist',emptyOutDir:true,rollupOptions:{input}}})
 await copyFile('tests/frontend/select-language-ui-check.js','.tmp/voice-audit-dist/select-language-ui-check.js')
 if(!process.argv.includes('--fixture-only')){

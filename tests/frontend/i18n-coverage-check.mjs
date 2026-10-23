@@ -1,4 +1,4 @@
-// Static guard: Polish-looking user-visible literals in src/**/*.svelte and the demo fixtures must have an English key.
+// Static guard: Polish-looking user-visible literals in frontend/src/**/*.svelte and the demo fixtures must have an English key.
 // Ratchet: tests/frontend/i18n-baseline.json lists the misses that are still tolerated ({ "file": ["text", ...] }).
 // New misses fail; fixed ones are reported so the baseline can be lowered. Regenerate: node tests/frontend/i18n-coverage-check.mjs --update
 // Two rules: (1) heuristic - Polish-looking literals (diacritics, known Polish words, placeholder strings) need a key;
@@ -12,7 +12,7 @@ import { parse } from 'svelte/compiler'
 
 const root = fileURLToPath(new URL('../../', import.meta.url)), modules = new Map()
 const baselineFile = path.join(root, 'tests/frontend/i18n-baseline.json')
-const tsFixtures = ['src/lib/gallery/tts-demo.ts', 'src/lib/gallery/extra-tts-demo.ts']
+const tsFixtures = ['frontend/src/gallery/tts-demo.ts', 'frontend/src/gallery/extra-tts-demo.ts']
 async function moduleUrl(file) {
   if (modules.has(file)) return modules.get(file)
   let code = ts.transpileModule(await readFile(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText
@@ -26,10 +26,10 @@ async function moduleUrl(file) {
 }
 globalThis.localStorage = { getItem: () => null, setItem() {} }
 globalThis.document = { documentElement: { lang: '', dataset: {} }, title: '' }
-const en = (await import(await moduleUrl(path.join(root, 'src/lib/i18n/index.ts')))).createUiTranslator('en')
+const en = (await import(await moduleUrl(path.join(root, 'frontend/src/i18n/index.ts')))).createUiTranslator('en')
 const keys = new Set()
-for (const file of (await readdir(path.join(root, 'src/lib/i18n/en'))).filter(f => /\.ts$/.test(f) && f !== 'index.ts'))
-  for (const key of Object.keys(Object.values(await import(await moduleUrl(path.join(root, 'src/lib/i18n/en', file))))[0])) keys.add(key)
+for (const file of (await readdir(path.join(root, 'frontend/src/i18n/en'))).filter(f => /\.ts$/.test(f) && f !== 'index.ts'))
+  for (const key of Object.keys(Object.values(await import(await moduleUrl(path.join(root, 'frontend/src/i18n/en', file))))[0])) keys.add(key)
 const covered = s => en(s) !== s || en(s.trim()) !== s.trim()
 
 const PL = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/
@@ -122,7 +122,7 @@ async function svelteFiles(dir) {
   return result
 }
 
-for (const file of [...await svelteFiles('src'), ...tsFixtures].sort()) await scan(file)
+for (const file of [...await svelteFiles('frontend/src'), ...tsFixtures].sort()) await scan(file)
 const found = {}
 for (const row of out) {
   const text = row.text.replace(/\s+/g, ' ').trim()
@@ -156,7 +156,7 @@ for (const [file, texts] of Object.entries(baseline)) for (const text of texts)
   if (!current[file]?.includes(text)) stale.push(`${file}  ${text}`)
 if (stale.length) console.log(`NOTE ${stale.length} baseline entries are now translated or gone; lower the baseline with --update`)
 if (fresh.length) {
-  console.error(`FAIL ${fresh.length} Polish UI string(s) without an English key (add them to src/lib/i18n/en/*.ts):`)
+  console.error(`FAIL ${fresh.length} Polish UI string(s) without an English key (add them to frontend/src/i18n/en/*.ts):`)
   for (const line of fresh.slice(0, 80)) console.error(`  ${line}`)
   process.exit(1)
 }

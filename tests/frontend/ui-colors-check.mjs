@@ -36,14 +36,14 @@ globalThis.document = {
   documentElement: { style: { setProperty: (key, value) => tokens.set(key, value) }, dataset: {} },
   createElement() { let css = '#000000'; return { getContext: () => ({ clearRect() {}, get fillStyle() { return css }, set fillStyle(value) { css = value }, fillRect() {}, getImageData: () => ({ data: [...rgb(css).map(v => Math.round(v * 255)), 255] }) }) } },
 }
-const { applyAppearance, defaultAppearance } = await import(await moduleUrl(path.join(root, 'src/lib/settings/appearance.ts')))
-const { builtInThemes } = await import(await moduleUrl(path.join(root, 'src/lib/themes/library.ts')))
-const buttonCss = await readFile(path.join(root, 'src/lib/ui/button-tooltip.css'), 'utf8')
-const globalCss = await readFile(path.join(root, 'src/styles.css'), 'utf8')
-const fieldCss = await readFile(path.join(root, 'src/lib/ui/group-filter.css'), 'utf8')
-const controlCss = await readFile(path.join(root, 'src/lib/styles/ui.css'), 'utf8')
-const selectComponent = await readFile(path.join(root, 'src/lib/ui/Select.svelte'), 'utf8')
-const filterComponent = await readFile(path.join(root, 'src/lib/ui/FilterChip.svelte'), 'utf8')
+const { applyAppearance, defaultAppearance } = await import(await moduleUrl(path.join(root, 'frontend/src/settings/appearance.ts')))
+const { builtInThemes } = await import(await moduleUrl(path.join(root, 'frontend/src/themes/library.ts')))
+const buttonCss = await readFile(path.join(root, 'frontend/src/ui/button-tooltip.css'), 'utf8')
+const globalCss = await readFile(path.join(root, 'frontend/src/styles.css'), 'utf8')
+const fieldCss = await readFile(path.join(root, 'frontend/src/ui/group-filter.css'), 'utf8')
+const controlCss = await readFile(path.join(root, 'frontend/src/styles/ui.css'), 'utf8')
+const selectComponent = await readFile(path.join(root, 'frontend/src/ui/Select.svelte'), 'utf8')
+const filterComponent = await readFile(path.join(root, 'frontend/src/ui/FilterChip.svelte'), 'utf8')
 const checks = []
 const minimums = { primaryHover: Infinity, destructive: Infinity, overlayMuted: Infinity, overlayPlaceholder: Infinity, switchThumb: Infinity }
 function test(name, fn) { try { fn(); checks.push({ name, passed: true }) } catch (error) { checks.push({ name, passed: false, error: error.message }) } }

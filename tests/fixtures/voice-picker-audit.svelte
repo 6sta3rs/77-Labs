@@ -1,11 +1,11 @@
 <script lang="ts">
-  import ToolVoiceSettings from '../../src/lib/voices/ToolVoiceSettings.svelte'
-  import ToolModelSettings from '../../src/lib/models/ToolModelSettings.svelte'
-  import Select from '../../src/lib/ui/Select.svelte'
-  import Input from '../../src/lib/ui/Input.svelte'
-  import Switch from '../../src/lib/ui/Switch.svelte'
-  import ButtonGroup from '../../src/lib/ui/ButtonGroup.svelte'
-  import { applyAppearance, defaultAppearance, themes, themeColors } from '../../src/lib/settings/appearance'
+  import ToolVoiceSettings from '../../frontend/src/voices/ToolVoiceSettings.svelte'
+  import ToolModelSettings from '../../frontend/src/models/ToolModelSettings.svelte'
+  import Select from '../../frontend/src/ui/Select.svelte'
+  import Input from '../../frontend/src/ui/Input.svelte'
+  import Switch from '../../frontend/src/ui/Switch.svelte'
+  import ButtonGroup from '../../frontend/src/ui/ButtonGroup.svelte'
+  import { applyAppearance, defaultAppearance, themes, themeColors } from '../../frontend/src/settings/appearance'
   const profiles=[{id:'qa-alpha',name:'Głos Alfa — długi opis głosu do kontroli podpowiedzi',description:'Próbka referencyjna bez metadanych płci, wieku i kategorii. Ten opis ma pozostać w całości dostępny w podpowiedzi.',language:'Polish',kind:'clone',created_at:1705320000},{id:'qa-beta',name:'Drugi głos',description:'Druga próbka do testu przełączenia podczas wczytywania.',language:'Polish',kind:'clone',accent:'Standardowy'}]
   let voice=$state('qa-alpha'),theme=$state('studio'),mode=$state('dark'),font=$state<string|number|null>(13),opacity=$state<string|number|null>(95)
   let background=$state('theme'),colorOn=$state(true),choice=$state('settings')

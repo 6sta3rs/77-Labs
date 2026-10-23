@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const source = await readFile(new URL('../../src/lib/platform/api.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/platform/api.ts', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('api.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 const names = new Set(['isRuntimeMonitor', 'prepareRequest', 'request']);
 const statements = ast.statements.filter(node => ts.isFunctionDeclaration(node) && names.has(node.name?.text)

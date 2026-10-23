@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const src = async name => readFile(new URL(`../../src/lib/models/${name}`, import.meta.url), 'utf8');
+const src = async name => readFile(new URL(`../../frontend/src/models/${name}`, import.meta.url), 'utf8');
 function load(text, deps = {}) {
   const exports = {};
   const code = ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -63,7 +63,7 @@ assert.equal(picker.isActiveAsrModel({ active: '' }, systran), false, 'auto sele
 
 // selectEngine sends model_id only when a model is chosen.
 const bodies = [];
-const tools = load((await readFile(new URL('../../src/lib/tools/studio-tools.ts', import.meta.url), 'utf8')), {
+const tools = load((await readFile(new URL('../../frontend/src/tools/studio-tools.ts', import.meta.url), 'utf8')), {
   '../i18n': { translateUi: text => text },
   './production/production': { postJson: body => ({ body }), productionJson: async (path, options) => { bodies.push([path, options?.body]); return {}; } },
   '../platform/api': {}, '../models/engine-catalog-state': { beginCatalogRead: () => 1, invalidateCatalogReads() {}, publishEngineCatalog: () => true, withConfirmed: value => value },

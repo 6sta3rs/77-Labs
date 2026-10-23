@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const source = await readFile(new URL('../../src/lib/tools/dictation/dictation.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/tools/dictation/dictation.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { dictationSocketUrl, emptyDictation, reduceDictationMessage, floatToPcm16, LiveDictation, DICTATION_END } = await import('data:text/javascript;base64,' + Buffer.from(rewriteI18nImports(js)).toString('base64'));
 assert.equal(DICTATION_END, 'EOF');
@@ -34,7 +34,7 @@ assert.throws(() => reduceDictationMessage(state, null));
 
 let Processor;
 const messages = [];
-const worklet = await readFile(new URL('../../src/lib/tools/dictation/dictation-worklet.js', import.meta.url), 'utf8');
+const worklet = await readFile(new URL('../../frontend/src/tools/dictation/dictation-worklet.js', import.meta.url), 'utf8');
 vm.runInNewContext(worklet, { sampleRate: 16000, Float32Array, ArrayBuffer, DataView, Number, Math, AudioWorkletProcessor: class { constructor() { this.port = { postMessage: value => messages.push(value) }; } }, registerProcessor(name, constructor) { assert.equal(name, 'seventy-seven-dictation-pcm'); Processor = constructor; } });
 const processor = new Processor();
 const input = new Float32Array(1600); input.set([-1, -0.5, 0, 0.5, 1, NaN]);

@@ -1,6 +1,6 @@
 # Settings pages: style conventions
 
-Settings has 12 pages in 4 groups (`src/lib/settings/settings-catalog.ts`); each page is `src/lib/settings/pages/<Name>Page.svelte`, routed in `src/App.svelte`. Reference page: `EnginePage.svelte`. Shared pieces: `src/lib/settings/settings-page.css` (global `p-` classes, imported in `main.ts`), `src/lib/ui/StatusBadge.svelte`, `src/lib/ui/toast.ts` + `Toaster.svelte`, `src/lib/ui/ProviderIcon.svelte`. The approved prototype these rules come from was reviewed with the owner on 2026-10-22.
+Settings has 12 pages in 4 groups (`frontend/src/settings/settings-catalog.ts`); each page is `frontend/src/settings/pages/<Name>Page.svelte`, routed in `frontend/src/App.svelte`. Reference page: `EnginePage.svelte`. Shared pieces: `frontend/src/settings/settings-page.css` (global `p-` classes, imported in `main.ts`), `frontend/src/ui/StatusBadge.svelte`, `frontend/src/ui/toast.ts` + `Toaster.svelte`, `frontend/src/ui/ProviderIcon.svelte`. The approved prototype these rules come from was reviewed with the owner on 2026-10-22.
 
 ## Skeleton
 ```svelte
@@ -55,7 +55,7 @@ Do not invent controls the app already has: segmented choice = ButtonGroup, drop
 **Models** in a list row (an AI function, tagging) are a plain status, not a select: provider icon + `Dostawca · model` (`.mstat` in `AiPage.svelte`), cut with "…" at the maximum width with the full name in the tooltip, followed by an outline "Zmień" button and the row's Switch. "Zmień" is hidden while the function is turned off (the status then reads "Wyłączona"). "Zmień" opens a darker inline area under the row (`--surface-raised`, hairline border) and turns into a white "Gotowe" (`variant="light"`). The area holds the "Domyślny | Własny" ButtonGroup, the only marker of the mode: "Domyślny" shows nothing more; "Własny" shows ONE model list across all connected providers (`pages/ModelPicker.svelte`, the app's `.vs-select-trigger` with provider icon + name, provider headers with icons in the popup) and a ghost "Wpisz model ręcznie", which replaces the list in the same slot with a provider Select (icon + name), the id Input and a blue "Użyj"; all controls are 32 px. Only the page-level "Domyślny model" uses the picker directly (50/50 row: description left, picker right).
 
 ## Components
-Use the real ones from `src/lib/ui`: Button (`variant` default|outline|ghost|secondary|destructive), ButtonGroup (`label`, `items`, `mode`, `value`, `onchange`), Select (`ariaLabel`, `value`, `options`, `onchange`), Switch (`label`, `checked`), Input, Slider, FilePicker, Tooltip, Textarea. Lucide icons size 15 in buttons. Always give controls an aria-label.
+Use the real ones from `frontend/src/ui`: Button (`variant` default|outline|ghost|secondary|destructive), ButtonGroup (`label`, `items`, `mode`, `value`, `onchange`), Select (`ariaLabel`, `value`, `options`, `onchange`), Switch (`label`, `checked`), Input, Slider, FilePicker, Tooltip, Textarea. Lucide icons size 15 in buttons. Always give controls an aria-label.
 
 ## Copy and data
 - UI text in Polish, sentence case ("Zapisz zmiany", not "Zapisz Zmiany"). One short line per setting description; say what it does or when to change it.

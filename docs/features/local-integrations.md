@@ -39,8 +39,8 @@ reported explicitly. Code and model terms remain separate.
 
 ## Files
 
-- `src/lib/settings/pages/IntegrationsPage.svelte`, `src/lib/platform/integrations.ts` — UI and transport.
-- `src/lib/settings/pages/PrivacyPage.svelte`, `src/lib/settings/pages/UpdatesPage.svelte` — watermark and provenance.
+- `frontend/src/settings/pages/IntegrationsPage.svelte`, `frontend/src/platform/integrations.ts` — UI and transport.
+- `frontend/src/settings/pages/PrivacyPage.svelte`, `frontend/src/settings/pages/UpdatesPage.svelte` — watermark and provenance.
 - `scripts/runtime/app/integration_settings.py` — configuration and diagnostics.
 - `scripts/runtime/install/windows_runtime_paths.py` — local Windows library paths.
 

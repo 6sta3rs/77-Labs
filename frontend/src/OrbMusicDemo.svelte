@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import VoiceOrb from './lib/playback/VoiceOrb.svelte';
-  import Player from './lib/playback/Player.svelte';
-  import Button from './lib/ui/Button.svelte';
-  import { quietActivity, type PlaybackActivity } from './lib/playback/playback-meter';
-  import { idlePlaybackState, type PlaybackState } from './lib/playback/playback-state';
-  import { uiLanguage, createUiTranslator, setUiLanguage } from './lib/i18n';
-  import type { Render } from './lib/data';
+  import VoiceOrb from './playback/VoiceOrb.svelte';
+  import Player from './playback/Player.svelte';
+  import Button from './ui/Button.svelte';
+  import { quietActivity, type PlaybackActivity } from './playback/playback-meter';
+  import { idlePlaybackState, type PlaybackState } from './playback/playback-state';
+  import { uiLanguage, createUiTranslator, setUiLanguage } from './i18n';
+  import type { Render } from './data';
 
   const tr = $derived(createUiTranslator($uiLanguage));
   let recording = $state<Render>();

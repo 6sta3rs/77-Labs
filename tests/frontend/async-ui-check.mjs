@@ -10,7 +10,7 @@ const licenseContracts=await pureHelpers('model-licenses.ts'),speechContracts=aw
 
 // Execute the actual TypeScript/component script with controlled transports and
 // lifecycle hooks. No backend, private data, browser, timers or model is started.
-const root = new URL('../../src/lib/', import.meta.url);
+const root = new URL('../../frontend/src/', import.meta.url);
 const deferred = () => {
   let resolve, reject;
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -58,7 +58,7 @@ async function component(filename, deps = {}, props = {}, exposure = '') {
 }
 
 async function appModels(deps) {
-  const source = (await readFile(sourceUrl('../App.svelte'), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+  const source = (await readFile(sourceUrl('App.svelte'), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
   const parsed = ts.createSourceFile('App.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const names = new Set(['refreshEngine', 'loadPickerModels', 'chooseInstalledModel', 'readEngineFamily', 'disposeModelRequests']);
   const statements = parsed.statements.filter(node => ts.isFunctionDeclaration(node) && names.has(node.name?.text)

@@ -28,7 +28,7 @@ These checks were performed on the public source tree, rather than copied from t
 | `npm run check` | PASS — 0 Svelte/TypeScript errors or warnings. |
 | `npm run build` | PASS — production bundle; the warning for the main chunk of approximately 728 kB before gzip remains. |
 | `npm run test:ui` | PASS — the full suite, including tags, data, cancellation, catalog, folders, visualization, colors, focus, and overlays. |
-| `cargo check --manifest-path src-tauri/Cargo.toml` | PASS — Rust/Tauri code, without building and running a new EXE. |
+| `cargo check --manifest-path desktop/Cargo.toml` | PASS — Rust/Tauri code, without building and running a new EXE. |
 | Selected Python tests | PASS — 12 bundle tests, 9 acceptance guards, and 3 watch-folder guards. |
 | Lightweight JS/format tests | PASS — history, diagnostics, audio automation, dictation, and PCM16/PCM24/FLOAT32 WAV with FFprobe checks. |
 | QA script syntax | PASS — 88 Python and 94 JS/MJS files in the reviewed scripts. |

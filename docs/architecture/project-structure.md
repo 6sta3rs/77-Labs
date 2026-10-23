@@ -1,33 +1,34 @@
 # Project map
 
 Sources are split by application feature. When changing voices, start in
-`src/lib/voices/`; when changing playback, start in `src/lib/playback/`.
+`frontend/src/voices/`; when changing playback, start in `frontend/src/playback/`.
 
 ## Where do I change X?
 
 | Area | Location | Example entry point |
 | --- | --- | --- |
-| App composition | `src/App.svelte` | Screens, shared state, and flow wiring |
-| Navigation and dashboard | `src/lib/shell/` | `NavigationSidebar.svelte`, `Dashboard.svelte` |
-| TTS editor and generation | `src/lib/tts/` | `SpeechEditor.svelte`, `speech-settings.ts`, `tags.ts` |
-| Voice picker, creation, and folders | `src/lib/voices/` | `VoicePicker.svelte`, `voice-folders.ts` |
-| Models and licenses | `src/lib/models/` | `ModelLicenseReview.svelte`, `model-management.ts`, `engine-installation.ts` |
-| Playback, waveforms, and audio orbs | `src/lib/playback/` | `Player.svelte`, `VoiceOrb.svelte`, `playback-meter.ts` |
-| Projects and recording history | `src/lib/projects/` | `library.ts`, `history-view.ts` |
-| Settings shell, catalog, and appearance | `src/lib/settings/` | `SettingsShell.svelte`, `settings-catalog.ts` (12 pages in 4 groups), `appearance.ts` |
-| Settings pages | `src/lib/settings/pages/` | One component per page, e.g. `EnginePage.svelte`, `ModelsPage.svelte`, `NetworkPage.svelte` |
-| Transport, Tauri, and engine supervision | `src/lib/platform/` | `api.ts`, `runtime.ts` |
-| Transcription and dictation | `src/lib/tools/transcription/`, `dictation/` | The matching `*Workspace.svelte` |
-| Dubbing and audiobooks | `src/lib/tools/production/` | `ProductionWorkspace.svelte`, `production.ts` |
-| Stories, automation, and audio processing | `src/lib/tools/stories/`, `automation/`, `audio-lab/` | Each has its own view and logic side by side |
-| Shared tool layout | `src/lib/tools/` | `ToolWorkspace.svelte`, `studio-tools.ts` |
-| Shared controls | `src/lib/ui/` | `Button.svelte`, `Select.svelte`, `overlay.ts` |
-| Examples and demo data | `src/lib/gallery/` | `ControlGallery.svelte`, `tts-demo.ts` |
-| Shared styles | `src/lib/styles/`, `src/styles.css` | `ui.css`, `typography.css`, `ui-colors.ts` |
-| Palettes | `src/lib/themes/` | Kept as a separate folder |
-| Shared types and time format | `src/lib/data.ts` | Existing voice, project, and recording contracts |
+| App composition | `frontend/src/App.svelte` | Screens, shared state, and flow wiring |
+| Navigation and dashboard | `frontend/src/shell/` | `NavigationSidebar.svelte`, `Dashboard.svelte` |
+| TTS editor and generation | `frontend/src/tts/` | `SpeechEditor.svelte`, `speech-settings.ts`, `tags.ts` |
+| Voice picker, creation, and folders | `frontend/src/voices/` | `VoicePicker.svelte`, `voice-folders.ts` |
+| Models and licenses | `frontend/src/models/` | `ModelLicenseReview.svelte`, `model-management.ts`, `engine-installation.ts` |
+| Playback, waveforms, and audio orbs | `frontend/src/playback/` | `Player.svelte`, `VoiceOrb.svelte`, `playback-meter.ts` |
+| Projects and recording history | `frontend/src/projects/` | `library.ts`, `history-view.ts` |
+| Settings shell, catalog, and appearance | `frontend/src/settings/` | `SettingsShell.svelte`, `settings-catalog.ts` (12 pages in 4 groups), `appearance.ts` |
+| Settings pages | `frontend/src/settings/pages/` | One component per page, e.g. `EnginePage.svelte`, `ModelsPage.svelte`, `NetworkPage.svelte` |
+| Transport, Tauri, and engine supervision | `frontend/src/platform/` | `api.ts`, `runtime.ts` |
+| Transcription and dictation | `frontend/src/tools/transcription/`, `dictation/` | The matching `*Workspace.svelte` |
+| Dubbing and audiobooks | `frontend/src/tools/production/` | `ProductionWorkspace.svelte`, `production.ts` |
+| Stories, automation, and audio processing | `frontend/src/tools/stories/`, `automation/`, `audio-lab/` | Each has its own view and logic side by side |
+| Shared tool layout | `frontend/src/tools/` | `ToolWorkspace.svelte`, `studio-tools.ts` |
+| Shared controls | `frontend/src/ui/` | `Button.svelte`, `Select.svelte`, `overlay.ts` |
+| Examples and demo data | `frontend/src/gallery/` | `ControlGallery.svelte`, `tts-demo.ts` |
+| Shared styles | `frontend/src/styles/`, `frontend/src/styles.css` | `ui.css`, `typography.css`, `ui-colors.ts` |
+| Palettes | `frontend/src/themes/` | Kept as a separate folder |
+| Shared types and time format | `frontend/src/data.ts` | Existing voice, project, and recording contracts |
 | Demo audio | `public/demo/interface-tone.wav` | Procedural tone (`tools/dev/generate_demo_tone.py`); list in `docs/public-assets.json` |
-| Native Windows app | `src-tauri/src/` | `main.rs`, `runtime.rs`, `installer.rs` |
+| Interface build configuration | `frontend/` | `vite.config.ts`, `tsconfig.json`, `index.html`, `inputy.html` (the npm scripts pass `--config frontend/vite.config.ts`; the build goes to the root `dist/`) |
+| Native Windows app | `desktop/src/` | `main.rs`, `runtime.rs`, `installer.rs`; configuration in `desktop/tauri.conf.json` |
 | Backend adapter | `scripts/runtime/app/` | `launcher.py`, `model_management.py` |
 | Environment installation | `scripts/runtime/install/` | `bootstrap.py`, `prepare.py` |
 | Pinned sources and provenance | `scripts/runtime/vendor/` | `engine.zip`, `engine-provenance.json` |
@@ -49,7 +50,7 @@ Sources are split by application feature. When changing voices, start in
 - `tests/fixtures/` - explicit test inputs; `tests/helpers/` - shared
   verification helpers. The `sourceUrl()` resolver serves harnesses that
   compile a source file with controlled dependencies and rejects ambiguous names.
-- `.tmp/` (including QA reports in `.tmp/qa/`), `dist/`, `src-tauri/target/` -
+- `.tmp/` (including QA reports in `.tmp/qa/`), `dist/`, `desktop/target/` -
   ignored local artifacts.
 
 Basic checks:
@@ -60,7 +61,7 @@ npm run build
 npm run test:ui
 npm run test:structure
 node tests/frontend/tag-check.mjs
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path desktop/Cargo.toml
 & "$env:LOCALAPPDATA/VoiceStudioNext/runtime/.venv/Scripts/python.exe" -B tools/dev/test_runtime.py
 ```
 

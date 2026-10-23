@@ -39,10 +39,10 @@ It is not a data migration mechanism or a restoration of historical GPU workers.
 
 ## Files and checks
 
-- `src/lib/settings/pages/NetworkPage.svelte` — settings and explicit actions.
-- `src/lib/platform/remote-backend.ts`, `src/lib/platform/remote-state.ts`, `src/lib/platform/remote-routing.ts` — state.
+- `frontend/src/settings/pages/NetworkPage.svelte` — settings and explicit actions.
+- `frontend/src/platform/remote-backend.ts`, `frontend/src/platform/remote-state.ts`, `frontend/src/platform/remote-routing.ts` — state.
 - `scripts/runtime/app/remote_backend.py` — session and proxy.
-- `src/lib/platform/api.ts`, `src/lib/tools/dictation/dictation.ts` — transport selection for operations.
+- `frontend/src/platform/api.ts`, `frontend/src/tools/dictation/dictation.ts` — transport selection for operations.
 
 Regression checks: `tests/runtime/test_remote_backend.py`, run in an isolated
 environment. A controlled loopback server does not validate a public deployment,

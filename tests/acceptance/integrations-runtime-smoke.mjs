@@ -77,7 +77,7 @@ try {
   } else {
     const state = await json('/next/integrations/settings'); record.state = state;
     check('MCP ON is mounted after controlled restart', state.settings.mcp_enabled && state.effective.mcp_enabled && state.effective.mounted && state.effective.session_task_active && !state.restart_required);
-    const source = await readFile(new URL('../../src/lib/platform/integrations.ts', import.meta.url), 'utf8');
+    const source = await readFile(new URL('../../frontend/src/platform/integrations.ts', import.meta.url), 'utf8');
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
     const module = {}; new Function('exports', code)(module);
     const calls = []; record.calls = calls;

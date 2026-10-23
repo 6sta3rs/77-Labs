@@ -11,7 +11,7 @@ Statuses: **new** -> **analysis** -> **to decide** -> **done** (with a commit) o
 ## Rules (agreed with the user)
 
 1. **Minimalism.** No decorative icon tiles in frames, no duplicated actions (one action = one button).
-2. **No native browser controls** on screens: `<audio controls>`, `<video controls>`, visible `<input type=file>`, `type=number` spinners, `confirm()`. Always a component from `src/lib/ui/`.
+2. **No native browser controls** on screens: `<audio controls>`, `<video controls>`, visible `<input type=file>`, `type=number` spinners, `confirm()`. Always a component from `frontend/src/ui/`.
 3. **Icon button background on hover only.** A helper button (e.g. "+") is transparent; the background appears on hover.
 4. **Focus outline only for keyboard navigation** (Tab, arrows). Clicking and typing do not draw an outline.
 5. **Look and feel reference: shadcn / Base UI.** When fixing a component, compare it with the shadcn documentation. A selection in lists is a check mark, not a filled background.

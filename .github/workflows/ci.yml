@@ -41,10 +41,10 @@ jobs:
       - run: npm run build
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
-      - run: cargo check --locked --manifest-path src-tauri/Cargo.toml
-      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
-      - run: cargo clippy --locked --all-targets --manifest-path src-tauri/Cargo.toml -- -D warnings
+          workspaces: desktop
+      - run: cargo check --locked --manifest-path desktop/Cargo.toml
+      - run: cargo test --locked --manifest-path desktop/Cargo.toml
+      - run: cargo clippy --locked --all-targets --manifest-path desktop/Cargo.toml -- -D warnings
   tauri-build:
     # proves that the release binary links; the steps run only when something that can break it changed
     runs-on: windows-latest
@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           base="${{ github.event.pull_request.base.sha || github.event.before }}"
-          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null || git diff --name-only "$base" HEAD | grep -qE '^(src-tauri/|scripts/runtime/|src/|package(-lock)?\.json$|rust-toolchain\.toml$|\.github/workflows/ci\.yml$)'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null || git diff --name-only "$base" HEAD | grep -qE '^(desktop/|scripts/runtime/|frontend/|public/|package(-lock)?\.json$|rust-toolchain\.toml$|\.github/workflows/ci\.yml$)'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.changed.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
@@ -67,6 +67,6 @@ jobs:
       - if: steps.changed.outputs.run == 'true'
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: desktop
       - if: steps.changed.outputs.run == 'true'
         run: npm run desktop:build

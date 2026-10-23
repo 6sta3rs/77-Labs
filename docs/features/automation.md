@@ -49,9 +49,9 @@ Disabling watching blocks new inputs; jobs already saved keep their own state.
 
 ## Files and checks
 
-- `src/lib/tools/automation/AutomationWorkspace.svelte`, `src/lib/tools/automation/automation.ts`: panel and queue.
-- `src/lib/tools/automation/WatchFolderPanel.svelte`, `src/lib/tools/automation/watch-folder.ts`: file source.
-- `src-tauri/src/watch_folder.rs`: scanner, path ownership, and acknowledgments.
+- `frontend/src/tools/automation/AutomationWorkspace.svelte`, `frontend/src/tools/automation/automation.ts`: panel and queue.
+- `frontend/src/tools/automation/WatchFolderPanel.svelte`, `frontend/src/tools/automation/watch-folder.ts`: file source.
+- `desktop/src/watch_folder.rs`: scanner, path ownership, and acknowledgments.
 
 Regression checks: `node tests/frontend/automation-check.mjs`,
 `node tests/frontend/watch-folder-check.mjs`, and `node tests/frontend/automation-audio-check.mjs`.

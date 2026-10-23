@@ -1,6 +1,6 @@
 # Provider icons: provenance
 
-Used by `src/lib/ui/ProviderIcon.svelte` on the "AI i klucze" (AI and keys) settings page. License text: [LICENSE.md](LICENSE.md).
+Used by `frontend/src/ui/ProviderIcon.svelte` on the "AI i klucze" (AI and keys) settings page. License text: [LICENSE.md](LICENSE.md).
 
 Brand marks (monochrome, `fill="currentColor"`) from the `lobe-icons` project, `packages/static-svg/icons/`.
 

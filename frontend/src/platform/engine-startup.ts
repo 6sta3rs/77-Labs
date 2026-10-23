@@ -1,6 +1,6 @@
 import type { RuntimeStatus } from './runtime';
 
-/** Order mirrors `STAGES` in src-tauri/src/runtime.rs; the last row is the TTS model warm-up. */
+/** Order mirrors `STAGES` in desktop/src/runtime.rs; the last row is the TTS model warm-up. */
 export const startupSteps = [
   ['engine_files', 'Przygotowanie plików silnika'],
   ['backup', 'Kopia bezpieczeństwa danych'],

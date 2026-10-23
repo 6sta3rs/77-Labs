@@ -1,8 +1,8 @@
 <script lang="ts">
-  import VoiceOrb from '../../src/lib/playback/VoiceOrb.svelte';
-  import Slider from '../../src/lib/ui/Slider.svelte';
-  import Tooltip from '../../src/lib/ui/Tooltip.svelte';
-  import type { AudioFeatures } from '../../src/lib/playback/audio-features';
+  import VoiceOrb from '../../frontend/src/playback/VoiceOrb.svelte';
+  import Slider from '../../frontend/src/ui/Slider.svelte';
+  import Tooltip from '../../frontend/src/ui/Tooltip.svelte';
+  import type { AudioFeatures } from '../../frontend/src/playback/audio-features';
   let level = $state(0);
   let value = $state(30);
   let shown = $state(true);

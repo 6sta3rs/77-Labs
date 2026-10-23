@@ -29,7 +29,7 @@ const storage = {
 globalThis.localStorage = storage
 globalThis.document = { documentElement: { lang: '', dataset: {} }, title: '' }
 globalThis.fetch = () => { requests++; throw new Error('UI language must not call a backend') }
-const core = await import(await moduleUrl(path.join(root, 'src/lib/i18n/index.ts')))
+const core = await import(await moduleUrl(path.join(root, 'frontend/src/i18n/index.ts')))
 const { uiLanguage, getUiLanguage, setUiLanguage, initUiLanguage, createUiTranslator, translateUi, UI_LANGUAGE_KEY } = core
 let passed = 0
 const check = (name, run) => { run(); passed++; console.log(`PASS ${name}`) }

@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 
 // Test harnesses sometimes compile source with controlled dependencies. Resolve
 // unique filenames without coupling those harnesses to feature folder names.
-const root = new URL('../../src/lib/', import.meta.url);
+const root = new URL('../../frontend/src/', import.meta.url);
 const sources = new Map();
 function scan(directory) {
   for (const item of readdirSync(directory, { withFileTypes: true })) {

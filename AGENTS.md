@@ -26,7 +26,7 @@
 ## Verification and project rules
 
 - Match checks to the change. For Svelte/TypeScript code, run `npm run check` and `npm run build`; for tags, also run `node tests/frontend/tag-check.mjs`. Also run `npm run test:structure` when moving files or editing docs links.
-- For Rust/Tauri, run `cargo check --manifest-path src-tauri/Cargo.toml`. Check the relevant UI/runtime flow for product behavior; a build or health response alone does not prove synthesis.
+- For Rust/Tauri, run `cargo check --manifest-path desktop/Cargo.toml`. Check the relevant UI/runtime flow for product behavior; a build or health response alone does not prove synthesis.
 - For documentation-only changes, review content and links and run `git diff --check` on changed files. Do not run expensive generation unnecessarily.
 - This folder is the **only** working copy of the project and its history is public (remote `origin` on GitHub). Never add the user's personal data: absolute home paths (write `%LOCALAPPDATA%`/`%USERPROFILE%` instead), names, e-mail, real voice-profile names or IDs, recordings, databases, screenshots of private data, or engine logs. QA reports and measurements go to the ignored `.tmp/qa`.
 - Before committing, run `python tools/dev/publication_check.py --deny-file <private list>`; the private deny list is kept outside the repository (ask the user for its location if it is not known). Keep the neutral local git identity (`Seventy Seven Labs contributors <contributors@example.invalid>`). Do not import the archived private history or its checkpoints.

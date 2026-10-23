@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-let source = await readFile(new URL('../../src/lib/platform/api.ts', import.meta.url), 'utf8');
+let source = await readFile(new URL('../../frontend/src/platform/api.ts', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('api.ts', source, ts.ScriptTarget.Latest, true);
 for (const statement of [...ast.statements].reverse()) if (ts.isImportDeclaration(statement)) source = source.slice(0, statement.pos) + source.slice(statement.end);
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText.replace(/^export /gm, '');

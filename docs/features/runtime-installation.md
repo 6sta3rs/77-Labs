@@ -31,8 +31,8 @@ panel.
 
 - `scripts/runtime/vendor/bootstrap-provenance.json` — distribution sources and hashes.
 - `scripts/runtime/install/bootstrap.py` — dependency preparation and doctor checks.
-- `src-tauri/src/installer.rs` — downloads, processes and activation.
-- `src/lib/settings/pages/EnginePage.svelte` (**Środowiska** tab), `src/lib/platform/runtime-installer.ts` —
+- `desktop/src/installer.rs` — downloads, processes and activation.
+- `frontend/src/settings/pages/EnginePage.svelte` (**Środowiska** tab), `frontend/src/platform/runtime-installer.ts` —
   the panel and actual progress reporting.
 
 Doctor checks alone do not verify inference. A clean CPU machine, CUDA setup and

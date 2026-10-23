@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 let checks = 0;
 const assert = new Proxy(strict, { get: (target, key) => typeof target[key] === 'function' ? (...args) => { checks++; return target[key](...args); } : target[key] });
-const source = await readFile(new URL('../../src/lib/tts/speech-settings.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/tts/speech-settings.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const speech = {}; new Function('exports', code)(speech);
 const omni = { id: 'omnivoice', supports_cloning: true, supports_emotion: false };

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import ts from 'typescript';
-const source=(await readFile(new URL('../../src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+const source=(await readFile(new URL('../../frontend/src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 const ast=ts.createSourceFile('App.ts',source,ts.ScriptTarget.Latest,true);
 const fn=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='restartRuntime').getText(ast);
 function fixture(stop, ensure=async()=>{}){

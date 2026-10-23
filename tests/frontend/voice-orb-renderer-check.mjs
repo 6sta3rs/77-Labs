@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const code = ts.transpileModule(await readFile(new URL('../../src/lib/playback/voice-orb.ts', import.meta.url), 'utf8'), {
+const code = ts.transpileModule(await readFile(new URL('../../frontend/src/playback/voice-orb.ts', import.meta.url), 'utf8'), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
 const { VoiceOrbRenderer } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);

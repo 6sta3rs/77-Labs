@@ -25,10 +25,10 @@ The chunk player and the ordinary preview should not play at the same time.
 ## Where to make changes
 
 - `scripts/runtime/app/audiobook_streaming.py`: splitting, cache, and events.
-- `src/lib/playback/audiobook-playback.ts`: queue, pause, waiting, and seeking.
-- `src/lib/playback/AudiobookPlayer.svelte`: playback interface.
-- `src/lib/tools/production/ProductionWorkspace.svelte`: job handling and event delivery.
-- `scripts/runtime/app/launcher.py`, `src-tauri/src/runtime.rs`: adapter integration.
+- `frontend/src/playback/audiobook-playback.ts`: queue, pause, waiting, and seeking.
+- `frontend/src/playback/AudiobookPlayer.svelte`: playback interface.
+- `frontend/src/tools/production/ProductionWorkspace.svelte`: job handling and event delivery.
+- `scripts/runtime/app/launcher.py`, `desktop/src/runtime.rs`: adapter integration.
 
 Regression checks: `node tests/frontend/audiobook-playback-check.mjs`
 and `tests/runtime/test_audiobook_streaming.py` in the appropriate environment.

@@ -39,8 +39,8 @@ describes file completeness, not a successful synthesis test.
 
 ## Files
 
-- `src/lib/settings/pages/ModelsPage.svelte`, `src/lib/models/model-management.ts` — catalog and UI.
-- `src/lib/settings/pages/StoragePage.svelte`, `src/lib/settings/storage-settings.ts` — model directory.
+- `frontend/src/settings/pages/ModelsPage.svelte`, `frontend/src/models/model-management.ts` — catalog and UI.
+- `frontend/src/settings/pages/StoragePage.svelte`, `frontend/src/settings/storage-settings.ts` — model directory.
 - `scripts/runtime/app/model_management.py` — tasks, cache, downloads and removal.
 - `scripts/runtime/app/launcher.py` — effective process configuration.
 

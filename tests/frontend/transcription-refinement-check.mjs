@@ -6,7 +6,7 @@ import ts from 'typescript';
 import { compile } from 'svelte/compiler';
 
 const root = new URL('../../', import.meta.url);
-const source = await readFile(new URL('src/lib/tools/transcription/transcription.ts', root), 'utf8');
+const source = await readFile(new URL('frontend/src/tools/transcription/transcription.ts', root), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const helpers = {}; new Function('exports','require',compiled)(helpers,i18nRequire);
 const { normalizeTranscription, transcriptionOutputText, exportTranscription, refinementNotice, readTranscriptionHistory, saveTranscriptionHistory, TRANSCRIPTION_HISTORY_KEY } = helpers;
@@ -113,7 +113,7 @@ await test('Corrupt refinement cannot overwrite an existing history', () => {
   }
 });
 
-const apiSource = await readFile(new URL('src/lib/platform/api.ts', root), 'utf8');
+const apiSource = await readFile(new URL('frontend/src/platform/api.ts', root), 'utf8');
 const ast = ts.createSourceFile('api.ts', apiSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 const fn = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'transcribe');
 assert.ok(fn);
@@ -141,7 +141,7 @@ await test('Explicit opt-in sends true and preserves ordinary multipart fields',
   assert.deepEqual([...form.keys()], ['audio', 'mode', 'refine', 'language']);
 });
 await test('Svelte compiles the real comparison/choice/export UI without warnings', async () => {
-  const component = await readFile(new URL('src/lib/tools/transcription/TranscriptionWorkspace.svelte', root), 'utf8');
+  const component = await readFile(new URL('frontend/src/tools/transcription/TranscriptionWorkspace.svelte', root), 'utf8');
   const result = compile(component, { filename: 'TranscriptionWorkspace.svelte', generate: 'client' });
   assert.deepEqual(result.warnings, []);
   assert.match(component, /refine = \$state\(false\)/);

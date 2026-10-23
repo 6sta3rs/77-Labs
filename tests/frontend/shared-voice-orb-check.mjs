@@ -9,11 +9,11 @@ const dataModule = code => `data:text/javascript;base64,${Buffer.from(code).toSt
 const compile = code => ts.transpileModule(code, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
-const rendererModule = dataModule(compile(await readFile(new URL('../../src/lib/playback/voice-orb.ts', import.meta.url), 'utf8')));
-const sharedCode = compile(await readFile(new URL('../../src/lib/playback/shared-voice-orb.ts', import.meta.url), 'utf8'))
+const rendererModule = dataModule(compile(await readFile(new URL('../../frontend/src/playback/voice-orb.ts', import.meta.url), 'utf8')));
+const sharedCode = compile(await readFile(new URL('../../frontend/src/playback/shared-voice-orb.ts', import.meta.url), 'utf8'))
   .replaceAll("'./voice-orb'", JSON.stringify(rendererModule));
 const { SharedVoiceOrb } = await import(dataModule(sharedCode));
-const { playbackVoiceId } = await import(dataModule(compile(await readFile(new URL('../../src/lib/playback/playback-visual.ts', import.meta.url), 'utf8'))));
+const { playbackVoiceId } = await import(dataModule(compile(await readFile(new URL('../../frontend/src/playback/playback-visual.ts', import.meta.url), 'utf8'))));
 const checks = [];
 function check(name, condition, detail) { checks.push({ name, passed: Boolean(condition), ...(detail === undefined ? {} : { detail }) }); }
 const clone = value => JSON.parse(JSON.stringify(value));

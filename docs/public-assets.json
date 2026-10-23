@@ -30,17 +30,17 @@
     }
   },
   "thirdPartyImages": {
-    "src/lib/assets/landing-orb/gradient.webp": {
+    "frontend/src/assets/landing-orb/gradient.webp": {
       "sha256": "fcff6d1510b708049304f57f15eabf80d502dd95c6addcabc88175bde9f91f5f",
       "source": "https://eleven-public-cdn.elevenlabs.io/marketing_website/_next/static/media/creative-1.18030cd4.webp",
       "purpose": "Płyn orb gradient; third-party, see THIRD_PARTY_NOTICES.md"
     },
-    "src/lib/assets/landing-orb/fallback.png": {
+    "frontend/src/assets/landing-orb/fallback.png": {
       "sha256": "c8be88e35e1c9b060304b92122049e79bec85318f43265e0a03248d3d566c229",
       "source": "https://eleven-public-cdn.elevenlabs.io/marketing_website/_next/static/media/creative-1.be8a6b68.png",
       "purpose": "Płyn orb fallback; third-party, see THIRD_PARTY_NOTICES.md"
     },
-    "src/lib/assets/landing-orb/noise.png": {
+    "frontend/src/assets/landing-orb/noise.png": {
       "sha256": "0f83d492d1ea34b154424feea4508ac116b19425d26ca48b619533aaed0edada",
       "source": "https://eleven-public-cdn.elevenlabs.io/marketing_website/_next/static/media/noise.24b8225d.png",
       "purpose": "Płyn orb grain; third-party, see THIRD_PARTY_NOTICES.md"

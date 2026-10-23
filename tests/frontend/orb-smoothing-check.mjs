@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 globalThis.cancelAnimationFrame = () => {};
-const source = ts.transpileModule(readFileSync('src/lib/playback/voice-orb.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+const source = ts.transpileModule(readFileSync('frontend/src/playback/voice-orb.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { VoiceOrbRenderer } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const values = {};
 const gl = new Proxy({ getShaderParameter: () => true, getProgramParameter: () => true,

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import Player from '../../src/lib/playback/Player.svelte';
-  import VoiceOrb from '../../src/lib/playback/VoiceOrb.svelte';
-  import { quietActivity, type PlaybackActivity } from '../../src/lib/playback/playback-meter';
-  import type { Render } from '../../src/lib/data';
+  import Player from '../../frontend/src/playback/Player.svelte';
+  import VoiceOrb from '../../frontend/src/playback/VoiceOrb.svelte';
+  import { quietActivity, type PlaybackActivity } from '../../frontend/src/playback/playback-meter';
+  import type { Render } from '../../frontend/src/data';
 
   let activity=$state<PlaybackActivity>(quietActivity());
   let voice=$state('orb-test-a');

@@ -12,7 +12,7 @@ async function test(name, run) {
 const transpile = source => ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText
 
 await test('Production CSS retains standard popup/modal blur and reduced-transparency resets', async () => {
-  const source = await read('src/lib/ui/overlays.css')
+  const source = await read('frontend/src/ui/overlays.css')
   const result = await build({ configFile: false, logLevel: 'silent', plugins: [{
     name: 'overlay-regression',
     resolveId(id) { if (id === 'virtual:overlay-entry' || id === 'virtual:overlay.css') return `\0${id}` },
@@ -28,7 +28,7 @@ await test('Production CSS retains standard popup/modal blur and reduced-transpa
 })
 
 let overlays = {}
-try { overlays = await import(`data:text/javascript;base64,${Buffer.from(transpile(await read('src/lib/ui/overlay.ts'))).toString('base64')}`) }
+try { overlays = await import(`data:text/javascript;base64,${Buffer.from(transpile(await read('frontend/src/ui/overlay.ts'))).toString('base64')}`) }
 catch (error) { if (error.code !== 'ENOENT') throw error }
 
 // A controlled DOM tests the actual mount action's ordering and cleanup. Browser
@@ -71,7 +71,7 @@ function dom() {
 }
 
 await test('Actual ModelPicker mount portals before showModal and cleans up after responsive parent hides', async () => {
-  const source = (await read('src/lib/models/ModelPicker.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1]
+  const source = (await read('frontend/src/models/ModelPicker.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1]
   const ast = ts.createSourceFile('model.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
   const action = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'mountDialog')
   assert.ok(action, 'ModelPicker exposes its mount action')
@@ -88,7 +88,7 @@ await test('Actual ModelPicker mount portals before showModal and cleans up afte
 })
 
 await test('Programmatically opened VoicePicker restores a voice trigger or mobile settings instead of unfocusable body/div', async () => {
-  const source = (await read('src/lib/voices/VoicePicker.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1]
+  const source = (await read('frontend/src/voices/VoicePicker.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1]
   const ast = ts.createSourceFile('voice.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
   const action = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'mountDialog')
   assert.ok(action)

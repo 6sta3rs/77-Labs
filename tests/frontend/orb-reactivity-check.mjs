@@ -21,11 +21,11 @@ const moduleUrl = code => `data:text/javascript;base64,${Buffer.from(code).toStr
 const transpile = code => ts.transpileModule(code, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
-const featureModule = moduleUrl(transpile(await file('src/lib/playback/audio-features.ts')));
+const featureModule = moduleUrl(transpile(await file('frontend/src/playback/audio-features.ts')));
 const { AudioFeatureTracker, quietFeatures } = await import(featureModule);
-const { averageOrbSpectrum } = await import(moduleUrl(transpile(await file('src/lib/playback/playback-meter.ts'))
+const { averageOrbSpectrum } = await import(moduleUrl(transpile(await file('frontend/src/playback/playback-meter.ts'))
   .replaceAll("'./audio-features'", JSON.stringify(featureModule))));
-const rendererSource = await file('src/lib/playback/voice-orb.ts');
+const rendererSource = await file('frontend/src/playback/voice-orb.ts');
 const { VoiceOrbRenderer } = await import(moduleUrl(transpile(rendererSource)));
 const variants = ['original', 'calm', 'storm', 'intonation'];
 const checks = [], measurements = {};

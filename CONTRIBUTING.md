@@ -48,7 +48,7 @@ For a workflow change, show the screen or steps for manual acceptance testing.
 | Svelte / TypeScript | `npm run check` and `npm run build`; the relevant UI workflow. |
 | Narration tags | Also run `node tests/frontend/tag-check.mjs`. |
 | Shared controls / UI behavior | Also run the relevant regressions in `npm run test:ui`; check keyboard use, focus, and relevant window sizes. |
-| Rust / Tauri | `cargo check --manifest-path src-tauri/Cargo.toml`; use the actual EXE for native behavior. |
+| Rust / Tauri | `cargo check --manifest-path desktop/Cargo.toml`; use the actual EXE for native behavior. |
 | Python / runtime | Syntax and tests for the changed module in an isolated environment; the runtime contract or workflow affected by the change. |
 | Documentation | Content, links, and `git diff --check`; no costly generation runs. |
 
@@ -56,7 +56,7 @@ For a workflow change, show the screen or steps for manual acceptance testing.
 npm run check
 npm run build
 node tests/frontend/tag-check.mjs
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path desktop/Cargo.toml
 git diff --check
 ```
 

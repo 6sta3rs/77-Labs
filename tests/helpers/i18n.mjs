@@ -1,4 +1,4 @@
-// Loads the REAL src/lib/i18n/index.ts (with its en-* dictionaries) for harnesses
+// Loads the REAL frontend/src/i18n/index.ts (with its en-* dictionaries) for harnesses
 // that run single source files in isolation. Polish stays the active language.
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -24,7 +24,7 @@ async function moduleUrl(file) {
 globalThis.localStorage ??= { getItem: () => null, setItem() {} }
 globalThis.document ??= { documentElement: { lang: '', dataset: {} }, title: '' }
 
-export const i18nUrl = await moduleUrl(path.join(root, 'src/lib/i18n/index.ts'))
+export const i18nUrl = await moduleUrl(path.join(root, 'frontend/src/i18n/index.ts'))
 export const i18n = await import(i18nUrl)
 export const i18nDeps = {
   createUiTranslator: i18n.createUiTranslator, uiLanguage: i18n.uiLanguage, translateUi: i18n.translateUi,

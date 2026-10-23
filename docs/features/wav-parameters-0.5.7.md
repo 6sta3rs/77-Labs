@@ -32,10 +32,10 @@ data without optional metadata remains readable.
 ## Files and checks
 
 - `scripts/runtime/app/integration_settings.py`: source contract discovery.
-- `src/lib/tts/speech-settings.ts`: validation and serialization.
-- `src/lib/tts/AdvancedSpeechSettings.svelte`: controls.
-- `src/lib/playback/audio.ts`: PCM/float decoding and joining.
-- `src/App.svelte`, `src/lib/data.ts`: generation, persistence, and restoration.
+- `frontend/src/tts/speech-settings.ts`: validation and serialization.
+- `frontend/src/tts/AdvancedSpeechSettings.svelte`: controls.
+- `frontend/src/playback/audio.ts`: PCM/float decoding and joining.
+- `frontend/src/App.svelte`, `frontend/src/data.ts`: generation, persistence, and restoration.
 
 Regression checks: `node tests/frontend/speech-settings-check.mjs`,
 `node tests/frontend/wav-format-check.mjs`, and

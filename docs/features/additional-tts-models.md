@@ -47,7 +47,7 @@ the service on a public interface. Credentials in URLs and redirects are rejecte
 - `scripts/runtime/app/tts_extensions.py` — registry, statuses and the `/next/tts/*` API.
 - `scripts/runtime/app/tts_worker.py` — synthesis parameters and execution.
 - `scripts/runtime/install/prepare_tts.py` — library preparation.
-- `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab, including the Fish connection).
+- `frontend/src/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab, including the Fish connection).
 
 Regression checks: `tests/runtime/test_tts_extensions.py`
 and `tests/runtime/test_tts_registry.py`. They do not collectively verify

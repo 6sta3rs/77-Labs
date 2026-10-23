@@ -2,7 +2,7 @@
 import { catalog as en } from './en/index'
 
 export interface LanguageDef {
-  /** BCP 47 code, also the folder name of the catalog (`src/lib/i18n/<code>/index.ts`). */
+  /** BCP 47 code, also the folder name of the catalog (`frontend/src/i18n/<code>/index.ts`). */
   code: string
   /** Name in the language itself (shown in the picker). */
   name: string

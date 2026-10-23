@@ -2,7 +2,7 @@ import { rewriteI18nImports } from '../helpers/i18n.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
-const source = await readFile(new URL('../../src/lib/platform/integrations.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/platform/integrations.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { LOCAL_API_BASE, LOCAL_MCP_URL, mcpClientConfig, bindingPayload, watermarkFileError, parseWatermarkResult, watermarkTitle, watermarkSettingsPath, mcpMessages, testMcpConnection, integrationError } = await import('data:text/javascript;base64,' + Buffer.from(rewriteI18nImports(js)).toString('base64'));
 assert.equal(LOCAL_API_BASE, 'http://127.0.0.1:4312/v1');

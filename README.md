@@ -43,7 +43,7 @@ npm run desktop:dev
 npm run desktop:build
 ```
 
-The build produces an EXE without an installer: `src-tauri/target/release/seventy-seven-labs.exe`.
+The build produces an EXE without an installer: `desktop/target/release/seventy-seven-labs.exe`.
 
 `npm run desktop:release` builds a signed NSIS installer and the update feed for GitHub Releases; installed copies then update from **Ustawienia → Aktualizacje** (Settings → Updates). See [app updates](docs/features/app-updates.md).
 
@@ -68,7 +68,7 @@ npm run check
 npm run build
 npm run test:ui
 python tools/dev/publication_check.py --deny-file <private-list-outside-repo>.json
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path desktop/Cargo.toml
 ```
 
 The publication check examines files, the nested engine archive, approved audio, and all Git objects, including unreachable objects. Local QA reports go into the ignored `.tmp/qa` directory. Speech tests require your own explicitly selected reference; the demo tone is for player and UI testing.
@@ -79,14 +79,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/architec
 
 | Area | File |
 | --- | --- |
-| Navigation and application composition | `src/App.svelte` |
-| Editor and tags | `src/lib/tts/SpeechEditor.svelte`, `src/lib/tts/tags.ts` |
-| Voice/model selection | `src/lib/voices/VoicePicker.svelte`, `src/lib/models/ModelPicker.svelte` |
-| Persistent recordings | `src/lib/projects/library.ts` |
-| Player and visualization | `src/lib/playback/Player.svelte`, `src/lib/playback/VoiceOrb.svelte` |
-| Controls and themes | `src/lib/ui/`, `src/lib/settings/appearance.ts`, `src/styles.css` |
-| Demo data | `src/lib/gallery/tts-demo.ts`, `public/demo/` |
-| API and supervision | `src/lib/platform/api.ts`, `src-tauri/src/runtime.rs` |
+| Navigation and application composition | `frontend/src/App.svelte` |
+| Editor and tags | `frontend/src/tts/SpeechEditor.svelte`, `frontend/src/tts/tags.ts` |
+| Voice/model selection | `frontend/src/voices/VoicePicker.svelte`, `frontend/src/models/ModelPicker.svelte` |
+| Persistent recordings | `frontend/src/projects/library.ts` |
+| Player and visualization | `frontend/src/playback/Player.svelte`, `frontend/src/playback/VoiceOrb.svelte` |
+| Controls and themes | `frontend/src/ui/`, `frontend/src/settings/appearance.ts`, `frontend/src/styles.css` |
+| Demo data | `frontend/src/gallery/tts-demo.ts`, `public/demo/` |
+| API and supervision | `frontend/src/platform/api.ts`, `desktop/src/runtime.rs` |
 | Python startup and installation | `scripts/runtime/app/launcher.py`, `scripts/runtime/install/bootstrap.py` |
 | Product requirements | `docs/PRD.md` |
 

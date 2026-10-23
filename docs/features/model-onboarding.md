@@ -37,8 +37,8 @@ the state has been read back.
 
 ## Files and checks
 
-- `src/lib/models/ModelLicenseOnboarding.svelte`, `src/lib/models/license-onboarding.ts` — UI and state.
-- `src/lib/models/ModelLicenseReview.svelte` — individual decisions.
+- `frontend/src/models/ModelLicenseOnboarding.svelte`, `frontend/src/models/license-onboarding.ts` — UI and state.
+- `frontend/src/models/ModelLicenseReview.svelte` — individual decisions.
 - `scripts/runtime/app/model_management.py` — the plan.
 
 Regression checks: `node tests/frontend/license-onboarding-check.mjs`,

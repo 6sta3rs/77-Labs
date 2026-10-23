@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 // Test the actual TypeScript helper without building the UI or starting audio hardware.
 const api = {};
-const source = readFileSync(new URL('../../src/lib/playback/audio-features.ts', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../../frontend/src/playback/audio-features.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;

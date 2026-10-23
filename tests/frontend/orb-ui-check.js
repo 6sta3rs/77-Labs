@@ -1,9 +1,9 @@
 import { mount, unmount, tick } from 'svelte';
 import OrbPreview from '../../tools/preview/orb-preview.svelte';
-import VoiceOrb from '../../src/lib/playback/VoiceOrb.svelte';
-import { voiceIdentity } from '../../src/lib/playback/voice-orb';
-import { applyAppearance, defaultAppearance } from '../../src/lib/settings/appearance';
-import '../../src/styles.css';
+import VoiceOrb from '../../frontend/src/playback/VoiceOrb.svelte';
+import { voiceIdentity } from '../../frontend/src/playback/voice-orb';
+import { applyAppearance, defaultAppearance } from '../../frontend/src/settings/appearance';
+import '../../frontend/src/styles.css';
 
 applyAppearance({...defaultAppearance,mode:'dark',reduceMotion:false});
 const preview=mount(OrbPreview,{target:document.getElementById('orb-preview')});

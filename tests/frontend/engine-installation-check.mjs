@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import { compile } from 'svelte/compiler';
 let checks=0;
-const source=await readFile(new URL('../../src/lib/models/engine-installation.ts',import.meta.url),'utf8');
+const source=await readFile(new URL('../../frontend/src/models/engine-installation.ts',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const calls=[];
 const exports={};
@@ -35,7 +35,7 @@ assert.equal(JSON.parse(calls.at(-1).options.body).accepted,true);checks++;
 await exports.engineInstallation.cancel('fixture');assert.equal(calls.at(-1).path,'/next/engine-runtimes/cancel');checks++;
 await exports.engineInstallation.activate(recipe);assert.deepEqual(JSON.parse(calls.at(-1).options.body),{engine_id:'fixture',disclosure_id:recipe.disclosure_id});checks++;
 // The engine environment installer moved from models/EngineRuntimeInstaller.svelte into Settings → Silnik → Środowiska (EnginePage.svelte).
-const component=await readFile(new URL('../../src/lib/settings/pages/EnginePage.svelte',import.meta.url),'utf8');
+const component=await readFile(new URL('../../frontend/src/settings/pages/EnginePage.svelte',import.meta.url),'utf8');
 const result=compile(component,{filename:'EnginePage.svelte',generate:'client'});
 assert.deepEqual(result.warnings,[]);checks++;
 assert.match(component,/if \(!ready \|\| tab !== 'srodowiska'\) return;/,'Recipes are read only while the engine is ready and the environments tab is open.');checks++;

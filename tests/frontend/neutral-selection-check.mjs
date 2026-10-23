@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {readFile} from 'node:fs/promises'
 import ts from 'typescript'
-const source=await readFile(new URL('../../src/lib/styles/neutral-selection.ts',import.meta.url),'utf8')
+const source=await readFile(new URL('../../frontend/src/styles/neutral-selection.ts',import.meta.url),'utf8')
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText
 const {neutralSelectionForRgb,neutralSelectionForColor}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'))
 const checks=[]

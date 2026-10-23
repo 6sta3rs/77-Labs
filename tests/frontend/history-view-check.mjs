@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
-const source = await readFile(new URL('../../src/lib/projects/history-view.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/projects/history-view.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { filterRecordings, groupRecordings, historyDateLabel, relativeRecordingTime } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 const now = new Date(2026, 9, 19, 12).getTime(), day = 86400000;

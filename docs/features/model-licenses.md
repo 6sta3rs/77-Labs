@@ -37,10 +37,10 @@ model does not clear the first-use check.
 
 ## Files and checks
 
-- `src/lib/models/ModelLicenseReview.svelte` — review, acceptance and revocation.
-- `src/lib/models/model-licenses.ts` — parsing, transport and HTTP 403/409 handling.
-- `src/lib/settings/pages/ModelsPage.svelte` — entry point from the catalog.
-- `src/lib/platform/api.ts` — generation errors.
+- `frontend/src/models/ModelLicenseReview.svelte` — review, acceptance and revocation.
+- `frontend/src/models/model-licenses.ts` — parsing, transport and HTTP 403/409 handling.
+- `frontend/src/settings/pages/ModelsPage.svelte` — entry point from the catalog.
+- `frontend/src/platform/api.ts` — generation errors.
 
 Regression check: `node tests/frontend/model-licenses-check.mjs`. Test acceptance and
 revocation must use controlled fixture state only. Do not accept real terms on

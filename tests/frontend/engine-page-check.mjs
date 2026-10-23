@@ -12,7 +12,7 @@ const equal = (actual, expected, message) => { assert.equal(actual, expected, me
 
 // settingsError: an expired status-read timer arrives as "Request cancelled" on the desktop transport.
 {
-  let source = await read('src/lib/settings/system-settings.ts');
+  let source = await read('frontend/src/settings/system-settings.ts');
   for (const statement of [...ts.createSourceFile('s.ts', source, ts.ScriptTarget.Latest, true).statements].reverse()) if (ts.isImportDeclaration(statement)) source = source.slice(0, statement.pos) + source.slice(statement.end);
   const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText.replace(/^export /gm, '');
   const context = vm.createContext({ translateUi: text => text, productionJson: async () => ({}), postJson: () => ({}), redactDiagnosticText: String, Error,
@@ -28,7 +28,7 @@ const equal = (actual, expected, message) => { assert.equal(actual, expected, me
 
 // Markup wiring that the no-DOM runes harness cannot render.
 {
-  const markup = await read('src/lib/settings/pages/EnginePage.svelte');
+  const markup = await read('frontend/src/settings/pages/EnginePage.svelte');
   ok(markup.includes("onclick={() => onnavigate?.('models')}>{tr('Otwórz Modele')}"), 'The skipped-preload reason links to Modele.');
   ok(/c\.id === 'hf_token'[^]*onnavigate\?\.\('models', 'access'\)/.test(markup), 'The Hugging Face token diagnostics row links to Modele → Pobieranie i dostęp.');
 }

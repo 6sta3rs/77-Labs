@@ -43,7 +43,7 @@ for each component actually distributed.
 The project imports palettes and selected control styles from
 [pingdotgg/t3code](https://github.com/pingdotgg/t3code).
 Copyright (c) 2026 T3 Tools Inc. License: **MIT**; the full text remains in
-[src/lib/themes/LICENSE-T3](src/lib/themes/LICENSE-T3).
+[frontend/src/themes/LICENSE-T3](frontend/src/themes/LICENSE-T3).
 
 - Palettes: revision `86534db4d3525a070589a234d660a3e0373a42ea`,
   [packages/shared/src/themePalettes.ts](https://github.com/pingdotgg/t3code/blob/86534db4d3525a070589a234d660a3e0373a42ea/packages/shared/src/themePalettes.ts).
@@ -64,26 +64,26 @@ The 62 local SVG files come from
 [HatScripts/circle-flags](https://github.com/HatScripts/circle-flags),
 revision `379588b5da95482d6bbf10bd45644a35b0609ea6`.
 Copyright (c) 2026 HatScripts. License: **MIT**;
-the [original text](src/lib/ui/language-flags/LICENSE.md),
-[description](src/lib/ui/language-flags/README.md), and `provenance.json`
+the [original text](frontend/src/ui/language-flags/LICENSE.md),
+[description](frontend/src/ui/language-flags/README.md), and `provenance.json`
 are included in the flags directory. The manifest describes how source
 symlinks were resolved to file contents.
 
 ## LobeHub Icons - AI provider marks
 
-The 8 monochrome SVG files in `src/lib/ui/provider-icons/` come from
+The 8 monochrome SVG files in `frontend/src/ui/provider-icons/` come from
 [lobehub/lobe-icons](https://github.com/lobehub/lobe-icons) (`packages/static-svg/icons/`),
 revision `ab8cbcc6ce806b923c547628132957c8a8b61509`, unmodified.
 Copyright (c) 2023 LobeHub. License: **MIT**; the
-[license text](src/lib/ui/provider-icons/LICENSE.md) and the per-file
-[source list](src/lib/ui/provider-icons/README.md) are included. The marks are
+[license text](frontend/src/ui/provider-icons/LICENSE.md) and the per-file
+[source list](frontend/src/ui/provider-icons/README.md) are included. The marks are
 trademarks of their owners (OpenAI, Anthropic, Google, OpenRouter, Ollama, Groq,
 Cloudflare, LM Studio) and are used only to identify the provider.
 
 ## ElevenLabs homepage orb - Płyn style
 
 The **Płyn** orb style adapts the fragment shader, fluid pass, and three
-decorative images (`src/lib/assets/landing-orb/`) from the ElevenLabs
+decorative images (`frontend/src/assets/landing-orb/`) from the ElevenLabs
 homepage, captured 2026-10-20. ElevenLabs published no redistribution terms
 for them; they are included at the maintainer's decision and remain the
 property of their owner. Origin, hashes, and removal steps:
@@ -92,7 +92,7 @@ property of their owner. Origin, hashes, and removal steps:
 ## Dependencies and interface assets
 
 npm, Rust, and Python dependencies retain their own licenses. Exact versions
-are recorded in `package-lock.json`, `src-tauri/Cargo.lock`, and `uv.lock`
+are recorded in `package-lock.json`, `desktop/Cargo.lock`, and `uv.lock`
 inside the engine archive. Assess versions and licenses for the actual
 package; this document is not a complete transitive dependency inventory
 or set of notices for the EXE.

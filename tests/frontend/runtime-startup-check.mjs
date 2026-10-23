@@ -5,7 +5,7 @@ import { i18n } from '../helpers/i18n.mjs';
 
 let checks = 0;
 const assert = new Proxy(strict, { get: (target, key) => typeof target[key] === 'function' ? (...args) => { checks++; return target[key](...args); } : target[key] });
-const source = await readFile(new URL('../../src/lib/platform/runtime.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/platform/runtime.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 function load(invoke = async () => { throw new Error('Unexpected invoke'); }) {
   const exports = {};

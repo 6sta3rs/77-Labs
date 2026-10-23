@@ -39,7 +39,7 @@ export function transformAppReadiness(source) {
   if (!edits.length) throw new Error('Brak rozpoznanego guardu w selectGenerationEngine; nie zmieniono pliku.');
   for (const edit of edits.sort((a,b) => b.start - a.start)) source = source.slice(0, edit.start) + edit.value + source.slice(edit.end);
   const scriptStart = source.indexOf(script.slice(0, Math.min(30, script.length)));
-  if (!source.includes("from './lib/models/engine-readiness'")) source = source.slice(0, scriptStart) + "\n  import { needsEngineVerification } from './lib/models/engine-readiness';\n" + source.slice(scriptStart);
+  if (!source.includes("from './models/engine-readiness'")) source = source.slice(0, scriptStart) + "\n  import { needsEngineVerification } from './models/engine-readiness';\n" + source.slice(scriptStart);
   return source;
 }
 

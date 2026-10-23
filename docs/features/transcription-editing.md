@@ -29,9 +29,9 @@ results without them are supported.
 
 ## Where to make changes
 
-- `src/lib/platform/api.ts`: the `refine` field and transcription response.
-- `src/lib/tools/transcription/transcription.ts`: normalization, history, and TXT text selection.
-- `src/lib/tools/transcription/TranscriptionWorkspace.svelte`: comparison and applying the suggestion.
+- `frontend/src/platform/api.ts`: the `refine` field and transcription response.
+- `frontend/src/tools/transcription/transcription.ts`: normalization, history, and TXT text selection.
+- `frontend/src/tools/transcription/TranscriptionWorkspace.svelte`: comparison and applying the suggestion.
 
 Regression checks: `node tests/frontend/transcription-refinement-check.mjs`
 and `node tests/frontend/transcription-check.mjs`. A transport test with a fixture does

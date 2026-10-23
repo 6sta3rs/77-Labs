@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const helpersSource = await readFile(new URL('../../src/lib/tools/production/production-segments.ts', import.meta.url), 'utf8');
+const helpersSource = await readFile(new URL('../../frontend/src/tools/production/production-segments.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(helpersSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const helpers = {}; new Function('exports','require',code)(helpers,i18nRequire);
 const segment = { id: 'qa', start: 0, end: 3.4, text: 'Cześć.', direction: 'calm', speed: 0.8, gain: 0.7 };
@@ -39,7 +39,7 @@ assert.deepEqual(ownershipCalls, ['/health', '/next/activity']); assert.deepEqua
 assert.ok(!JSON.stringify(activity).includes(ownershipFixture), 'The ownership marker is absent from returned state.');
 assert.equal(await helpers.readLongformActivity(async () => new Response('{}'), new AbortController().signal), undefined);
 
-let source = (await readFile(new URL('../../src/lib/tools/production/ProductionWorkspace.svelte', import.meta.url), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+let source = (await readFile(new URL('../../frontend/src/tools/production/ProductionWorkspace.svelte', import.meta.url), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 const parsed = ts.createSourceFile('production.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 for (const node of [...parsed.statements].reverse()) if (ts.isImportDeclaration(node)) source = source.slice(0, node.pos) + source.slice(node.end);
 source += `\nreturn { generateDub, renderBook, resumeBook, stopProduction, event, setFixture(){ jobId='qa-job'; voice='qa-voice'; text='QA chapter'; plan={chapter_count:2,char_count:10,chapters:[]}; segments=[{start:0,end:3,text:'Cześć'}] }, get result(){return {error,message,busy,done,cancelled,completed,total,bookDrain,drainMessage,drainChecking,resumable}} };`;

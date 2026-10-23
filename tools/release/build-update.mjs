@@ -13,7 +13,7 @@ const origin = spawnSync('git', ['remote', 'get-url', 'origin'], { cwd: root, en
 const REPO = origin.match(/github\.com[:/]([^/]+\/[^/.]+?)(?:\.git)?$/)?.[1];
 if (!REPO) throw new Error(`origin is not a GitHub repository: ${origin}`);
 const ENDPOINT = `https://github.com/${REPO}/releases/latest/download/latest.json`;
-const { version } = JSON.parse(readFileSync(join(root, 'src-tauri/tauri.conf.json'), 'utf8'));
+const { version } = JSON.parse(readFileSync(join(root, 'desktop/tauri.conf.json'), 'utf8'));
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 if (pkg !== version) throw new Error(`package.json ${pkg} != tauri.conf.json ${version}; set both to the release version.`);
 const at = process.argv.indexOf('--notes');
@@ -27,7 +27,7 @@ const config = JSON.stringify({ plugins: { updater: { endpoints: [ENDPOINT] } } 
 const built = spawnSync('npx', ['tauri', 'build', '--bundles', 'nsis', '--config', `"${config}"`], { cwd: root, env, stdio: 'inherit', shell: true });
 if (built.status !== 0) process.exit(built.status ?? 1);
 
-const nsis = join(root, 'src-tauri/target/release/bundle/nsis');
+const nsis = join(root, 'desktop/target/release/bundle/nsis');
 const setup = readdirSync(nsis).find(name => name.endsWith(`_${version}_x64-setup.exe`));
 if (!setup || !existsSync(join(nsis, `${setup}.sig`))) throw new Error(`No signed installer for ${version} in ${nsis}`);
 // GitHub turns spaces in asset names into dots, so publish under a name without spaces.

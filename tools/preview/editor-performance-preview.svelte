@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import SpeechEditor from '../../src/lib/tts/SpeechEditor.svelte';
-  import type { SpeechBlock } from '../../src/lib/tts/tags';
+  import SpeechEditor from '../../frontend/src/tts/SpeechEditor.svelte';
+  import type { SpeechBlock } from '../../frontend/src/tts/tags';
   let blocks = $state<SpeechBlock[]>([{ id: 'editor-qa-0', voiceId: 'qa-voice', text: 'Początkowa narracja.' }]);
   let disabled = $state(false);
   let editor: SpeechEditor;

@@ -6,11 +6,11 @@ dist/
 !.env.example
 *.log
 .DS_Store
-src-tauri/target/
+desktop/target/
 __pycache__/
 *.py[cod]
 .venv/
-src-tauri/gen/
+desktop/gen/
 # Dane lokalne i materiały użytkownika nie należą do źródeł publicznych.
 /data/
 /runtime/

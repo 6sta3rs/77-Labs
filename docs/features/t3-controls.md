@@ -4,7 +4,7 @@ Seventy Seven Labs uses a shared set of inputs, selects, switches, buttons, and
 overlays. Interaction behavior is implemented for Svelte and the voice studio.
 Imported style origins, revisions, copyright, and licenses are recorded in
 [third-party notices](../../THIRD_PARTY_NOTICES.md); the original license text
-remains in [LICENSE-T3](../../src/lib/themes/LICENSE-T3).
+remains in [LICENSE-T3](../../frontend/src/themes/LICENSE-T3).
 
 ## Component contract
 
@@ -22,12 +22,12 @@ remains in [LICENSE-T3](../../src/lib/themes/LICENSE-T3).
 
 | Area | File or directory |
 | --- | --- |
-| Component implementations | `src/lib/ui/` |
-| Input roles and geometry | `src/lib/styles/ui.css` |
-| Palette colors | `src/lib/settings/appearance.ts`, `src/lib/styles/ui-colors.ts` |
-| Portal, positioning, and dismissal | `src/lib/ui/overlay.ts` |
-| Popup surfaces | `src/lib/ui/overlays.css` |
-| Focus intent | `src/lib/styles/focus-intent.ts`, `src/lib/ui/focus-intent.css` |
+| Component implementations | `frontend/src/ui/` |
+| Input roles and geometry | `frontend/src/styles/ui.css` |
+| Palette colors | `frontend/src/settings/appearance.ts`, `frontend/src/styles/ui-colors.ts` |
+| Portal, positioning, and dismissal | `frontend/src/ui/overlay.ts` |
+| Popup surfaces | `frontend/src/ui/overlays.css` |
+| Focus intent | `frontend/src/styles/focus-intent.ts`, `frontend/src/ui/focus-intent.css` |
 
 Checks: `npm run check`, `npm run build`, and the relevant regression checks in
 `npm run test:ui`. Separately check actual keyboard use, focus restoration,

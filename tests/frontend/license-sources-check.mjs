@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
-const source=await readFile(new URL('../../src/lib/models/license-sources.ts',import.meta.url),'utf8');
+const source=await readFile(new URL('../../frontend/src/models/license-sources.ts',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const result={}, calls=[];let desktop=true,failure;
 new Function('exports','require',code)(result,()=>({isTauri:()=>desktop,invoke:async(command,args)=>{calls.push({command,args});if(failure)throw failure;}}));

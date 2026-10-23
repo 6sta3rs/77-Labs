@@ -8,8 +8,8 @@ export async function checkThemes() {
   const fill = (selector, value) => { const input = document.querySelector(selector); input.value = value; input.dispatchEvent(new Event('input', { bubbles: true })) }
   const click = async node => { if (!node) throw new Error('Brak kontrolki'); node.click(); await wait() }
   const submit = async () => { document.querySelector('dialog form').requestSubmit(); await wait() }
-  const { loadAppearance } = await import('../../src/lib/settings/appearance')
-  const library = await import('../../src/lib/themes/library')
+  const { loadAppearance } = await import('../../frontend/src/settings/appearance')
+  const library = await import('../../frontend/src/themes/library')
   const keys = ['voicestudio.appearance.v2', library.THEME_LIBRARY_KEY]
   const originals = keys.map(key => [key, localStorage.getItem(key)])
   let exported

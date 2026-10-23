@@ -38,8 +38,8 @@ a recipe is not a complete lockfile with hashes for every external environment.
 - `scripts/runtime/install/engine_installation.py` — catalog extraction from the AST,
   worker and status reporting.
 - `scripts/runtime/install/private_environment.py` — atomic configuration writes.
-- `src/lib/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab).
-- `src/lib/models/engine-installation.ts` — transport and approval of the selected recipe.
+- `frontend/src/settings/pages/EnginePage.svelte` — the panel (**Środowiska** tab).
+- `frontend/src/models/engine-installation.ts` — transport and approval of the selected recipe.
 
 Checks that do not require expensive inference:
 `python -S tests/runtime/test_engine_installation.py`

@@ -5,10 +5,10 @@ import ts from 'typescript';
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 const [client, settings, rust, main, activity, settingsApi] = await Promise.all([
-  read('src/lib/platform/runtime.ts'),
-  read('src/lib/settings/pages/EnginePage.svelte'), // Settings → Silnik → Uruchamianie i pamięć owns the control.
-  read('src-tauri/src/runtime.rs'),
-  read('src-tauri/src/main.rs'),
+  read('frontend/src/platform/runtime.ts'),
+  read('frontend/src/settings/pages/EnginePage.svelte'), // Settings → Silnik → Uruchamianie i pamięć owns the control.
+  read('desktop/src/runtime.rs'),
+  read('desktop/src/main.rs'),
   read('scripts/runtime/app/activity.py'),
   read('scripts/runtime/app/system_settings.py'),
 ]);

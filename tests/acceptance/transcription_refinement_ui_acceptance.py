@@ -104,7 +104,7 @@ def run(args):
               "scope": "Built UI, controlled HTTP response fixtures, no real backend/ASR/LLM/provider configuration",
               "sourceCommit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
               "workingTreeBuild": True, "sourceSha256": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-              for name in ["src/lib/platform/api.ts", "src/lib/tools/transcription/transcription.ts", "src/lib/tools/transcription/TranscriptionWorkspace.svelte"]},
+              for name in ["frontend/src/platform/api.ts", "frontend/src/tools/transcription/transcription.ts", "frontend/src/tools/transcription/TranscriptionWorkspace.svelte"]},
               "distIndexSha256": hashlib.sha256((dist / "index.html").read_bytes()).hexdigest(),
               "checks": checks, "requests": calls, "errors": errors, "realBackendRequests": 0}
     try:

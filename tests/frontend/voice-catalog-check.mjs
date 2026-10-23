@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { get, writable } from 'svelte/store';
 import ts from 'typescript';
 
-const root = new URL('../../src/lib/', import.meta.url);
+const root = new URL('../../frontend/src/', import.meta.url);
 async function execute(filename, dependencies = {}) {
   let source = await readFile(sourceUrl(filename), 'utf8');
   const parsed = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);

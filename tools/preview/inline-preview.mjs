@@ -6,18 +6,18 @@ import { build } from 'vite';
 // Osobne wejście App daje jeden samodzielny dokument także wtedy, gdy
 // produkcyjna aplikacja wczytuje katalog UI w osobnym chunku.
 const directory = mkdtempSync(resolve(tmpdir(), 'voicestudio-app-preview-'));
-const entry = resolve(`.app-preview-${process.pid}.html`);
+const entry = resolve('frontend', `.app-preview-${process.pid}.html`); // inside the Vite root
 const outputFlag = process.argv.indexOf('--output-dir');
 const outputDir = outputFlag < 0 ? resolve('docs') : resolve(process.argv[outputFlag + 1]);
 writeFileSync(entry, `<!doctype html><html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Seventy Seven Labs</title></head><body><div id="app"></div><script type="module">
 import { mount } from 'svelte';import App from '/src/App.svelte';
-import '/src/styles.css';import '/src/lib/styles/ui.css';import '/src/lib/ui/product-controls.css';import '/src/lib/ui/overlays.css';
-import '/src/lib/ui/focus-intent.css';
-import {installFocusIntent} from '/src/lib/styles/focus-intent';installFocusIntent(document);
+import '/src/styles.css';import '/src/styles/ui.css';import '/src/ui/product-controls.css';import '/src/ui/overlays.css';
+import '/src/ui/focus-intent.css';
+import {installFocusIntent} from '/src/styles/focus-intent';installFocusIntent(document);
 mount(App,{target:document.getElementById('app')});
 </script></body></html>`, 'utf8');
 try {
-await build({ build: { outDir: directory, emptyOutDir: true, assetsInlineLimit: Infinity, rollupOptions: { input: entry } } });
+await build({ configFile: 'frontend/vite.config.ts', build: { outDir: directory, emptyOutDir: true, assetsInlineLimit: Infinity, rollupOptions: { input: entry } } });
 const html = readFileSync(resolve(directory, entry.split(/[\\/]/).at(-1)), 'utf8');
 const jsPath = html.match(/<script\b[^>]*src="([^"]+)"/)[1];
 const cssPaths = [...html.matchAll(/<link\b[^>]*href="([^"]+\.css)"/g)].map(match => match[1]);

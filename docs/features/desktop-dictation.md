@@ -36,14 +36,14 @@ prove that the target application accepted the text.
 
 ## Where to make changes
 
-- `src-tauri/src/dictation_desktop.rs`: shortcut, widget, target, and leases.
-- `src/lib/tools/dictation/dictation-desktop.ts`: IPC and session lifecycle.
-- `src/lib/settings/pages/ShortcutsPage.svelte`: explicit settings and microphone access.
-- `src/lib/tools/dictation/DictationWidget.svelte`: text, Start/Stop, and copying.
-- `src/lib/tools/dictation/dictation.ts`, `src/lib/tools/dictation/dictation-worklet.js`: PCM transport.
+- `desktop/src/dictation_desktop.rs`: shortcut, widget, target, and leases.
+- `frontend/src/tools/dictation/dictation-desktop.ts`: IPC and session lifecycle.
+- `frontend/src/settings/pages/ShortcutsPage.svelte`: explicit settings and microphone access.
+- `frontend/src/tools/dictation/DictationWidget.svelte`: text, Start/Stop, and copying.
+- `frontend/src/tools/dictation/dictation.ts`, `frontend/src/tools/dictation/dictation-worklet.js`: PCM transport.
 
 Checks: `node tests/frontend/dictation-desktop-check.mjs`
-and `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.
+and `cargo test --locked --manifest-path desktop/Cargo.toml dictation_desktop::tests`.
 Contract tests do not replace testing with a physical microphone and the running
 EXE. Test pasting only in a controlled test window you own.
 See [verification](../verification/verification.md) and [privacy](../../SECURITY.md).

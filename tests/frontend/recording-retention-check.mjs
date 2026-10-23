@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 import { proxy, snapshot } from 'svelte/internal/client';
-const source = await readFile(new URL('../../src/lib/projects/library.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/projects/library.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const {retentionRemovals} = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 const rows = [
@@ -29,7 +29,7 @@ assert.deepEqual(deleted,['new','old']);
 assert.equal(saved.url,undefined);
 assert.equal(closed,true);
 console.log('Recording retention: 12 assertions passed, including real save transaction path.');
-const app=(await readFile(new URL('../../src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+const app=(await readFile(new URL('../../frontend/src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 const ast=ts.createSourceFile('App.ts',app,ts.ScriptTarget.Latest,true);
 const callback=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='toggleRecordingStar').getText(ast);
 let persisted,notices=0;

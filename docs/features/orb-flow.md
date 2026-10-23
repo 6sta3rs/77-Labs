@@ -12,11 +12,11 @@ The look is adapted from the orb on the ElevenLabs homepage (captured 2026-10-20
 
 | File | Role |
 | --- | --- |
-| `src/lib/playback/landing-orb.frag` | Adapted source fragment shader (WebGL1) |
-| `src/lib/playback/landing-fluid.ts` | Fluid pass ported without the original OGL renderer |
-| `src/lib/playback/landing-orb.ts` | Lazy module: shader, images, uniform defaults |
-| `src/lib/assets/landing-orb/` | The three images below |
-| `src/lib/playback/voice-orb.ts`, `shared-voice-orb.ts`, `VoiceOrb.svelte` | Renderer branch, shared clock and loading/fallback |
+| `frontend/src/playback/landing-orb.frag` | Adapted source fragment shader (WebGL1) |
+| `frontend/src/playback/landing-fluid.ts` | Fluid pass ported without the original OGL renderer |
+| `frontend/src/playback/landing-orb.ts` | Lazy module: shader, images, uniform defaults |
+| `frontend/src/assets/landing-orb/` | The three images below |
+| `frontend/src/playback/voice-orb.ts`, `shared-voice-orb.ts`, `VoiceOrb.svelte` | Renderer branch, shared clock and loading/fallback |
 
 | Image | Original address | SHA-256 |
 | --- | --- | --- |
@@ -34,4 +34,4 @@ The look is adapted from the orb on the ElevenLabs homepage (captured 2026-10-20
 
 ## Removing the style
 
-Delete the files above, the `landing` branches in the three renderer files, and the option in `src/lib/settings/Appearance.svelte`; keep `normalizeOrbVariant` mapping saved `elevenlabs`/`landing` to `original`. Update `THIRD_PARTY_NOTICES.md` and `docs/public-assets.json`.
+Delete the files above, the `landing` branches in the three renderer files, and the option in `frontend/src/settings/Appearance.svelte`; keep `normalizeOrbVariant` mapping saved `elevenlabs`/`landing` to `original`. Update `THIRD_PARTY_NOTICES.md` and `docs/public-assets.json`.

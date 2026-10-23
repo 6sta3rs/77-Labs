@@ -33,7 +33,7 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 - At launch the app starts the engine (unless autostart is off) and, because Rust sets `VOICESTUDIO_NEXT_PRELOAD_TTS` to `1` by default (the gate patched into the pinned `main.py` by `launcher.py`), the engine warms the TTS model in the background; warm-up is skipped silently when the model terms are not accepted or no weights are installed. **„Ładuj model głosowy do pamięci po uruchomieniu”** (load the voice model into memory at startup) sets the flag to `0` instead: the frontend stores `voicestudio.enginePreload` (default on) and applies it once per session through `runtime_set_preload` before the engine is spawned (Rust reads it per spawn, so it applies to the next start). The switch is shown disabled while autostart is off. Memory use is the cost: the model stays resident until the engine's own model idle timeout (the idle choice above, 900 s by default) or a stop.
 - **„Załaduj model teraz”** (load the model now) calls `POST /next/settings/model-preload`, which starts the engine's own `model_manager.preload_model()` as a tracked asyncio task and returns the `/model/status` payload plus `running`. The task is counted as work by `activity.backend_work_busy()` (`system_settings.preload_busy()`), so the idle monitor cannot stop the engine mid-load; progress is read from `/model/status` (a monitor read). Like the startup warm-up, it silently skips when the licence is not accepted or the weights are missing; the page then says so after two idle polls.
 - The route lives under `/next/settings` (not `/next/model`) because FastAPI applies a router's prefix to its own routes only; nesting a second router is version dependent.
-- Progress shown by the card in `src/lib/platform/EngineStartup.svelte` is real: `launcher.py` writes `NEXT_STARTUP_EVENT {"stage":…}` lines to `engine.log` (`engine_files`, `backup`, `modules`, `server`), Rust adds the engine's own `/startup/progress` step (`env_prefs` … `services_start`) to `RuntimeStatus.startup.stage` (stages only move forward), and after `/health` the UI follows `/model/status`. Remaining time is not estimated; the card shows elapsed time.
+- Progress shown by the card in `frontend/src/platform/EngineStartup.svelte` is real: `launcher.py` writes `NEXT_STARTUP_EVENT {"stage":…}` lines to `engine.log` (`engine_files`, `backup`, `modules`, `server`), Rust adds the engine's own `/startup/progress` step (`env_prefs` … `services_start`) to `RuntimeStatus.startup.stage` (stages only move forward), and after `/health` the UI follows `/model/status`. Remaining time is not estimated; the card shows elapsed time.
 - Cold start may take up to 300 s (`STARTUP_BUDGET`) when libraries and weights load from a slow or external disk. A graceful stop closes stdin and waits up to 15 s (3 s while still starting) before ending only the owned process tree; a ready engine that stops answering for 90 s can be stopped manually, never automatically.
 - An interrupted mutating request without a tracked job keeps the engine awake for 30 minutes (`UNCERTAIN_WORK_WINDOW_S`), not until restart.
 - If the model folder from `OMNIVOICE_CACHE_DIR` is missing (for example an unplugged external drive), synthesis requests get an immediate 503 with a readable message instead of an obscure model-load error.
@@ -45,8 +45,8 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 
 | Responsibility | File |
 | --- | --- |
-| Supervision and IPC | `src-tauri/src/runtime.rs`, `src/lib/platform/runtime.ts` |
-| Installation and doctor | `scripts/runtime/install/bootstrap.py`, `src-tauri/src/installer.rs` |
+| Supervision and IPC | `desktop/src/runtime.rs`, `frontend/src/platform/runtime.ts` |
+| Installation and doctor | `scripts/runtime/install/bootstrap.py`, `desktop/src/installer.rs` |
 | Startup and adapters | `scripts/runtime/app/launcher.py` |
 | Request activity, idle safety, input guards | `scripts/runtime/app/activity.py` |
 | Lightweight metadata | `scripts/runtime/app/engine_catalogue_metadata.py` |
@@ -55,7 +55,7 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 
 ## Verification
 
-`cargo check --manifest-path src-tauri/Cargo.toml` checks Rust code. `tests/acceptance/smoke.py` checks start/health/stop, not generation. `tests/acceptance/qa_session.py` starts a disposable backend with local weights; `production_acceptance.py` and `tools_acceptance.py` then exercise real inference and the built-in tools against it. Speech tests require an explicitly chosen profile or reference. Write results to ignored `.tmp/qa`.
+`cargo check --manifest-path desktop/Cargo.toml` checks Rust code. `tests/acceptance/smoke.py` checks start/health/stop, not generation. `tests/acceptance/qa_session.py` starts a disposable backend with local weights; `production_acceptance.py` and `tools_acceptance.py` then exercise real inference and the built-in tools against it. Speech tests require an explicitly chosen profile or reference. Write results to ignored `.tmp/qa`.
 
 The demo tone is for player and UI tests, not cloning or valid speech in ASR. Full acceptance requires short UI synthesis, playback, save/reload, stop, and port release. Dubbing, audiobooks, and hardware configurations need separate tests. Preparing the public release did not involve new inference or weight downloads.
 

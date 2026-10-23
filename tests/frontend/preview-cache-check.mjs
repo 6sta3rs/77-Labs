@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
 import { compile } from 'svelte/compiler'
 
-const source = await readFile(new URL('../../src/lib/playback/preview-cache.ts', import.meta.url), 'utf8')
+const source = await readFile(new URL('../../frontend/src/playback/preview-cache.ts', import.meta.url), 'utf8')
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
 const exports = {}
 new Function('exports', 'require', code)(exports, () => ({ productionJson: () => { throw new Error('Unexpected network call') }, postJson: value => ({ body: JSON.stringify(value) }) }))
@@ -29,7 +29,7 @@ assert.equal(reported, false)
 resolve(); await pending
 assert.equal(reported, true)
 // The preview cache controls moved from PreviewCacheSettings.svelte to Settings → Przechowywanie (StoragePage.svelte).
-const component = await readFile(new URL('../../src/lib/settings/pages/StoragePage.svelte', import.meta.url), 'utf8')
+const component = await readFile(new URL('../../frontend/src/settings/pages/StoragePage.svelte', import.meta.url), 'utf8')
 const compiled = compile(component, { filename: 'StoragePage.svelte', generate: 'client' })
 assert.equal(compiled.warnings.length, 0, JSON.stringify(compiled.warnings))
 assert.match(component, /await generatePreviewSeries\(selected, \{ stop: \(\) => stopRequested \|\| disposed,/, 'The page uses the shared series helper; stop and close end the series after the current sample.')

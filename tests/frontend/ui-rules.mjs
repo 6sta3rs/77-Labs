@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
 // The gallery and the ui/ implementations legitimately wrap natives; translations only contain strings.
-const skip = p => [['lib', 'gallery'], ['lib', 'ui'], ['lib', 'i18n']].some(parts => p.startsWith(['src', ...parts].join(sep) + sep))
+const skip = p => [['gallery'], ['ui'], ['i18n']].some(parts => p.startsWith(['frontend', 'src', ...parts].join(sep) + sep))
 const files = []
 const walk = dir => {
   for (const name of readdirSync(dir)) {
@@ -12,7 +12,7 @@ const walk = dir => {
     else if (/\.(svelte|ts)$/.test(name) && !skip(path)) files.push(path)
   }
 }
-walk('src')
+walk('frontend/src')
 
 // Tag text from "<name" to its closing ">" (ignores ">" inside {...} expressions).
 function* tags(text, name) {

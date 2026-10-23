@@ -39,3 +39,5 @@ package.json              stays in the repository root (npm scripts, CI, lockfil
 6. Do not change Tauri identifiers or data keys (rule 6 in `docs/architecture/project-structure.md`).
 
 **Done when.** All checks above pass, no tracked file mentions `src/lib` or `src-tauri` except as history, and the built EXE starts.
+
+**Done (23 October 2026).** Proven by a real `npm run desktop:build` on the new layout (no `--config`, no workaround: the Tauri CLI finds `desktop/tauri.conf.json`, `frontendDist` `../dist` still resolves), a green `cargo check/test/clippy`, and a smoke run of the built EXE over CDP on isolated data (window starts, 12 settings pages mount, no page errors). Vite runs with `--config frontend/vite.config.ts` (`root` is `frontend/`, `publicDir` `../public`, `outDir` `../dist`). `OrbMusicDemo.svelte`, `orb-music-demo.ts` and `orb-demo.html` were kept (T-0009 undecided): the two sources sit in `frontend/src/`, the page in `frontend/`.

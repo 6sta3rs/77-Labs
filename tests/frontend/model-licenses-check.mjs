@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { compile } from 'svelte/compiler';
 import * as reactivity from 'svelte/internal/client';
 
-const source = await readFile(new URL('../../src/lib/models/model-licenses.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/models/model-licenses.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const helpers = {}; new Function('exports','require',code)(helpers,i18nRequire);
 const repo = 'qa-public/fixture-model', fingerprint = 'v2:' + 'a'.repeat(64), nextFingerprint = 'v2:' + 'b'.repeat(64);
@@ -46,7 +46,7 @@ await assert.rejects(changed.accept(detail, true), error => error instanceof hel
 const unsupported = new helpers.ModelLicenseService(async () => new Response('', { status: 404 }));
 await assert.rejects(unsupported.details(repo), /0\.5\.7/);
 
-let componentSource = (await readFile(new URL('../../src/lib/models/ModelLicenseReview.svelte', import.meta.url), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+let componentSource = (await readFile(new URL('../../frontend/src/models/ModelLicenseReview.svelte', import.meta.url), 'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 const parsed = ts.createSourceFile('review.ts', componentSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 for (const node of [...parsed.statements].reverse()) if (ts.isImportDeclaration(node)) componentSource = componentSource.slice(0, node.pos) + componentSource.slice(node.end);
 componentSource += `\nreturn {load,decide,agree(value){agreed=value},withdraw(value){withdrawing=value},get result(){return {details,agreed,withdrawing,error,message,busy,loading}}};`;
@@ -146,7 +146,7 @@ console.log('Onboarding review PASS: no cold-runtime calls, authoritative callba
 // Execute the compiler's real script/effects with Svelte's scheduler. Omit only
 // DOM rendering: this catches a missing busy dependency, unlike the plain-script
 // service fixtures above. No browser, backend or consent store is involved.
-const compiledReview = compile(await readFile(new URL('../../src/lib/models/ModelLicenseReview.svelte', import.meta.url), 'utf8'), { filename: 'ModelLicenseReview.svelte', generate: 'client' }).js.code;
+const compiledReview = compile(await readFile(new URL('../../frontend/src/models/ModelLicenseReview.svelte', import.meta.url), 'utf8'), { filename: 'ModelLicenseReview.svelte', generate: 'client' }).js.code;
 const compiledTree = ts.createSourceFile('compiled-review.js', compiledReview, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const compiledFactory = compiledTree.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'ModelLicenseReview');
 assert.ok(compiledFactory?.body);
@@ -183,7 +183,7 @@ try {
 } finally { clearTimeout(transitionTimer); transitionDestroy?.(); releaseTransition(); reactivity.flush(); }
 console.log('Reactive repo transition PASS: the compiled Svelte effect resumes the pending dependency GET after busy=false, with an unchecked independent decision.');
 
-const apiSource=await readFile(new URL('../../src/lib/platform/api.ts',import.meta.url),'utf8');
+const apiSource=await readFile(new URL('../../frontend/src/platform/api.ts',import.meta.url),'utf8');
 const apiTree=ts.createSourceFile('api.ts',apiSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
 const generateNode=apiTree.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='generate');
 const generateCode=ts.transpileModule(generateNode.getText(apiTree),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -197,7 +197,7 @@ await assert.rejects(apiExports.generate(generationInput,cancelledGeneration.sig
 assert.equal(dispatched.length,1,'A late 403 after cancellation must not open a new settings view.');
 console.log('Generate 403 event and post-cancellation suppression PASS (actual api.generate with fixture response).');
 
-let productionSource=await readFile(new URL('../../src/lib/tools/production/production.ts',import.meta.url),'utf8');
+let productionSource=await readFile(new URL('../../frontend/src/tools/production/production.ts',import.meta.url),'utf8');
 const productionTree=ts.createSourceFile('production.ts',productionSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
 for(const node of [...productionTree.statements].reverse())if(ts.isImportDeclaration(node))productionSource=productionSource.slice(0,node.pos)+productionSource.slice(node.end);
 const productionCode=ts.transpileModule(productionSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;

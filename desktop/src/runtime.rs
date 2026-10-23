@@ -23,7 +23,7 @@ const BACKUP_EVENT: &str = "NEXT_BACKUP_EVENT ";
 const STORAGE_EVENT: &str = "NEXT_STORAGE_EVENT ";
 const STARTUP_EVENT: &str = "NEXT_STARTUP_EVENT ";
 // Startup stages in order: the first four are announced by launcher.py in engine.log, the rest are the
-// engine's own `/startup/progress` step ids. The UI (src/lib/platform/engine-startup.ts) keeps the same order.
+// engine's own `/startup/progress` step ids. The UI (frontend/src/platform/engine-startup.ts) keeps the same order.
 const STAGES: [&str; 10] = ["engine_files", "backup", "modules", "server", "env_prefs", "native_preload", "ml_imports", "api_routes", "db_migrate", "services_start"];
 const MAX_SAFE_COUNTER: u64 = 9_007_199_254_740_991;
 const LAUNCHER: &str = include_str!("../../scripts/runtime/app/launcher.py");

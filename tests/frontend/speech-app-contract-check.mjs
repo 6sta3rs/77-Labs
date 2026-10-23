@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 async function helpers(name){const source=await readFile(sourceUrl(name),'utf8');const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const result={};new Function('exports',code)(result);return result;}
 const speech=await helpers('speech-settings.ts'),audio=await helpers('audio.ts');
-const app=(await readFile(new URL('../../src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
+const app=(await readFile(new URL('../../frontend/src/App.svelte',import.meta.url),'utf8')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 const parsed=ts.createSourceFile('app.ts',app,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
 const functions=new Set(['generate','restore','persistProject','openProject','changeBlocks','changeSpeechSettings']);
 const actual=parsed.statements.filter(node=>ts.isFunctionDeclaration(node)&&functions.has(node.name?.text)).map(node=>node.getText(parsed)).join('\n');

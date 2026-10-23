@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { transformAppReadiness } from './engine-readiness-app-transform.mjs';
 import { compile as compileSvelte } from 'svelte/compiler';
 
-const root = new URL('../../src/', import.meta.url);
+const root = new URL('../../frontend/src/', import.meta.url);
 const source = file => readFile(new URL(file, root), 'utf8');
 function compile(text, dependencies = {}) {
   const exports = {};
@@ -16,8 +16,8 @@ function compile(text, dependencies = {}) {
   });
   return exports;
 }
-const ready = compile(await source('lib/models/engine-readiness.ts'));
-const picker = compile(await source('lib/models/model-picker.ts'), { './engine-readiness': ready });
+const ready = compile(await source('models/engine-readiness.ts'));
+const picker = compile(await source('models/model-picker.ts'), { './engine-readiness': ready });
 let count = 0;
 const test = async (name, run) => { await run(); count++; process.stdout.write(`PASS ${name}\n`); };
 const detected = { id: 'qa', display_name: 'QA', available: false, availability_check: 'dependencies_detected', can_verify: true,
@@ -75,13 +75,13 @@ function componentScript(text, props, dependencies = {}, exposure = 'select') {
 }
 await test('Active metadata-only model performs stock POST selection, preserving caller signal', async () => {
   const requests = [], timeouts = [];
-  const production = compile(await source('lib/tools/production/production.ts'), {
+  const production = compile(await source('tools/production/production.ts'), {
     '../../platform/api': { prepareRequest: async () => {}, request: async (path, options) => {
       requests.push({ path, ...options });
       return { ok: true, json: async () => path === '/engines/select' ? { active: 'qa', env_override: false } : { tts: family() } };
     } }, '../../models/model-licenses': { assertModelLicenseResponse: async () => {} },
   });
-  const tools = compile(await source('lib/tools/studio-tools.ts'), { './production/production': production, '../platform/api': {},
+  const tools = compile(await source('tools/studio-tools.ts'), { './production/production': production, '../platform/api': {},
     '../models/engine-catalog-state': { invalidateCatalogReads() {}, beginCatalogRead: () => 1, publishEngineCatalog: () => true, withConfirmed: catalog => catalog } });
   const text = (await source('App.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
   const parsed = ts.createSourceFile('App.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -96,7 +96,7 @@ await test('Active metadata-only model performs stock POST selection, preserving
     resetPresetForEngine: value => value, scheduleProjectSave() {}, preferredSpeechLanguage: () => 'Polish' };
   const app = new Function(...Object.keys({...i18nDeps,...deps}), appCode)(...Object.values({...i18nDeps,...deps}));
   let closes = 0;
-  const subject = componentScript(await source('lib/models/ModelPicker.svelte'), { models: [item], selectedId: 'qa', onselect: app.chooseInstalledModel, onclose: () => closes++ });
+  const subject = componentScript(await source('models/ModelPicker.svelte'), { models: [item], selectedId: 'qa', onselect: app.chooseInstalledModel, onclose: () => closes++ });
   const original = AbortSignal.timeout;
   AbortSignal.timeout = ms => { timeouts.push(ms); return original(ms); };
   try { await subject.select(item); } finally { AbortSignal.timeout = original; }
@@ -112,14 +112,14 @@ await test('Active metadata-only model performs stock POST selection, preserving
 await test('Already selected available model is inert without a redundant POST or close; blocked metadata does nothing', async () => {
   let selections = 0, closes = 0;
   const item = { id: 'qa', name: 'QA', description: '', languages: [], installed: true, available: true };
-  const subject = componentScript(await source('lib/models/ModelPicker.svelte'), { models: [item], selectedId: 'qa', onselect: async () => selections++, onclose: () => closes++ });
+  const subject = componentScript(await source('models/ModelPicker.svelte'), { models: [item], selectedId: 'qa', onselect: async () => selections++, onclose: () => closes++ });
   await subject.select(item); assert.equal(selections, 0);
   await subject.select({ ...item, available: false, canVerify: false }); assert.equal(selections, 0);
   assert.equal(closes, 0);
 });
 await test('Catalogue action preserves active verification and all existing licence guards', async () => {
   // The engine catalogue moved from models/EngineCatalog.svelte to settings/pages/ModelsPage.svelte (per-family `fam`, licence switch `agreed`).
-  const text = await source('lib/settings/pages/ModelsPage.svelte');
+  const text = await source('settings/pages/ModelsPage.svelte');
   assert.ok(text.includes('!isActive || needsEngineVerification(useEngine)'));
   assert.ok(text.includes('!canSelectEngine(useEngine) || Boolean(fam.env_override) || Boolean(useEngine.license_required && !useEngine.license_accepted)'));
   assert.ok(text.includes('bind:checked={agreed}'));
@@ -130,7 +130,7 @@ await test('Tool model settings support explicit ASR verification and LLM off wi
   for (const name of ['asr', 'llm']) {
     const engine = name === 'llm' ? { ...detected, id: 'off', display_name: 'Bez LLM' } : detected;
     const snapshot = { active: engine.id, backends: [engine] }, calls = [];
-    const subject = componentScript(await source('lib/models/ToolModelSettings.svelte'), { ready: true, family: name }, {
+    const subject = componentScript(await source('models/ToolModelSettings.svelte'), { ready: true, family: name }, {
       $engineCatalogSnapshot: { catalog: { [name]: snapshot } },
       selectEngine: async (...args) => { calls.push(args); return { active: engine.id, env_override: false }; },
       engineCatalog: async () => ({ [name]: snapshot }),
@@ -140,13 +140,13 @@ await test('Tool model settings support explicit ASR verification and LLM off wi
     assert.ok(calls[0][2] instanceof AbortSignal); assert.equal(engine.available, false); assert.equal(engine.inference_verified, false);
   }
   const snapshot = { active: 'mlx-audio', backends: [{ ...detected, id: 'mlx-audio', availability_check: 'platform_unsupported', can_verify: false }] };
-  const subject = componentScript(await source('lib/models/ToolModelSettings.svelte'), { ready: true, family: 'asr' }, {
+  const subject = componentScript(await source('models/ToolModelSettings.svelte'), { ready: true, family: 'asr' }, {
     $engineCatalogSnapshot: { catalog: { asr: snapshot } }, selectEngine: async () => assert.fail('Unsupported engine must not send a mutation'),
   }, 'choose');
   await assert.rejects(subject.choose('mlx-audio'));
 });
 await test('Both catalogues and reusable tool selector compile with actual Svelte markup', async () => {
-  for (const file of ['lib/settings/pages/ModelsPage.svelte', 'lib/models/ModelPicker.svelte', 'lib/models/ToolModelSettings.svelte']) {
+  for (const file of ['settings/pages/ModelsPage.svelte', 'models/ModelPicker.svelte', 'models/ToolModelSettings.svelte']) {
     compileSvelte(await source(file), { filename: file, generate: false });
   }
 });

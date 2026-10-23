@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const source = (await readFile(new URL('../../src/lib/platform/engine-startup.ts', import.meta.url), 'utf8')).replace(/^import .*$/gm, '');
+const source = (await readFile(new URL('../../frontend/src/platform/engine-startup.ts', import.meta.url), 'utf8')).replace(/^import .*$/gm, '');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { startupSteps, readModelWarmup, startupRows, startupFraction, warmupNote } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 
-const rust = await readFile(new URL('../../src-tauri/src/runtime.rs', import.meta.url), 'utf8');
+const rust = await readFile(new URL('../../desktop/src/runtime.rs', import.meta.url), 'utf8');
 const stages = rust.match(/const STAGES: \[&str; \d+\] = \[([^\]]+)\]/)[1].match(/"([^"]+)"/g).map(id => id.slice(1, -1));
 assert.deepEqual(startupSteps.slice(0, -1).map(([id]) => id), stages, 'UI step order must mirror STAGES in runtime.rs');
 assert.equal(startupSteps.at(-1)[0], 'model');

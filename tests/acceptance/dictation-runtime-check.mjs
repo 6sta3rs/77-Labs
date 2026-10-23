@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import ts from 'typescript';
 
-const source = await readFile(new URL('../../src/lib/tools/dictation/dictation.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/tools/dictation/dictation.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
 const { dictationSocketUrl, emptyDictation, reduceDictationMessage, DICTATION_END } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 const speechIndex = process.argv.indexOf('--speech-reference');

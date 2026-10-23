@@ -10,7 +10,7 @@ globalThis.document = Object.assign(documentEvents, { hidden: false, documentEle
 globalThis.matchMedia = () => media;
 globalThis.MutationObserver = class { constructor(callback) { mutations++; this.callback = callback; globalThis.mutation = this; } observe() {} disconnect() { disconnected++; } };
 globalThis.IntersectionObserver = class { constructor(callback) { intersections++; this.callback = callback; globalThis.intersection = this; } observe(element) { observed.add(element); } unobserve(element) { observed.delete(element); } disconnect() { disconnected++; } };
-const code = ts.transpileModule(await readFile(new URL('../../src/lib/playback/orb-motion.ts', import.meta.url), 'utf8'), {
+const code = ts.transpileModule(await readFile(new URL('../../frontend/src/playback/orb-motion.ts', import.meta.url), 'utf8'), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
 const { observeOrbMotion } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);

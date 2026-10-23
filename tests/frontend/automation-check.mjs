@@ -6,7 +6,7 @@ import ts from 'typescript';
 // Execute the actual module with isolated storage and controlled transports.
 // No browser profile, backend, private data, network, GPU or model is opened.
 async function load(dependencies = {}) {
-  let source = await readFile(new URL('../../src/lib/tools/automation/automation.ts', import.meta.url), 'utf8');
+  let source = await readFile(new URL('../../frontend/src/tools/automation/automation.ts', import.meta.url), 'utf8');
   const parsed = ts.createSourceFile('automation.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   for (const node of [...parsed.statements].reverse()) if (ts.isImportDeclaration(node)) source = source.slice(0, node.pos) + source.slice(node.end);
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;

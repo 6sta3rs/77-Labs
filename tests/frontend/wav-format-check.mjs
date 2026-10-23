@@ -3,7 +3,7 @@ await ensureQaDirectory(new URL('../../.tmp/qa/', import.meta.url), { recursive:
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import ts from 'typescript';
-const source=await readFile(new URL('../../src/lib/playback/audio.ts',import.meta.url),'utf8');
+const source=await readFile(new URL('../../frontend/src/playback/audio.ts',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const audio={};new Function('exports',code)(audio);
 const frames=64,sampleRate=48000,channels=2;

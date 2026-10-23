@@ -1,7 +1,7 @@
 // Interface languages: status, translator hand-off and scaffolding for a new language (docs/features/i18n.md).
 //   node tools/dev/i18n-lang.mjs status                       coverage of every registered language against English
 //   node tools/dev/i18n-lang.mjs missing <code>               writes .tmp/i18n/<code>-missing.json ({ "Polish source": "English reference" })
-//   node tools/dev/i18n-lang.mjs add <code> "<Name>" <locale> [rtl]   creates src/lib/i18n/<code>/index.ts and registers it
+//   node tools/dev/i18n-lang.mjs add <code> "<Name>" <locale> [rtl]   creates frontend/src/i18n/<code>/index.ts and registers it
 // Set I18N_ROOT to run `add` against another checkout (the test does).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -18,8 +18,8 @@ function add([code, name, locale, direction]) {
   if (!/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(code)) fail(`Invalid language code "${code}" (use a BCP 47 code such as de, pt-BR, zh-Hans).`)
   try { new Intl.Locale(locale) } catch { fail(`Invalid locale "${locale}" (for example de-DE).`) }
   if (direction && direction !== 'rtl' && direction !== 'ltr') fail('The optional last argument must be rtl or ltr.')
-  const registryFile = resolve(root, 'src/lib/i18n/languages.ts')
-  const folder = resolve(root, 'src/lib/i18n', code)
+  const registryFile = resolve(root, 'frontend/src/i18n/languages.ts')
+  const folder = resolve(root, 'frontend/src/i18n', code)
   let registry = readFileSync(registryFile, 'utf8')
   if (!registry.includes(MARKER)) fail(`The marker "${MARKER}" is missing in languages.ts; add the language by hand.`)
   if (existsSync(folder) || registry.includes(`code: '${code}'`)) fail(`Language "${code}" already exists.`)
@@ -34,7 +34,7 @@ function add([code, name, locale, direction]) {
   const dir = direction === 'rtl' ? ", dir: 'rtl'" : ''
   registry = registry.replace(`  ${MARKER}`, `  { code: '${code}', name: ${JSON.stringify(name)}, locale: '${locale}'${dir}, catalog: ${identifier} },\n  ${MARKER}`)
   writeFileSync(registryFile, registry)
-  console.log(`Added ${code} (${name}). Next: npm run i18n:missing -- ${code}, translate src/lib/i18n/${code}/index.ts, npm run i18n:status.`)
+  console.log(`Added ${code} (${name}). Next: npm run i18n:missing -- ${code}, translate frontend/src/i18n/${code}/index.ts, npm run i18n:status.`)
 }
 
 if (command === 'add') add(args)
@@ -60,6 +60,6 @@ else if (command === 'status' || command === 'missing') {
     const file = resolve(repo, '.tmp/i18n', `${entry.code}-missing.json`)
     mkdirSync(dirname(file), { recursive: true })
     writeFileSync(file, JSON.stringify(todo, null, 2) + '\n')
-    console.log(`${Object.keys(todo).length} strings to translate into ${entry.name}: .tmp/i18n/${entry.code}-missing.json (Polish source -> English reference). Put the result in src/lib/i18n/${entry.code}/index.ts.`)
+    console.log(`${Object.keys(todo).length} strings to translate into ${entry.name}: .tmp/i18n/${entry.code}-missing.json (Polish source -> English reference). Put the result in frontend/src/i18n/${entry.code}/index.ts.`)
   }
 } else fail(`Unknown command "${command}". Use status, missing or add.`)

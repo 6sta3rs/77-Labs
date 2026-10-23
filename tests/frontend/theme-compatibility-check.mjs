@@ -29,9 +29,9 @@ globalThis.localStorage = {
   setItem: (key, value) => stored.set(key, String(value)),
 }
 globalThis.CSS = { supports: (property, value) => property === 'color' && /^(?:#[\da-f]+|oklch\()/i.test(value) }
-const upstream = await import(await moduleUrl(path.join(root, 'src/lib/themes/t3-palettes.ts')))
-const library = await import(await moduleUrl(path.join(root, 'src/lib/themes/library.ts')))
-const appearance = await import(await moduleUrl(path.join(root, 'src/lib/settings/appearance.ts')))
+const upstream = await import(await moduleUrl(path.join(root, 'frontend/src/themes/t3-palettes.ts')))
+const library = await import(await moduleUrl(path.join(root, 'frontend/src/themes/library.ts')))
+const appearance = await import(await moduleUrl(path.join(root, 'frontend/src/settings/appearance.ts')))
 let passed = 0
 function test(name, run) { run(); passed++; console.log(`PASS ${name}`) }
 const appearanceKey = 'voicestudio.appearance.v2'

@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 
-const source = await readFile(new URL('../../src/lib/playback/voice-orb.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/playback/voice-orb.ts', import.meta.url), 'utf8');
 const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
 }).outputText;

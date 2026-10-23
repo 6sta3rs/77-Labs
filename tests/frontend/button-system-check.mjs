@@ -12,7 +12,7 @@ function scan(directory) {
     else if (/\.(svelte|css)$/.test(path)) files.push(path)
   }
 }
-scan('src')
+scan('frontend/src')
 let usages = 0
 for (const file of files) {
   const source = readFileSync(file, 'utf8')

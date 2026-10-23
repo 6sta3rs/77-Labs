@@ -6,12 +6,12 @@ Seventy Seven Labs provides light and dark palettes, separate assignments for
 each appearance mode, and a local custom theme library. Imported palette
 origins, revisions, copyright, and licenses are recorded in
 [third-party notices](../../THIRD_PARTY_NOTICES.md). The complete original license
-remains in [LICENSE-T3](../../src/lib/themes/LICENSE-T3).
+remains in [LICENSE-T3](../../frontend/src/themes/LICENSE-T3).
 
 ## Behavior
 
 Studio offers Labs, Ocean, Grove, Ember, Iris, and **Róża** (Rose) in light and dark
-variants. `src/lib/themes/t3-palettes.ts` preserves the bundled palette values, while
+variants. `frontend/src/themes/t3-palettes.ts` preserves the bundled palette values, while
 `appearance.ts` maps them to interface roles. Contrast settings can change the
 resulting borders. Thumbnails use the actual palettes.
 
@@ -28,10 +28,10 @@ recoverable. There is no online synchronization or gallery.
 
 ## Where to make changes
 
-- `src/lib/settings/Appearance.svelte`: cards, assignments, and settings.
-- `src/lib/settings/ThemeDialog.svelte`: editor and imports.
-- `src/lib/themes/library.ts`: format, validation, and local library.
-- `src/lib/settings/appearance.ts`: applying palettes and saving preferences.
+- `frontend/src/settings/Appearance.svelte`: cards, assignments, and settings.
+- `frontend/src/settings/ThemeDialog.svelte`: editor and imports.
+- `frontend/src/themes/library.ts`: format, validation, and local library.
+- `frontend/src/settings/appearance.ts`: applying palettes and saving preferences.
 
 The library uses localStorage `voicestudio.themes.v1`; preferences use
 `voicestudio.appearance.v2`. Test in a separate profile to avoid changing your

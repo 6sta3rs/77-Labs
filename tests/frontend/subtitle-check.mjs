@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const source = await readFile(new URL('../../src/lib/tools/studio-tools.ts', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../frontend/src/tools/studio-tools.ts', import.meta.url), 'utf8');
 // Exercise the pure formatter without importing desktop transports into Node.
 const formatter = source.slice(source.indexOf('export type TranscriptSegment'));
 const js = ts.transpileModule(formatter, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;

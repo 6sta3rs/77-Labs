@@ -1,7 +1,7 @@
 # Interface component gallery
 
 Run `npm run dev` and open `http://127.0.0.1:4310/inputy.html`.
-The `src/gallery.ts` entry point displays the studio's real Svelte components:
+The `frontend/src/gallery.ts` entry point displays the studio's real Svelte components:
 inputs, selects, sliders, switches, buttons, tooltips, theme cards, the editor,
 filters, model selection, and audio examples. The interface labels are Polish.
 
@@ -19,10 +19,10 @@ synthetic demonstration signal, without a user's voice or a model.
 
 ## Where to make changes
 
-- `src/lib/gallery/ControlGallery.svelte`: layout and local example state.
-- `src/lib/ui/`, `src/lib/styles/ui.css`: shared controls.
-- `src/lib/gallery/AudioExamples.svelte`: playback and orb material examples.
-- `src/gallery.ts`, `inputy.html`: development entry point.
+- `frontend/src/gallery/ControlGallery.svelte`: layout and local example state.
+- `frontend/src/ui/`, `frontend/src/styles/ui.css`: shared controls.
+- `frontend/src/gallery/AudioExamples.svelte`: playback and orb material examples.
+- `frontend/src/gallery.ts`, `inputy.html`: development entry point.
 - `tools/preview/controls-preview.mjs`: optional standalone preview generator.
 
 Generated HTML is an artifact, not a second source of components. Before sharing

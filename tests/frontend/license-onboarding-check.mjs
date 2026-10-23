@@ -10,8 +10,8 @@ async function module(path, dependencies = {}) {
   new Function('exports', 'require', code)(result, name => { if (/\/i18n$/.test(name)) return i18nRequire(name); assert.ok(name in dependencies, name); return dependencies[name] })
   return result
 }
-const licenses = await module('../../src/lib/models/model-licenses.ts')
-const helpers = await module('../../src/lib/models/license-onboarding.ts', { './model-licenses': licenses })
+const licenses = await module('../../frontend/src/models/model-licenses.ts')
+const helpers = await module('../../frontend/src/models/license-onboarding.ts', { './model-licenses': licenses })
 const model = { repo_id: 'fixture/model', license: 'TESTFIXTURE', category: 'unknown', required: true, accepted: false, state: 'not_accepted', fingerprint: `v2:${'a'.repeat(64)}` }
 const plan = { schema: 1, source: 'TESTFIXTURE', engine: { id: 'omnivoice', model_id: 'fixture/model' }, models: [model] }
 const complete = { ...plan, models: [{ ...model, accepted: true, state: 'accepted' }] }

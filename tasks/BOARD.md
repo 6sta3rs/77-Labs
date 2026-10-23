@@ -11,8 +11,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | ID | Title | Status | Next step | Evidence |
 | --- | --- | --- | --- | --- |
 | T-0008 | Decide on the broken voice-audit tools | blocked | Owner: keep or delete? `tools/preview/voice-audit-preview.mjs` and `voice-picker-preview.mjs` resolve `scripts/scripts/...` (does not exist), `voice-audit-build.mjs` has no runner. | |
-| T-0009 | Decide on manual previews and the orb-music demo | blocked | Owner: delete `tools/preview/{audiobook,orb-product,tools-workspace}-preview*`, `orb-reactivity-gpu.html`, and `orb-demo.html` + `src/orb-music-demo.ts` + `src/OrbMusicDemo.svelte` + `tools/dev/generate_demo_music.py`? Keep `inline-preview`, `capture_screenshots`, `controls-preview`, the performance previews (documented or used). | nothing references the candidates |
-| T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | open | Decided layout and blast radius in `specs/T-0011-rename-src-folders.md` (sources up from `src/lib`, UI config into `frontend/`, `package.json` stays in the root). Still needs a full `tauri build` proof on the new layout. |
+| T-0009 | Decide on manual previews and the orb-music demo | blocked | Owner: delete `tools/preview/{audiobook,orb-product,tools-workspace}-preview*`, `orb-reactivity-gpu.html`, and `orb-demo.html` + `frontend/src/orb-music-demo.ts` + `frontend/src/OrbMusicDemo.svelte` + `tools/dev/generate_demo_music.py`? Keep `inline-preview`, `capture_screenshots`, `controls-preview`, the performance previews (documented or used). | nothing references the candidates |
 | T-0013 | Create `prototypes/` | blocked | Deferred by `specs/ROADMAP-to-8.md`: needs a privacy review of what leaves `.tmp`, nothing depends on it. | |
 | T-0014 | Clean `.tmp` | blocked | Owner confirms the delete list first (about 28k files, mostly repo copies, `*-dist`, a 2 GB cargo target). Keep `qa/`, `release/` and the pinned checkouts. | filemap map |
 | T-0019 | Remove the local `refs/t3` | blocked | Owner: 273 local refs today (growing; the T3 tool recreates them), not four. Delete them (`git update-ref -d`), acceptance is zero refs matching `refs/t3/`. CI clones are already green. | `publication_check.py:236` |
@@ -43,6 +42,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0050 | Engine analytics kill switch and privacy doc | open | The engine ships `backend/core/analytics.py` (PostHog, switch `OMNIVOICE_ANALYTICS_DISABLED`) and `launcher.py` does not set it. Verify the default, set the switch, negative test, `docs/architecture/privacy.md` (planned). | verified in `engine.zip` |
 | T-0051 | Branch protection | blocked | Owner: required checks on `main` (Windows job, structure, publication), so the gates are not advisory. | |
 | T-0052 | Coverage baselines | open | Publish Python `coverage` (CI modules) and `cargo llvm-cov` numbers, no threshold yet. | |
+| T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
 
 ## Done
 
@@ -67,6 +67,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0015 | English names for docs | bf62bdb |
 | T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | (next) |
+| T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

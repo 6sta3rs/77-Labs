@@ -16,13 +16,13 @@ function files(directory) {
   });
 }
 
-const flat = readdirSync(resolve(root, 'src/lib'), { withFileTypes: true }).filter(entry => entry.isFile()).map(entry => entry.name);
-check(flat.length === 1 && flat[0] === 'data.ts', 'src/lib powinien zawierać tylko wspólny data.ts oraz foldery obszarów.');
+const flat = readdirSync(resolve(root, 'frontend/src'), { withFileTypes: true }).filter(entry => entry.isFile()).map(entry => entry.name).sort();
+check(JSON.stringify(flat) === JSON.stringify(['App.svelte', 'OrbMusicDemo.svelte', 'data.ts', 'gallery.ts', 'main.ts', 'orb-music-demo.ts', 'styles.css']), 'frontend/src powinien zawierać tylko pliki wejściowe, wspólny data.ts oraz foldery obszarów.');
 for (const directory of ['scripts', 'scripts/runtime']) {
   check(readdirSync(resolve(root, directory), { withFileTypes: true }).every(entry => entry.isDirectory()), `${directory}: pliki powinny należeć do odpowiedniego podfolderu.`);
 }
 let embedded = 0;
-for (const file of files(resolve(root, 'src-tauri/src')).filter(path => path.endsWith('.rs'))) {
+for (const file of files(resolve(root, 'desktop/src')).filter(path => path.endsWith('.rs'))) {
   for (const [, path] of readFileSync(file, 'utf8').matchAll(/include_(?:str|bytes)!\("([^"]+)"\)/g)) {
     check(existsSync(resolve(dirname(file), path)), `${file}: brak osadzanego zasobu ${path}`);
     embedded++;
@@ -48,13 +48,13 @@ for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith
   }
 }
 // Ścieżki w znakach `...` w dokumentacji muszą istnieć. Jedna lista katalogów głównych; historia (progress.md) opisuje stan z przeszłości; plik, którego jeszcze nie ma lub już nie ma, oznacz „(planned)” albo „(removed)” tuż po znaku.
-const pathRoots = ['scripts', 'tests', 'src', 'src-tauri', 'docs', 'tasks', 'assets', 'public', '.github'];
+const pathRoots = ['scripts', 'tools', 'tests', 'frontend', 'desktop', 'docs', 'tasks', 'assets', 'public', '.github'];
 const historical = new Set(['docs/progress.md']);
 const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
 const trackedPaths = new Set(trackedAll);
 for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = dirname(dir)) trackedPaths.add(dir);
 // Build output and local folders that docs may mention but a fresh clone does not contain.
-const generatedRoots = ['src-tauri/target', 'src-tauri/gen', 'dist', 'node_modules'];
+const generatedRoots = ['desktop/target', 'desktop/gen', 'dist', 'node_modules'];
 const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file));
 let quoted = 0;
 for (const file of documents) {

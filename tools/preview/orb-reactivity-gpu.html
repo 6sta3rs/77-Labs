@@ -4,7 +4,7 @@
 <button id="run">Porównaj</button><div id="frames"></div><pre id="result"></pre>
 <script type="module">
 const mode = new URLSearchParams(location.search).get('mode') === 'baseline' ? 'baseline' : 'current';
-const moduleUrl = mode === 'baseline' ? '/.tmp/orb-reactivity-baseline/voice-orb.ts' : '/src/lib/playback/voice-orb.ts';
+const moduleUrl = mode === 'baseline' ? '/.tmp/orb-reactivity-baseline/voice-orb.ts' : '/src/playback/voice-orb.ts';
 const { VoiceOrbRenderer } = await import(/* @vite-ignore */ moduleUrl);
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const width = 128, elapsedSteps = 12, fixedTime = 1.25;
