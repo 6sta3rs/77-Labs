@@ -27,8 +27,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0030 | Playwright smoke and axe scan | open | After T-0011. Mocked runtime API, five named pages, 0 serious/critical violations, a Tab-order assertion; two steps (mock server plus two pages, then three more). Size L. | |
 | T-0031 | Release workflow on tag | open | `release.yml`: gates first, signing secrets from a protected environment with reviewers, provenance attestation, DRAFT release, post-release job verifying the feed signature. After T-0032 and T-0033. Size L. | |
 | T-0033 | Updater key rotation, two-feed scheme | blocked | Owner. New key with a password; new-key builds use a new endpoint (for example `latest-v2.json`), every later release re-uploads the bridge `latest.json` with its old-key `.sig`; old key kept offline until the bridge is published. After T-0024. | `build-update.mjs:15,26` |
-| T-0034 | Supply-chain hygiene | open | SHA-pinned actions, `dependabot.yml`, scheduled `npm audit --omit=dev` and `cargo audit`, checksum for the NSIS download. | |
-| T-0036 | Security docs | open | Extend `SECURITY.md`, add `docs/architecture/security.md` (planned) (token is a marker, CSP `unsafe-inline` rationale, trust boundaries). | |
 | T-0037 | Free open-source code signing | blocked | Owner: apply to SignPath Foundation or Azure Trusted Signing (eligibility unverified), wire into `release.yml` if granted. | |
 | T-0039 | Split large modules, ratchet limits | open | Burn-down. Split `runtime.rs` (tests into their own file) and `engine_catalogue_metadata.py`; ratchet every exception to its current size; per-file longest-line ratchet (`App.svelte`: 85 lines over 200 characters); no non-data file over 1000 lines. Size XL. | |
 | T-0040 | Silent-error rule | open | Empty `catch {}` and statement-less `catch {` without a `// reason` fail in `check-structure`; `App.svelte:164` shows a toast when `saveAppearance` returns false. | |
@@ -68,6 +66,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | a800b78 |
 | T-0032 | Release guards | b7de7c2 |
 | T-0050 | Engine analytics kill switch and privacy doc | efd5fea |
+| T-0034 | Supply-chain hygiene | c207430 |
+| T-0036 | Security docs | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

@@ -1,6 +1,6 @@
 # Privacy: what can leave the computer
 
-Seventy Seven Labs is local first. This page lists every path by which data can leave the machine, what triggers it, and what is switched off. It describes the code at the time of writing; the checks named here are the ones that exist, not a promise about future releases. See also [SECURITY.md](../../SECURITY.md).
+Seventy Seven Labs is local first. This page lists every path by which data can leave the machine, what triggers it, and what is switched off. It describes the code at the time of writing; the checks named here are the ones that exist, not a promise about future releases. See also [SECURITY.md](../../SECURITY.md) and [security](security.md).
 
 ## Product analytics: off, and not offered
 

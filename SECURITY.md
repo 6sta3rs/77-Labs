@@ -23,6 +23,8 @@ Do not send tokens, login files, private recordings, an entire database,
 or a full user profile. Ordinary interface bugs can be reported publicly
 after removing personal data from the text and screenshots.
 
+How the protections work and what is deliberately not claimed is described in [security architecture](docs/architecture/security.md); what can leave the computer is listed in [privacy](docs/architecture/privacy.md).
+
 ## Where data is stored
 
 The default runtime, database, profiles, references, outputs, and some settings
@@ -40,8 +42,10 @@ of a file, cache, backup, or data in an earlier export.
 ## Network and process boundaries
 
 The supervised local engine uses `127.0.0.1:4312`. A process ownership marker
-helps identify the intended backend; it does not replace operating-system
-account security. Do not expose the port to the Internet. Remote transport,
+helps identify the intended backend; it is returned on every response, so it is
+not a secret and not an access control, and it does not replace operating-system
+account security. The engine accepts browser requests only from the application's
+own origins; another process of the same Windows user can still reach the port. Do not expose the port to the Internet. Remote transport,
 MCP, and integrations require separate configuration and a permissions review.
 
 Synthesis with models downloaded in advance can run locally. Installing
@@ -53,6 +57,14 @@ application does not mean every optional integration stays offline.
 Audio/video files, documents, voice packages, and models are external inputs.
 Import them from known sources. Dependencies and models may require executing
 code; pinning SHA-256 establishes file identity, not safety.
+
+## Updates and releases
+
+The updater verifies a signature with the public key embedded in the application
+before it runs an installer. Releases are built by the maintainer and are not
+signed with a code-signing certificate, so Windows may show a SmartScreen
+warning. Download installers only from this project's GitHub releases and
+compare the published SHA-256 file where one is provided.
 
 ## Voice and recording consent
 

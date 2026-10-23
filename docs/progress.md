@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — security documentation (T-0036)
+
+New `docs/architecture/security.md` (linked from `docs/README.md`, `SECURITY.md` and the privacy page): trust boundaries (WebView, Tauri IPC with the listed capabilities, supervisor, loopback engine, user-chosen external services), the origin allow-list and the dev-flag rule (T-0035), why the `x-voicestudio-next` token is a marker and not an access control (it is echoed on every response; the 23 October review found no access control claims to make from it), the content security policy and why `style-src 'unsafe-inline'` stays (Svelte inline styles and runtime CSS variables, about two dozen uses; scripts are `'self'` only), updates and releases (signature check, release guards, checksum file, no code-signing certificate, key without a password pending T-0033), supply chain (pinned actions, Dependabot, weekly audit and its three documented ignores), and an explicit "Not claimed" list (no audit, no sandbox against other processes of the same Windows user, no encryption at rest, no certificate, no reproducible builds). `SECURITY.md` links to it, states that the marker is not an access control, and gains an "Updates and releases" section (SmartScreen warning, download only from the project's releases, compare the SHA-256 file).
+
+Facts were checked against the code (capabilities file, CSP in `tauri.conf.json`, `launcher.py` origins and the `OwnedBackend` header, the engine's `core/csrf.py` header name, the `style=` count). Not verified: the exact set of methods `core/csrf.py` enforces (only the header and the safe-method list were read), that the supervisor waits for the marker on `/health` in every start path (taken from the existing runtime documentation), and anything about behaviour on non-Windows systems. Board: T-0034 done (04e5d23, c207430).
+
 ## 23 October 2026 — supply-chain hygiene (T-0034)
 
 - Every GitHub Action in `.github/workflows/` is pinned to a full commit SHA with the version in a comment (`actions/checkout` 4.4.0, `actions/setup-node` 4.4.0, `actions/setup-python` 5.6.0, `Swatinem/rust-cache` 2.9.3: the latest of the majors already in use; the SHAs come from `git ls-remote --tags` of each repository, peeled for annotated tags). `npm run test:structure` fails for an unpinned `uses:` (proved with a temporary unpinned workflow).
