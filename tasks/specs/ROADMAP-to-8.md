@@ -23,7 +23,7 @@ Baseline per area: structure 7, code quality 7-7.5, tests+CI 4.5, security/priva
 2. **T-0019 (S, owner)** Delete the local `refs/t3` (273 today, growing; acceptance is "zero refs matching `refs/t3/`", not a number) and note that the T3 tool recreates them.
 3. **T-0035 (S/M)** Dev origins (`:4310`) only when a dev flag is passed in `launcher.py:219`, `ai_tagging.py:67`, `remote_backend.py:396`, `integration_settings.py:82`. The per-run token is NOT an access control (it is echoed on every response, `launcher.py:359`), so no token criterion. Negative test: a request from `http://127.0.0.1:4310` is rejected in production mode.
 4. Quick fixes, one commit each: T-0001, T-0002 (also `CONTRIBUTING.md:49,58`; the path check is data-driven from one list of roots so it survives later moves), T-0003, T-0004, T-0005, T-0006, T-0016, T-0020.
-5. **T-0007 (M)** Triage the 36 unrun `*-check.mjs` and 8 unreferenced `*-check.js`; `scripts/dev/run-checks.mjs` (planned) replaces the `&&` chain, runs all, prints all failures, fails on unlisted files.
+5. **T-0007 (M)** Triage the 36 unrun `*-check.mjs` and 8 unreferenced `*-check.js`; `scripts/dev/run-checks.mjs` replaces the `&&` chain, runs all, prints all failures, fails on unlisted files.
 
 ### M2 Structure (before new tooling; protected by M1)
 6. Owner decisions T-0008, T-0009, T-0014. T-0013 (`prototypes/`) is deferred: it needs a privacy review and nothing depends on it.

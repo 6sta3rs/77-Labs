@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const directory = resolve(root, 'tests/frontend');
 const ARGUMENTS = { 'orb-reactivity-check.mjs': ['--summary'] };
+const TIMEOUT_MS = 120000; // a hung check is killed and counted as failed
 const SKIPPED = {}; // file name -> reason
 const only = process.argv.slice(2);
 
@@ -17,11 +18,11 @@ const queue = only.length ? files.filter(name => only.some(part => name.includes
 
 function run(name) {
   return new Promise(done => {
-    const child = spawn(process.execPath, [resolve(directory, name), ...(ARGUMENTS[name] || [])], { cwd: root });
+    const child = spawn(process.execPath, [resolve(directory, name), ...(ARGUMENTS[name] || [])], { cwd: root, timeout: TIMEOUT_MS });
     let output = '';
     child.stdout.on('data', chunk => { output += chunk; });
     child.stderr.on('data', chunk => { output += chunk; });
-    child.on('close', code => done({ name, code, output }));
+    child.on('close', code => done({ name, code: code ?? 1, output: output || `no exit code (killed after ${TIMEOUT_MS} ms?)` }));
   });
 }
 

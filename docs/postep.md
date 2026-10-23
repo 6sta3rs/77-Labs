@@ -1,5 +1,20 @@
 # Public project progress
 
+## 23 October 2026 — fixes from the independent review of M1
+
+A fresh read-only reviewer (Opus) checked commits `f79cbaf..87cf207` against the roadmap criteria and found problems that are fixed here:
+
+- `test:structure` failed on a fresh clone: the new documentation path check looked at the working tree, so build output mentioned in docs (`src-tauri/target/...exe`, `src-tauri/gen`) failed on CI. It now checks against `git ls-files` (files and their folders) and skips an explicit list of generated roots (`src-tauri/target`, `src-tauri/gen`, `dist`, `node_modules`). It also strips leading quotes, brackets and `--flag=`, accepts backslashes, and covers every tracked `.md` (not only `docs/`, `tasks/` and the root).
+- The acceptance UI harness (`tests/acceptance/ui_server.py` forces the 4310 origin) would have been rejected by the engine after T-0035: `qa_session.py` now starts its disposable engine with `VOICESTUDIO_DEV_ORIGINS=1` (it is a QA session, not a release).
+- `rust-toolchain.toml` pins Rust 1.97.1 with clippy so `clippy -D warnings` does not turn CI red when a new stable adds a lint (bump it deliberately).
+- `scripts/dev/run-checks.mjs` kills a check after 120 s and counts it as failed.
+- CI `concurrency` no longer cancels runs on `main`; the `tauri-build` job lost an always-true `if:` and also reacts to `scripts/runtime/`, `src/`, `rust-toolchain.toml` and the workflow itself.
+- Bookkeeping: T-0007 has its hash (87cf207), T-0010 is done (f79cbaf, merged into T-0028), the roadmap no longer marks `run-checks.mjs` as planned, `tests/frontend/README.md` says which `.js` files it means (8 of 23).
+
+Reviewer notes accepted without a change: `no_links_with` is stricter for the installer on unreadable (not missing) ancestors, which the T-0016 entry already states; no use of the 4310 origin remains in release paths (searched the whole repo).
+
+Checks: `npm run check` 0/0, `build`, `test:ui` (71 checks), `test:structure` PASS (500 documented paths, tracked-file based), `cargo clippy --locked --all-targets -D warnings` clean under the pinned toolchain, workflow parsed as YAML. Not verified: the acceptance harnesses themselves (they need an engine and a browser; the fix follows from reading the code), the workflow on GitHub.
+
 ## 23 October 2026 — every frontend check runs (T-0007)
 
 Triage: 36 `tests/frontend/*-check.mjs` files were in no npm script. A read-only run (one by one, results in the ignored `.tmp/qa/T-0007/`) gave 34 PASS and 2 FAIL; both failures were stale tests, not product bugs: `model-licenses-check.mjs` expected the old page name "Modele i silnik" (the message now says "Ustawienia → Modele → Warunki modelu"), and `speech-app-contract-check.mjs` evaluated the real `App.svelte` generate function without `userMessage`, `markEngineConfirmed` and `unmarkEngineConfirmed` in its fixture. Both were fixed in the tests only. Nothing was deleted.

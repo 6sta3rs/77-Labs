@@ -69,7 +69,7 @@ def main():
     with (root / "server.log").open("w", encoding="utf-8") as log:
         process = subprocess.Popen(
             [sys.executable, "-B", "-u", str(Path(__file__).resolve()), "--root", str(root), "--port", str(args.port), "--serve"],
-            env=dict(os.environ, VOICESTUDIO_NEXT_TOKEN=token, PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1", PYTHONNOUSERSITE="1"),
+            env=dict(os.environ, VOICESTUDIO_NEXT_TOKEN=token, VOICESTUDIO_DEV_ORIGINS="1", PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1", PYTHONNOUSERSITE="1"),
             stdin=subprocess.PIPE, stdout=log, stderr=log, creationflags=0x08000000 if os.name == "nt" else 0,
         )
         try:

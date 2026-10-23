@@ -12,7 +12,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | --- | --- | --- | --- | --- |
 | T-0008 | Decide on the broken voice-audit tools | blocked | Owner: keep or delete? `scripts/preview/voice-audit-preview.mjs` and `voice-picker-preview.mjs` resolve `scripts/scripts/...` (does not exist), `voice-audit-build.mjs` has no runner. | |
 | T-0009 | Decide on manual previews and the orb-music demo | blocked | Owner: delete `scripts/preview/{audiobook,orb-product,tools-workspace}-preview*`, `orb-reactivity-gpu.html`, and `orb-demo.html` + `src/orb-music-demo.ts` + `src/OrbMusicDemo.svelte` + `scripts/dev/generate_demo_music.py`? Keep `inline-preview`, `capture_screenshots`, `controls-preview`, the performance previews (documented or used). | nothing references the candidates |
-| T-0010 | Run `test:structure` in CI | open | Merged into T-0028 (Windows CI job); do the one-line step first. | |
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | open | Decided layout and blast radius in `specs/T-0011-rename-src-folders.md` (sources up from `src/lib`, UI config into `frontend/`, `package.json` stays in the root). Still needs a full `tauri build` proof on the new layout. |
 | T-0012 | Create `tools/` with an index of what each tool is for | open | See `specs/T-0012-tools-folder.md`. | |
 | T-0013 | Create `prototypes/` | blocked | Deferred by `specs/ROADMAP-to-8.md`: needs a privacy review of what leaves `.tmp`, nothing depends on it. | |
@@ -66,7 +65,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0020 | Add `postcss` to devDependencies | 2479c91 |
 | T-0035 | Dev origins out of production | dce08fc |
 | T-0002 | Fix stale paths in docs | ebdc9a7 |
-| T-0007 | Triage the 36 checks that never run | (this commit) |
+| T-0007 | Triage the 36 checks that never run | 87cf207 |
+| T-0010 | Run `test:structure` in CI | f79cbaf |
 
 ## Rejected (do not propose again without new evidence)
 

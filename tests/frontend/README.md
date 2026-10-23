@@ -2,9 +2,9 @@
 
 `npm run test:ui` runs `scripts/dev/run-checks.mjs`, which executes every `tests/frontend/*-check.mjs` and `ui-rules.mjs` (four at a time), prints every failure and fails if any check fails. A new check needs no registration; `node scripts/dev/run-checks.mjs <part-of-name>` runs a subset. A check that cannot run in CI must be listed with a reason in `SKIPPED` in the runner (currently none).
 
-## Manual browser scripts (`*-check.js`)
+## Manual browser scripts (unreferenced `*-check.js`)
 
-These eight files are not Node tests. They are pasted or imported in the browser console of a running page, with a trusted click first where the file says so. Nothing runs them automatically; the Playwright smoke planned in T-0030 is meant to replace them.
+The eight `*-check.js` files that no script or page references are not Node tests (the folder holds 23 `.js` files in total; the others are loaded by preview pages). They are pasted or imported in the browser console of a running page, with a trusted click first where the file says so. Nothing runs them automatically; the Playwright smoke planned in T-0030 is meant to replace them.
 
 | File | Run on |
 | --- | --- |

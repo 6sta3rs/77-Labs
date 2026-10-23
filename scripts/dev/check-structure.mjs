@@ -51,16 +51,22 @@ for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith
 const pathRoots = ['scripts', 'tests', 'src', 'src-tauri', 'docs', 'tasks', 'assets', 'public', '.github'];
 const historical = new Set(['docs/postep.md']);
 const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
-const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file) && (/^(?:docs|tasks)\//.test(file) || !file.includes('/')));
+const trackedPaths = new Set(trackedAll);
+for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = dirname(dir)) trackedPaths.add(dir);
+// Build output and local folders that docs may mention but a fresh clone does not contain.
+const generatedRoots = ['src-tauri/target', 'src-tauri/gen', 'dist', 'node_modules'];
+const documents = trackedAll.filter(file => /\.md$/.test(file) && !historical.has(file));
 let quoted = 0;
 for (const file of documents) {
   const text = read(file);
   const spans = [...text.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map(match => match[1])
     .concat([...text.replace(/```[\s\S]*?```/g, '').matchAll(/`([^`\n]+)`(?! \((?:planned|removed)\))/g)].map(match => match[1]));
-  for (const token of spans.flatMap(span => span.split(/\s+/))) {
+  for (const raw of spans.flatMap(span => span.split(/\s+/))) {
+    const token = raw.replace(/^(?:--[\w-]+=)?["'(\[=]*/, '').replace(/["')\]]+$/, '').replaceAll(String.fromCharCode(92), '/');
     if (!pathRoots.some(base => token.startsWith(base + '/')) || /[*{}<>$|]|\.\.\./.test(token)) continue;
-    const path = token.replace(/:\d+(?:-\d+)?$/, '').replace(/[.,;:]+$/, '');
-    check(existsSync(resolve(root, path)), `${file}: ścieżka w znakach \`${path}\` nie istnieje.`);
+    const path = token.replace(/:\d+(?:-\d+)?$/, '').replace(/[.,;:]+$/, '').replace(/\/$/, '');
+    if (generatedRoots.some(base => path === base || path.startsWith(base + '/'))) continue;
+    check(trackedPaths.has(path), `${file}: ścieżka w znakach \`${path}\` nie jest śledzona w repozytorium.`);
     quoted++;
   }
 }
