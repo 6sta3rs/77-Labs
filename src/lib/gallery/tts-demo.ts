@@ -5,7 +5,7 @@ import { audioPeaks } from '../projects/library';
 import { translateUi as t } from '../i18n';
 const sampleUrl = '/demo/interface-tone.wav';
 
-/** Fictional UI fixtures; availability and languages are illustrative. Polish source text is translated with `t` (keys in i18n/en-demo.ts) when the fixtures are built, in the language active at that time. */
+/** Fictional UI fixtures; availability and languages are illustrative. Polish source text is translated with `t` (keys in i18n/en/demo.ts) when the fixtures are built, in the language active at that time. */
 const voiceFixtures: Voice[] = [
   { id:'demo-anna', name:'Anna', initials:'A', description:'Ciepła i naturalna narracja', language:'Polski', color:'peach', kind:'Projektowany', demo:true, categories:['Narracja','Konwersacja'],accent:'Standardowy',gender:'female',ageGroup:'adult',inLibrary:true },
   { id:'demo-marek', name:'Marek', initials:'M', description:'Spokojny lektor audiobooków', language:'Polski', color:'blue', kind:'Klonowany', demo:true,categories:['Audiobook','Narracja'],accent:'Standardowy',gender:'male',ageGroup:'mature',inLibrary:true },

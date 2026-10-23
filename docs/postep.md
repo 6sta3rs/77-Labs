@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — audit checklist paths after the i18n move
+
+The generator of `tasks/audit-2026-10-22.md` validates every listed file against git; after the English catalogs moved to `src/lib/i18n/en/` it reported two stale paths (`en-additions.ts`, `en-settings-engine.ts` in A-23 and A-26). Both lines now point to `src/lib/i18n/en/additions.ts` and `en/settings-engine.ts`. A comment in `src/lib/gallery/tts-demo.ts` named `i18n/en-demo.ts` and was corrected to `i18n/en/demo.ts`.
+
+Checks: all 50 task file paths exist in git (generator), `npm run test:structure` PASS. Not verified: other documents that might mention the old `en-*.ts` names (a `git grep` over all tracked files except this log found only these two lists and that comment).
+
 ## 23 October 2026 — more interface languages
 
 User request: make it possible to add more interface languages later (only English existed next to Polish).
