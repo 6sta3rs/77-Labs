@@ -10,7 +10,7 @@ The Seventy Seven Labs engine runs as a supervised Python/FastAPI process at `12
 4. Read the selected model's terms and download its weights separately.
 5. Add your own profile from a recording you have permission to use, then test a short utterance in the UI.
 
-See the [full installation guide](../features/instalacja-runtime.md). Installed libraries or weights do not prove inference works. Clean Windows installation and CUDA variants require separate acceptance tests.
+See the [full installation guide](../features/runtime-installation.md). Installed libraries or weights do not prove inference works. Clean Windows installation and CUDA variants require separate acceptance tests.
 
 ## Directories and isolation
 
@@ -18,7 +18,7 @@ Data defaults to `%LOCALAPPDATA%/VoiceStudioNext`. `data/` contains the database
 
 Read data and model locations from settings. Optional `VOICESTUDIO_NEXT_PYTHON` selects an explicit interpreter and takes precedence over the activated environment; disable this override when testing activation.
 
-The launcher creates a consistent backup before migration. Compatibility import may open the old OmniVoice database read-only and copy profiles into the new directory. This is not a full project/history migration. Do not modify hardlinked libraries or models in place. See [backups](../features/kopie-danych-runtime.md).
+The launcher creates a consistent backup before migration. Compatibility import may open the old OmniVoice database read-only and copy profiles into the new directory. This is not a full project/history migration. Do not modify hardlinked libraries or models in place. See [backups](../features/runtime-backups.md).
 
 ## Supervision
 

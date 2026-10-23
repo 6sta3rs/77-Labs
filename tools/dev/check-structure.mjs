@@ -47,9 +47,9 @@ for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith
     links++;
   }
 }
-// Ścieżki w znakach `...` w dokumentacji muszą istnieć. Jedna lista katalogów głównych; historia (postep.md) opisuje stan z przeszłości; plik, którego jeszcze nie ma lub już nie ma, oznacz „(planned)” albo „(removed)” tuż po znaku.
+// Ścieżki w znakach `...` w dokumentacji muszą istnieć. Jedna lista katalogów głównych; historia (progress.md) opisuje stan z przeszłości; plik, którego jeszcze nie ma lub już nie ma, oznacz „(planned)” albo „(removed)” tuż po znaku.
 const pathRoots = ['scripts', 'tests', 'src', 'src-tauri', 'docs', 'tasks', 'assets', 'public', '.github'];
-const historical = new Set(['docs/postep.md']);
+const historical = new Set(['docs/progress.md']);
 const trackedAll = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
 const trackedPaths = new Set(trackedAll);
 for (const file of trackedAll) for (let dir = dirname(file); dir !== '.'; dir = dirname(dir)) trackedPaths.add(dir);

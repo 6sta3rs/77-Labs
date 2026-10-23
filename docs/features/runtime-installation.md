@@ -37,7 +37,7 @@ panel.
 
 Doctor checks alone do not verify inference. A clean CPU machine, CUDA setup and
 distributable installer each require separate acceptance testing, as described
-in the [verification status](../verification/weryfikacja.md). Dependencies built from source may
+in the [verification status](../verification/verification.md). Dependencies built from source may
 require C++ build tools; pinned runtime dependencies do not make the build
 toolchain fully reproducible. See the [runtime guide](../architecture/runtime.md) and
 [third-party notices](../../THIRD_PARTY_NOTICES.md).

@@ -14,6 +14,6 @@ One place for work that is planned, in progress or finished. Agents and the owne
 
 1. Before starting a user request, check `BOARD.md`. If the request matches a task, use its ID; otherwise add a row with the next free ID.
 2. Set `doing` when you start and `done` with the short commit hash when the change is committed and checked. Do not mark a task done without the checks listed in `AGENTS.md`.
-3. One task per commit where possible; mention the ID in the progress log entry in `docs/postep.md`.
+3. One task per commit where possible; mention the ID in the progress log entry in `docs/progress.md`.
 4. A decision the owner has to make is `blocked` with the question in the next-step column. Do not guess.
 5. Never put secrets, personal data, recordings or private paths here; the history is public.

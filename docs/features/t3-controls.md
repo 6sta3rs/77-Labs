@@ -31,5 +31,5 @@ remains in [LICENSE-T3](../../src/lib/themes/LICENSE-T3).
 
 Checks: `npm run check`, `npm run build`, and the relevant regression checks in
 `npm run test:ui`. Separately check actual keyboard use, focus restoration,
-contrast, and reduced motion. The [component gallery](podglad-kontrolek.md)
+contrast, and reduced motion. The [component gallery](controls-preview.md)
 describes the examples. The gallery alone does not validate ML workflows.

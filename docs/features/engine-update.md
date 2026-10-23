@@ -32,7 +32,7 @@ the source and checks completeness before atomically writing the small selection
 pointer. It does not overwrite files already loaded on Windows. If the contract
 for disabling automatic preload is unknown, preparation stops.
 
-A [consistent backup](kopie-danych-runtime.md) is created before existing data
+A [consistent backup](runtime-backups.md) is created before existing data
 is migrated. A backup failure must stop startup. Install new dependencies in a
 separate environment without changing shared libraries or models.
 
@@ -49,5 +49,5 @@ separate environment without changing shared libraries or models.
 Restoring an older ZIP does not undo database migrations. An older backend needs
 a compatible data backup; also preserve any data created during the trial.
 Removing unused runtime generations is a separate operation. See the
-[runtime guide](../architecture/runtime.md), [verification status](../verification/weryfikacja.md) and
+[runtime guide](../architecture/runtime.md), [verification status](../verification/verification.md) and
 [contribution guidelines](../../CONTRIBUTING.md).

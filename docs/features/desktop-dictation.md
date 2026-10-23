@@ -46,4 +46,4 @@ Checks: `node tests/frontend/dictation-desktop-check.mjs`
 and `cargo test --locked --manifest-path src-tauri/Cargo.toml dictation_desktop::tests`.
 Contract tests do not replace testing with a physical microphone and the running
 EXE. Test pasting only in a controlled test window you own.
-See [verification](../verification/weryfikacja.md) and [privacy](../../SECURITY.md).
+See [verification](../verification/verification.md) and [privacy](../../SECURITY.md).

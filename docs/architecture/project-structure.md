@@ -97,5 +97,5 @@ combines the shared production transport with dubbing and audiobook types.
 Splitting those responsibilities, and `runtime.rs`, needs separate changes and
 behavior tests; it is not a prerequisite for using the new folder layout.
 
-Documentation: [index](../README.md), [context](kontekst-projektu.md),
-[engine](runtime.md), [progress](../postep.md).
+Documentation: [index](../README.md), [context](project-context.md),
+[engine](runtime.md), [progress](../progress.md).

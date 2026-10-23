@@ -1,4 +1,4 @@
-// Static guard for docs/uwagi-ui.md rule 2: no native browser controls on screens.
+// Static guard for docs/ui-feedback.md rule 2: no native browser controls on screens.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 

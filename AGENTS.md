@@ -2,15 +2,15 @@
 
 ## Context at the start of a task
 
-1. Read `docs/architecture/kontekst-projektu.md`, `docs/architecture/struktura-projektu.md`, `docs/postep.md`, and `README.md`.
+1. Read `docs/architecture/project-context.md`, `docs/architecture/project-structure.md`, `docs/progress.md`, and `README.md`.
 2. Check `git status --short --branch` and `git log -5 --oneline`.
-3. For engine work, read `docs/architecture/runtime.md`; for readiness assessments, read `docs/verification/weryfikacja.md`.
+3. For engine work, read `docs/architecture/runtime.md`; for readiness assessments, read `docs/verification/verification.md`.
 4. Current code and current results take precedence over older descriptions. Do not present a historical test as performed in the current session.
 
 ## Required commits
 
 - Record each completed logical change in its own local commit without asking for additional approval. This includes documentation and configuration. Commit after checking a change, not after every file save.
-- Update `docs/postep.md` in the same commit: what changed, why, checks performed and their results, limitations, and remaining work. For architecture or startup changes, also update `docs/architecture/kontekst-projektu.md` and the relevant documentation.
+- Update `docs/progress.md` in the same commit: what changed, why, checks performed and their results, limitations, and remaining work. For architecture or startup changes, also update `docs/architecture/project-context.md` and the relevant documentation.
 - Review the diff before committing and explicitly stage task-owned files. Do not overwrite, revert, or include unrelated changes made by others. Describe an existing dirty checkout in the progress log if it affects the task.
 - Use short, specific commit messages, such as `fix: correct recording seeking`, `feat: add voice filter`, or `docs: clarify engine context`.
 - Do not commit secrets, `.env`, models, private databases, user recordings, dependencies, or generated output. Public audio is the procedural `public/demo/interface-tone.wav`; the engine archive has pinned provenance. Write reports to ignored `.tmp/qa`.
@@ -21,7 +21,7 @@
 
 - Planned and finished work lives in `tasks/BOARD.md` (rules in `tasks/README.md`). Check it before starting a request; reuse the matching `T-NNNN` or add a row with the next free ID.
 - Set `doing` when you start. Set `done` with the short commit hash only after the checks below passed. A decision that belongs to the owner is `blocked` with the question written down.
-- Put task evidence in the ignored `.tmp/qa/T-NNNN/`; keep conclusions in `tasks/specs/` or `docs/postep.md`.
+- Put task evidence in the ignored `.tmp/qa/T-NNNN/`; keep conclusions in `tasks/specs/` or `docs/progress.md`.
 
 ## Verification and project rules
 

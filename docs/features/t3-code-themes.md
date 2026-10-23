@@ -35,5 +35,5 @@ recoverable. There is no online synchronization or gallery.
 
 The library uses localStorage `voicestudio.themes.v1`; preferences use
 `voicestudio.appearance.v2`. Test in a separate profile to avoid changing your
-own settings. See the [component gallery](podglad-kontrolek.md)
+own settings. See the [component gallery](controls-preview.md)
 and [third-party notices](../../THIRD_PARTY_NOTICES.md).

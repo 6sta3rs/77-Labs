@@ -40,5 +40,5 @@ version compatibility. Preserve the current data before replacing it.
 Check the module with temporary data:
 `python -S tests/runtime/test_runtime_backup.py`.
 That check does not verify restoration of a private installation.
-See [engine updates](aktualizacja-silnika.md), the [runtime guide](../architecture/runtime.md)
+See [engine updates](engine-update.md), the [runtime guide](../architecture/runtime.md)
 and [data protection](../../SECURITY.md).

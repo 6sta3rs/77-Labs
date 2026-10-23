@@ -1,5 +1,5 @@
 // App self-update through the Tauri updater: signed NSIS builds and `latest.json` on GitHub Releases
-// (endpoint and public key in src-tauri/tauri.conf.json; release steps in docs/features/aktualizacje-aplikacji.md).
+// (endpoint and public key in src-tauri/tauri.conf.json; release steps in docs/features/app-updates.md).
 import { check, type Update } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { invoke } from '@tauri-apps/api/core'

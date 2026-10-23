@@ -52,5 +52,5 @@ the service on a public interface. Credentials in URLs and redirects are rejecte
 Regression checks: `tests/runtime/test_tts_extensions.py`
 and `tests/runtime/test_tts_registry.py`. They do not collectively verify
 the sound of every model. Plan generation tests separately with clean data,
-recording the model and hardware in the report. See [model terms](licencje-modeli.md)
-and the [weights catalog](modele-produkcja.md).
+recording the model and hardware in the report. See [model terms](model-licenses.md)
+and the [weights catalog](model-production.md).

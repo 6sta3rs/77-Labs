@@ -21,7 +21,7 @@ assignment does not delete a voice. A client identifier is not a password.
 
 Local transport restricts the host and Origin. Do not expose the port to the
 Internet or treat the process ownership header as remote-access security.
-A separate [remote transport](zdalny-silnik.md) is available for your own server.
+A separate [remote transport](remote-engine.md) is available for your own server.
 
 ## Watermarking and sources
 
@@ -48,5 +48,5 @@ Regression checks: `node tests/frontend/integrations-check.mjs`
 and `tests/runtime/test_integration_settings.py` in the appropriate environment.
 A successful handshake and catalog read do not verify tools/call, watermarking
 or inference. See the [runtime guide](../architecture/runtime.md),
-[verification status](../verification/weryfikacja.md) and
+[verification status](../verification/verification.md) and
 [third-party notices](../../THIRD_PARTY_NOTICES.md).

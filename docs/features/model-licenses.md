@@ -44,6 +44,6 @@ model does not clear the first-use check.
 
 Regression check: `node tests/frontend/model-licenses-check.mjs`. Test acceptance and
 revocation must use controlled fixture state only. Do not accept real terms on
-the user's behalf. See [first-run setup](onboarding-modeli.md),
+the user's behalf. See [first-run setup](model-onboarding.md),
 [third-party notices](../../THIRD_PARTY_NOTICES.md) and
 [voice and data policies](../../SECURITY.md).

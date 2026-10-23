@@ -99,8 +99,8 @@ Demonstration data is illustrative.
 - Additional model families may use separate environments. Models, dependencies,
   logs, and private databases do not belong in the repository.
 
-See the [runtime](architecture/runtime.md), [environment installation](features/instalacja-runtime.md),
-and [project context](architecture/kontekst-projektu.md) documents for details.
+See the [runtime](architecture/runtime.md), [environment installation](features/runtime-installation.md),
+and [project context](architecture/project-context.md) documents for details.
 
 ## Privacy and licenses
 

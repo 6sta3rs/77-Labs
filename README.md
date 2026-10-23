@@ -17,7 +17,7 @@ Development version **0.2.2**, with a **Polish-language application interface** 
 - Workflows for dubbing, audiobooks, and automation recipes.
 - CPU/CUDA environment setup, model weights and terms, and appearance settings.
 
-Synthesis and recognition require a configured engine and the appropriate weights. Full dubbing, long audiobooks, every model combination, and installation on a clean Windows machine still need further acceptance testing. The [PRD](docs/PRD.md) defines scope and criteria; the [verification record](docs/verification/weryfikacja.md) documents checks performed on the public release.
+Synthesis and recognition require a configured engine and the appropriate weights. Full dubbing, long audiobooks, every model combination, and installation on a clean Windows machine still need further acceptance testing. The [PRD](docs/PRD.md) defines scope and criteria; the [verification record](docs/verification/verification.md) documents checks performed on the public release.
 
 ## Preview without models
 
@@ -45,9 +45,9 @@ npm run desktop:build
 
 The build produces an EXE without an installer: `src-tauri/target/release/seventy-seven-labs.exe`.
 
-`npm run desktop:release` builds a signed NSIS installer and the update feed for GitHub Releases; installed copies then update from **Ustawienia → Aktualizacje** (Settings → Updates). See [app updates](docs/features/aktualizacje-aplikacji.md).
+`npm run desktop:release` builds a signed NSIS installer and the update feed for GitHub Releases; installed copies then update from **Ustawienia → Aktualizacje** (Settings → Updates). See [app updates](docs/features/app-updates.md).
 
-The window opens without loading models. Under **Ustawienia → Silnik → Środowiska** (Settings → Engine → Environments), set up a CPU or NVIDIA CUDA environment, then download a model separately in **Ustawienia → Modele** (Settings → Models). Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/features/instalacja-runtime.md) and [engine operation](docs/architecture/runtime.md). The engine starts when the app opens (a card in the corner shows each startup step and the voice-model warm-up) and stops after the inactivity time set in **Ustawienia → Silnik → Stan** (Settings → Engine → Status; 5–60 minutes, default 15).
+The window opens without loading models. Under **Ustawienia → Silnik → Środowiska** (Settings → Engine → Environments), set up a CPU or NVIDIA CUDA environment, then download a model separately in **Ustawienia → Modele** (Settings → Models). Read and accept its terms before use. The EXE includes backend code, but not the multi-gigabyte libraries and weights. See [environment installation](docs/features/runtime-installation.md) and [engine operation](docs/architecture/runtime.md). The engine starts when the app opens (a card in the corner shows each startup step and the voice-model warm-up) and stops after the inactivity time set in **Ustawienia → Silnik → Stan** (Settings → Engine → Status; 5–60 minutes, default 15).
 
 The browser displays the UI but does not start the Tauri supervisor. Synthesis in web development mode requires a separately running backend at `127.0.0.1:4312`.
 
@@ -55,7 +55,7 @@ The browser displays the UI but does not start the Tauri supervisor. Synthesis i
 
 Web projects are stored in the browser profile's localStorage/IndexedDB. Desktop engine data defaults to `%LOCALAPPDATA%/VoiceStudioNext`, outside the repository. Older directory names, storage keys, and Tauri identifiers are retained for compatibility with existing data.
 
-The public history starts fresh with a neutral author identity. It excludes private development history, checkpoints, databases, voice samples, and recorded model-term decisions. See the [publication guide](docs/publikacja.md).
+The public history starts fresh with a neutral author identity. It excludes private development history, checkpoints, databases, voice samples, and recorded model-term decisions. See the [publication guide](docs/publishing.md).
 
 Network integrations are optional. Downloading models and using a selected language service may require internet access. Only clone a voice you have permission to use. See [security](SECURITY.md).
 
@@ -73,7 +73,7 @@ cargo check --manifest-path src-tauri/Cargo.toml
 
 The publication check examines files, the nested engine archive, approved audio, and all Git objects, including unreachable objects. Local QA reports go into the ignored `.tmp/qa` directory. Speech tests require your own explicitly selected reference; the demo tone is for player and UI testing.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/architecture/kontekst-projektu.md) and the [project structure](docs/architecture/struktura-projektu.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [technical context](docs/architecture/project-context.md) and the [project structure](docs/architecture/project-structure.md).
 
 ### Where do I change something?
 

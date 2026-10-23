@@ -41,4 +41,4 @@ Regression checks: `node tests/frontend/speech-settings-check.mjs`,
 `node tests/frontend/wav-format-check.mjs`, and
 `node tests/frontend/speech-app-contract-check.mjs`.
 Procedural WAV tests do not require voice cloning and do not validate TTS.
-See [model parameters](parametry-tts.md) and [model terms](licencje-modeli.md).
+See [model parameters](tts-parameters.md) and [model terms](model-licenses.md).

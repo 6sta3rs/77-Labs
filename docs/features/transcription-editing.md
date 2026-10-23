@@ -37,4 +37,4 @@ Regression checks: `node tests/frontend/transcription-refinement-check.mjs`
 and `node tests/frontend/transcription-check.mjs`. A transport test with a fixture does
 not validate ASR or an external LLM response. Acceptance checks should cover Polish
 characters, manual corrections, reverting, TXT/SRT/VTT, and reopening results.
-See [verification](../verification/weryfikacja.md) and [privacy](../../SECURITY.md).
+See [verification](../verification/verification.md) and [privacy](../../SECURITY.md).

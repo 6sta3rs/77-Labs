@@ -51,7 +51,7 @@ Copyright (c) 2026 T3 Tools Inc. License: **MIT**; the full text remains in
   `89424d9fa01c6bd24664315c7ccda8d6cb1eab61`,
   [apps/web/src/components/ui](https://github.com/pingdotgg/t3code/tree/89424d9fa01c6bd24664315c7ccda8d6cb1eab61/apps/web/src/components/ui).
 - Components and behavior are adapted to Svelte and the local studio.
-  Details: [themes](docs/features/motywy-t3-code.md), [controls](docs/features/t3-controls.md).
+  Details: [themes](docs/features/t3-code-themes.md), [controls](docs/features/t3-controls.md).
 
 The application displays two of these palette families as **Labs** and
 **Róża** (Rose). These product labels do not change source attribution or
@@ -87,7 +87,7 @@ decorative images (`src/lib/assets/landing-orb/`) from the ElevenLabs
 homepage, captured 2026-10-20. ElevenLabs published no redistribution terms
 for them; they are included at the maintainer's decision and remain the
 property of their owner. Origin, hashes, and removal steps:
-[docs/features/kula-plyn.md](docs/features/kula-plyn.md).
+[docs/features/orb-flow.md](docs/features/orb-flow.md).
 
 ## Dependencies and interface assets
 

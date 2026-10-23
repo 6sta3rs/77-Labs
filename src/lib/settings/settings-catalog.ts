@@ -1,6 +1,6 @@
 import { Settings, Palette, BookOpen, Keyboard, Download, Cpu, Boxes, Network, Cable, Sparkles, HardDrive, Shield } from '@lucide/svelte';
 
-// 12 pages in 4 groups (docs/features/ustawienia-styl.md). Every former control has exactly one home.
+// 12 pages in 4 groups (docs/features/settings-style.md). Every former control has exactly one home.
 export const settingsGroups = [
   { title: 'Aplikacja', items: [
     { id: 'general', label: 'Ogólne', icon: Settings }, { id: 'appearance', label: 'Wygląd', icon: Palette },

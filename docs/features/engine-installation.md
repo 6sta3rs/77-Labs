@@ -46,5 +46,5 @@ Checks that do not require expensive inference:
 
 and `node tests/frontend/engine-installation-check.mjs`.
 Fixture tests do not verify installation of every engine on every Windows setup.
-See [base runtime installation](instalacja-runtime.md),
-[additional TTS models](dodatkowe-modele-tts.md) and [model terms](licencje-modeli.md).
+See [base runtime installation](runtime-installation.md),
+[additional TTS models](additional-tts-models.md) and [model terms](model-licenses.md).

@@ -57,4 +57,4 @@ Regression checks: `node tests/frontend/automation-check.mjs`,
 `node tests/frontend/watch-folder-check.mjs`, and `node tests/frontend/automation-audio-check.mjs`.
 The real folder picker, Windows file handles, and ML recipes need separate
 acceptance checks.
-See [verification](../verification/weryfikacja.md) and the [data policy](../../SECURITY.md).
+See [verification](../verification/verification.md) and the [data policy](../../SECURITY.md).

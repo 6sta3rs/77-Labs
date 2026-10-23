@@ -35,4 +35,4 @@ and `tests/runtime/test_audiobook_streaming.py` in the appropriate environment.
 A procedural WAV fixture does not validate voice quality, a long book, or the GPU
 workflow. Cancellation and resuming, memory use, final output, and the running EXE
 need separate acceptance checks.
-See [verification](../verification/weryfikacja.md) and [runtime](../architecture/runtime.md).
+See [verification](../verification/verification.md) and [runtime](../architecture/runtime.md).

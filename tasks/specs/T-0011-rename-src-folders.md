@@ -36,6 +36,6 @@ package.json              stays in the repository root (npm scripts, CI, lockfil
 3. `git mv src-tauri desktop`; update `.gitignore` (`src-tauri/target/`, `src-tauri/gen/`), `package.json` tauri scripts, `build-update.mjs`, `check-structure.mjs`, CI, docs, and the Rust `include_str!` / `include_bytes!` paths.
 4. Rewrite paths with a script that also reports every remaining `src/lib` and `src-tauri` string; update `check-structure.mjs` (the `src/lib` rule becomes a rule for `frontend/src`) and the line-limit exceptions list.
 5. Checks: `npm run check`, `npm run build`, `npm run test:ui`, `npm run test:structure`, `cargo check --manifest-path desktop/Cargo.toml`, and a real `npm run desktop:build`. Open the built app once.
-6. Do not change Tauri identifiers or data keys (rule 6 in `docs/architecture/struktura-projektu.md`).
+6. Do not change Tauri identifiers or data keys (rule 6 in `docs/architecture/project-structure.md`).
 
 **Done when.** All checks above pass, no tracked file mentions `src/lib` or `src-tauri` except as history, and the built EXE starts.

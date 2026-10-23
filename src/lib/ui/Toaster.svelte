@@ -1,7 +1,7 @@
 <script lang="ts">
   import { uiLanguage, createUiTranslator } from '../i18n';
   const tr = $derived(createUiTranslator($uiLanguage));
-  // Mounted once in App.svelte. Bottom-centre stack; colour by kind via tokens (docs/features/ustawienia-styl.md).
+  // Mounted once in App.svelte. Bottom-centre stack; colour by kind via tokens (docs/features/settings-style.md).
   import { CircleCheck, CircleX, TriangleAlert, Info, X } from '@lucide/svelte';
   import { toasts, dismiss, type ToastItem } from './toast';
   const TTL = { ok: 4000, info: 4000, warn: 6000 } as const;

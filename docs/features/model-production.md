@@ -34,7 +34,7 @@ without downloading anything during inference.
 **Usuń model** (Remove model) requires its identifier and a state in which it is
 not actively in use. Removal is limited to the application's own cache; it does
 not remove another installation's libraries or models. Review the
-[model terms](licencje-modeli.md), including tokenizer dependencies. `installed`
+[model terms](model-licenses.md), including tokenizer dependencies. `installed`
 describes file completeness, not a successful synthesis test.
 
 ## Files
@@ -46,5 +46,5 @@ describes file completeness, not a successful synthesis test.
 
 Regression checks: `tests/runtime/test_model_management.py`.
 Full acceptance testing also requires an actual transfer, a restart, a test of
-the selected model and data checks. See [runtime installation](instalacja-runtime.md)
-and [additional TTS models](dodatkowe-modele-tts.md).
+the selected model and data checks. See [runtime installation](runtime-installation.md)
+and [additional TTS models](additional-tts-models.md).

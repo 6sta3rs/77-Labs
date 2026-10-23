@@ -29,5 +29,5 @@ Generated HTML is an artifact, not a second source of components. Before sharing
 it, check that its data is clean and that it reflects the current code.
 The gallery is for checking appearance and interaction. It does not validate
 synthesis, transcription, model installation, or readiness of the whole application.
-See [shared controls](t3-controls.md), [themes](motywy-t3-code.md),
+See [shared controls](t3-controls.md), [themes](t3-code-themes.md),
 and the [contribution guidelines](../../CONTRIBUTING.md).

@@ -47,4 +47,4 @@ It is not a data migration mechanism or a restoration of historical GPU workers.
 Regression checks: `tests/runtime/test_remote_backend.py`, run in an isolated
 environment. A controlled loopback server does not validate a public deployment,
 reverse proxy authentication or inference. See [data protection](../../SECURITY.md)
-and [verification status](../verification/weryfikacja.md).
+and [verification status](../verification/verification.md).

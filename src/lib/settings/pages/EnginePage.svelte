@@ -1,6 +1,6 @@
 <script lang="ts">
   // Settings → "Silnik": engine status, live load, generation speed and the four engine tabs.
-  // Port of the approved prototype (docs/features/ustawienia-styl.md); every value comes from the engine, Tauri or local settings.
+  // Port of the approved prototype (docs/features/settings-style.md); every value comes from the engine, Tauri or local settings.
   import { uiLanguage, createUiTranslator } from '../../i18n';
   import { onDestroy, tick, untrack } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';

@@ -26,7 +26,7 @@ OmniVoice instructions have their own taxonomy, separate from the free-form
 descriptions used by other engines.
 
 WAV settings, built-in voices, and the voice design draft require discovery of the
-actual source contract: [WAV, preset, and design parameters](parametry-wav-0.5.7.md).
+actual source contract: [WAV, preset, and design parameters](wav-parameters-0.5.7.md).
 For multiple speakers, engine metadata and settings are frozen at the start of the
 job so UI changes cannot alter later blocks of an ongoing generation.
 
@@ -35,7 +35,7 @@ job so UI changes cannot alter later blocks of an ongoing generation.
 The backend may support `stream=true` as NDJSON with start/chunk/done/error frames.
 A client expecting a completed WAV Blob must not receive that stream. HTTP 200 does
 not prove completion if a later frame contains an error.
-Audiobook listening uses a separate [chunk queue](audiobook-porcjami.md).
+Audiobook listening uses a separate [chunk queue](audiobook-chunks.md).
 
 Regression check without models: `node tests/frontend/speech-settings-check.mjs`.
 Type checking, a build, and serialization tests do not validate how these

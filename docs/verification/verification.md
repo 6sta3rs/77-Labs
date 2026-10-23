@@ -40,6 +40,6 @@ These checks were performed on the public source tree, rather than copied from t
 
 The T3 preview returned `Preview automation snapshot timed out after 15000ms.` twice. Screenshots and interactions were checked with Python Playwright in a separate Chromium instance, with backend requests blocked.
 
-The privacy audit covers files, the index, every Git object, and the pinned archive. Private deny strings are kept outside the repository. The full scan using `--require-anonymous --deny-file` passed with no findings; the batch implementation took about 9 seconds on the test computer. Public-history authors and committers are neutral. Repeat the audit after each commit before publication. See the [publication guide](../publikacja.md).
+The privacy audit covers files, the index, every Git object, and the pinned archive. Private deny strings are kept outside the repository. The full scan using `--require-anonymous --deny-file` passed with no findings; the batch implementation took about 9 seconds on the test computer. Public-history authors and committers are neutral. Repeat the audit after each commit before publication. See the [publication guide](../publishing.md).
 
 No new GPU inference, voice-quality assessment, model downloads, model-term decisions, clean-VM installation, complete model matrix, full dubbing, or long audiobook were tested. A build and health response do not replace those acceptance tests. Screenshots and a procedural tone do not demonstrate TTS quality.

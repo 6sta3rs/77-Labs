@@ -45,5 +45,5 @@ Regression checks: `node tests/frontend/license-onboarding-check.mjs`,
 `node tests/frontend/model-licenses-check.mjs` and
 `node tests/frontend/model-onboarding-monitor-check.mjs`.
 Use an isolated fixture for UI acceptance testing, without real decisions or models.
-See [model terms](licencje-modeli.md), [installation](instalacja-runtime.md)
-and [verification status](../verification/weryfikacja.md).
+See [model terms](model-licenses.md), [installation](runtime-installation.md)
+and [verification status](../verification/verification.md).

@@ -16,9 +16,9 @@ The Tauri identifier `local.studioa1tts.voicestudio-next`, `voicestudio.*` stora
 
 ## Source layout
 
-Frontend sources are grouped by feature under `src/lib/<area>/` (`shell`, `tts`, `voices`, `models`, `playback`, `projects`, `settings`, `platform`, `tools`, `ui`, `gallery`, `styles`, `themes`); only the shared `data.ts` sits directly in `src/lib/`. Tests are in `tests/{frontend,runtime,acceptance}` (plus `fixtures` and `helpers`). Developer tools are in `tools/{dev,preview,release}` (every tool is described in `tools/README.md`; acceptance scripts in `tests/acceptance/README.md`), and the Python engine sources embedded in the EXE are split into `scripts/runtime/{app,install,vendor}`. The "where do I change X?" map is in the [project map](struktura-projektu.md). The published layout of the private runtime and the data format are unchanged.
+Frontend sources are grouped by feature under `src/lib/<area>/` (`shell`, `tts`, `voices`, `models`, `playback`, `projects`, `settings`, `platform`, `tools`, `ui`, `gallery`, `styles`, `themes`); only the shared `data.ts` sits directly in `src/lib/`. Tests are in `tests/{frontend,runtime,acceptance}` (plus `fixtures` and `helpers`). Developer tools are in `tools/{dev,preview,release}` (every tool is described in `tools/README.md`; acceptance scripts in `tests/acceptance/README.md`), and the Python engine sources embedded in the EXE are split into `scripts/runtime/{app,install,vendor}`. The "where do I change X?" map is in the [project map](project-structure.md). The published layout of the private runtime and the data format are unchanged.
 
-Settings has 12 pages in 4 groups, defined in `src/lib/settings/settings-catalog.ts`; each page is one component in `src/lib/settings/pages/` and every control has exactly one home. **Aplikacja** (Application): Ogólne, Wygląd, Słownik wymowy, Skróty i mikrofon, Aktualizacje. **Silnik i modele** (Engine and models): Silnik (engine start/stop, status, compute, environments, logs and diagnostics) and Modele (catalog, downloads, terms, Hugging Face access). **Połączenia** (Connections): Sieć i dostęp, Integracje, AI i klucze. **Dane** (Data): Przechowywanie, Prywatność i użycie. The former single "Modele i silnik" page no longer exists. Visual rules are in [settings style](../features/ustawienia-styl.md).
+Settings has 12 pages in 4 groups, defined in `src/lib/settings/settings-catalog.ts`; each page is one component in `src/lib/settings/pages/` and every control has exactly one home. **Aplikacja** (Application): Ogólne, Wygląd, Słownik wymowy, Skróty i mikrofon, Aktualizacje. **Silnik i modele** (Engine and models): Silnik (engine start/stop, status, compute, environments, logs and diagnostics) and Modele (catalog, downloads, terms, Hugging Face access). **Połączenia** (Connections): Sieć i dostęp, Integracje, AI i klucze. **Dane** (Data): Przechowywanie, Prywatność i użycie. The former single "Modele i silnik" page no longer exists. Visual rules are in [settings style](../features/settings-style.md).
 
 ## Running and development
 
@@ -33,9 +33,9 @@ Engine lifecycle:
 - **Startup budget:** a cold start may take up to 300 s when libraries and weights load from a slow disk; progress is shown and waiting ends when progress stalls.
 - **Graceful stop:** stdin is closed and the supervisor waits up to 15 s before ending only the process tree it owns.
 
-See [runtime](runtime.md) and [installation](../features/instalacja-runtime.md).
+See [runtime](runtime.md) and [installation](../features/runtime-installation.md).
 
-The [documentation index](../README.md) lists all documents. See the [PRD](../PRD.md) for scope and criteria, [verification](../verification/weryfikacja.md) for recorded results, and [progress](../postep.md) for handover notes.
+The [documentation index](../README.md) lists all documents. See the [PRD](../PRD.md) for scope and criteria, [verification](../verification/verification.md) for recorded results, and [progress](../progress.md) for handover notes.
 
 A build and a health response do not prove synthesis or a complete dubbing/audiobook workflow. Historical private-deployment results were not copied into the new history.
 
@@ -45,4 +45,4 @@ Do not add recordings, databases, accounts, tokens, or private paths. Write QA o
 
 Do not edit hardlinked models or libraries in place; do not change an existing VoiceStudio installation or its shared weights. The public version uses neutral icons and original visualizations. Product-facing themes are **Labs** and **Róża**, and the procedural orb variant is **Przepływ**. Older identifiers remain compatibility details, not product labels. Renaming a presentation label does not change ownership or licensing of imported sources; preserve source copyright, licenses, and factual model names.
 
-Commit each logical change with a progress update, following [AGENTS.md](../../AGENTS.md). Run the [publication check](../publikacja.md) (`tools/dev/publication_check.py`) before publishing; CI is defined in `.github/workflows/ci.yml`.
+Commit each logical change with a progress update, following [AGENTS.md](../../AGENTS.md). Run the [publication check](../publishing.md) (`tools/dev/publication_check.py`) before publishing; CI is defined in `.github/workflows/ci.yml`.
