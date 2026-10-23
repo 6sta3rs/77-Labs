@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — CI runs the structure check (T-0028, first step)
+
+`ci.yml` now runs `npm run test:structure` after `npm run test:ui`; before, the structure, docs-link and line-limit rules were enforced only on the developer machine.
+
+Checks: `npm run test:structure` PASS locally (same command). Not verified: the step on GitHub (nothing is pushed). Remaining for T-0028: Windows job, clippy gate.
+
 ## 23 October 2026 — roadmap from 6/10 to about 8/10
 
 User request: score the whole repository, then work out what is needed to reach 8 to 10 out of 10 and have the plan tested by the council until it comes close.
