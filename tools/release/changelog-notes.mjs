@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 /** Notes for `version` from the changelog text, or undefined when there is no `## <version>` section. */
 export function changelogNotes(text, version) {
-  const heading = new RegExp(`^## ${version.replaceAll('.', '\\.')}(?: - .*)?$`, 'm').exec(text);
+  const heading = new RegExp(`^## ${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?: - .*)?$`, 'm').exec(text);
   if (!heading) return undefined;
   const rest = text.slice(heading.index + heading[0].length);
   const section = rest.slice(0, rest.search(/^## /m) === -1 ? undefined : rest.search(/^## /m)).trim();

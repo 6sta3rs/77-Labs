@@ -31,7 +31,7 @@ WebView (http://tauri.localhost)  --Tauri IPC (capabilities)-->  Rust supervisor
 - The updater verifies each installer's signature against the public key embedded in `desktop/tauri.conf.json` before running it. The private key lives outside the repository (`%USERPROFILE%\.tauri\seventy-seven-labs-updater.key` or `TAURI_SIGNING_PRIVATE_KEY`). It currently has no password, and its rotation with a two-feed scheme is planned (T-0033, owner).
 - `tools/release/build-update.mjs` refuses to build unless the working tree is clean, HEAD carries the tag `v<version>` and the five version manifests agree (`tools/release/release-guards.mjs`, T-0032). It writes a SHA-256 file next to the installer.
 - Installers are not code-signed with a certificate (T-0037); Windows SmartScreen may warn.
-- A release build in CI with provenance attestation is planned (T-0031).
+- `.github/workflows/release.yml` builds a tagged release in CI behind a protected environment with required reviewers, attests the provenance and creates a draft; the workflow exists but has not run yet, and the environment and secrets are not set up (T-0031, see `docs/publishing.md`).
 
 ## Supply chain
 

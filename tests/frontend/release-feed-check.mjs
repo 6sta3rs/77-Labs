@@ -38,7 +38,10 @@ assert.match(verifyMinisign(wrap(publicFile(keyId)), wrap(altered), installer).r
 console.log('PASS an altered trusted comment is rejected');
 
 assert.match(verifyMinisign(wrap(publicFile(keyId)), wrap('untrusted comment: x\nAAAA\n'), installer).reason, /malformed/);
+const stripped = signatureFile(installer).split('\n').slice(0, 2).join('\n') + '\n';
+assert.match(verifyMinisign(wrap(publicFile(keyId)), wrap(stripped), installer).reason, /trusted comment/);
 console.log('PASS a malformed signature is rejected');
+console.log('PASS a signature without its trusted comment is rejected');
 
 // Release notes.
 const sample = '# Changelog\n\n## Unreleased\n\n- next\n\n## 1.2.3 - 2026-01-01\n\nUpdate notes (Polish): Polskie notatki.\n\n- English detail\n\n## 1.2.30 - 2025-12-01\n\n- older\n';

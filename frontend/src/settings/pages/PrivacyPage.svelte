@@ -59,7 +59,7 @@
 
   /* ---------- privacy ---------- */
   let analyticsOk = $state(false), analyticsOn = $state(false)
-  $effect(() => { analyticsOn = !!analytics?.opted_in })
+  $effect(() => { analyticsOn = !!analytics?.opted_in && ANALYTICS_OFFERED })
   const saveAnalytics = (enabled: boolean) => work('analytics', async signal => {
     analytics = await putSettings<AnalyticsState>('/api/settings/analytics', { enabled }, signal); flash(v => analyticsOk = v)
   }).then(() => { analyticsOn = !!analytics?.opted_in })
@@ -114,7 +114,7 @@
 
   <div class="p-card pv-panel">
   {#if tab === 'privacy'}
-    <p class="p-notice info">{tr('Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy włączysz analitykę albo użyjesz zdalnego dostawcy tłumaczenia.')}</p>
+    <p class="p-notice info">{tr('Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy sam wybierzesz zdalnego dostawcę, pobierzesz model albo sprawdzisz aktualizacje.')}</p>
     <div class="p-rows">
       {#if analytics}
       <div class="p-row"><div class="t"><b>{tr('Zgoda na analitykę produktu')}</b><span>{analytics.available && ANALYTICS_OFFERED ? tr('Dobrowolna. Wysyła tylko dane o użyciu programu, bez tekstów i nagrań.') : tr('Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.')}</span></div>

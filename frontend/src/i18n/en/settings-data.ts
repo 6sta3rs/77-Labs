@@ -91,7 +91,7 @@ export const enSettingsData: Record<string, string> = {
   "Prywatność": "Privacy",
   "Znak wodny": "Watermark",
   "Użycie": "Usage",
-  "Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy włączysz analitykę albo użyjesz zdalnego dostawcy tłumaczenia.": "Synthesis, speech recognition and statistics run locally on this computer. Data leaves it only if you turn on analytics or use a remote translation provider.",
+  "Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy sam wybierzesz zdalnego dostawcę, pobierzesz model albo sprawdzisz aktualizacje.": "Synthesis, speech recognition and statistics run locally on this computer. Data leaves it only when you choose a remote provider, download a model or check for updates.",
   "Zgoda na analitykę produktu": "Product analytics consent",
   "Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.": "This distribution has no analytics recipient configured.",
   "Dostawca tłumaczenia": "Translation provider",

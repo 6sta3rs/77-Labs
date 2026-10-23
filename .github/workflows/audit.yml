@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - run: cargo install cargo-audit --locked
+      - run: cargo install cargo-audit --locked --version 0.22.2
       # zip 4.6.1 comes from tauri-plugin-updater (cannot be bumped here); the advisories concern ZipArchive::extract,
       # which the Windows updater (an NSIS installer) does not use. Revisit when the plugin updates.
       - run: cargo audit --file desktop/Cargo.lock --ignore RUSTSEC-2026-0367 --ignore RUSTSEC-2026-0368 --ignore RUSTSEC-2026-0369

@@ -1,6 +1,6 @@
 // Verifies a published updater feed: downloads (or reads) latest.json, fetches the installer it points to and checks the
 // minisign signature against the public key embedded in desktop/tauri.conf.json. Node only, no network but the two downloads.
-// Usage: node tools/release/verify-feed.mjs <feed.json | https://.../latest.json> [--installer <local installer>] [--expect-version <x.y.z>]
+// Usage: node tools/release/verify-feed.mjs <feed.json | https://.../latest.json> [--installer <local installer>] [--expect-version <x.y.z>] [--pubkey <base64 key>]
 import { createHash, createPublicKey, verify } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -30,10 +30,9 @@ export function verifyMinisign(publicKeyBase64, signatureBase64, data) {
   const publicKey = createPublicKey({ key: Buffer.concat([SPKI_PREFIX, key.subarray(10)]), format: 'der', type: 'spki' });
   const message = algorithm === 'ED' ? createHash('blake2b512').update(data).digest() : data;
   if (!verify(null, message, publicKey, blob.subarray(10))) return { ok: false, reason: 'the signature does not match the installer' };
-  if (signature.trusted?.startsWith('trusted comment: ') && signature.global) {
-    const trusted = Buffer.from(signature.trusted.slice('trusted comment: '.length), 'utf8');
-    if (!verify(null, Buffer.concat([blob.subarray(10), trusted]), publicKey, signature.global)) return { ok: false, reason: 'the trusted comment was altered' };
-  }
+  if (!signature.trusted?.startsWith('trusted comment: ') || signature.global?.length !== 64) return { ok: false, reason: 'the trusted comment or its signature is missing' };
+  const trusted = Buffer.from(signature.trusted.slice('trusted comment: '.length), 'utf8');
+  if (!verify(null, Buffer.concat([blob.subarray(10), trusted]), publicKey, signature.global)) return { ok: false, reason: 'the trusted comment was altered' };
   return { ok: true };
 }
 
@@ -48,18 +47,19 @@ async function bytes(source) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  const feedSource = args.find((arg, index) => !arg.startsWith('--') && !['--installer', '--expect-version'].includes(args[index - 1]));
+  const feedSource = args.find((arg, index) => !arg.startsWith('--') && !['--installer', '--expect-version', '--pubkey'].includes(args[index - 1]));
   if (!feedSource) { console.error('Usage: node tools/release/verify-feed.mjs <feed.json | url> [--installer <file>]'); process.exit(2); }
   const root = resolve(import.meta.dirname, '../..');
-  const publicKey = JSON.parse(readFileSync(join(root, 'desktop/tauri.conf.json'), 'utf8')).plugins.updater.pubkey;
+  const publicKey = args.includes('--pubkey') ? args[args.indexOf('--pubkey') + 1] : JSON.parse(readFileSync(join(root, 'desktop/tauri.conf.json'), 'utf8')).plugins.updater.pubkey;
   const feed = JSON.parse((await bytes(feedSource)).toString('utf8'));
-  const entry = feed.platforms?.['windows-x86_64'];
+  // Tauri's updater prefers the installer-specific key when a feed has one.
+  const entry = feed.platforms?.['windows-x86_64-nsis'] ?? feed.platforms?.['windows-x86_64'];
   if (!feed.version || !entry?.url || !entry.signature) throw new Error('The feed has no version, url or signature for windows-x86_64.');
   const expected = args.includes('--expect-version') ? args[args.indexOf('--expect-version') + 1] : undefined;
   if (expected && feed.version !== expected) throw new Error(`The feed offers ${feed.version}, expected ${expected}.`);
   const installerPath = args[args.indexOf('--installer') + 1];
   const installer = await bytes(args.includes('--installer') ? installerPath : entry.url);
   const result = verifyMinisign(publicKey, entry.signature, installer);
-  console.log(`${feed.version}: ${entry.url}\nsha256 ${createHash('sha256').update(installer).digest('hex')} (${installer.length} bytes)\n${result.ok ? 'SIGNATURE VALID for the key in desktop/tauri.conf.json' : `SIGNATURE INVALID: ${result.reason}`}`);
+  console.log(`${feed.version}: ${entry.url}\nsha256 ${createHash('sha256').update(installer).digest('hex')} (${installer.length} bytes)\n${result.ok ? `SIGNATURE VALID for the ${args.includes('--pubkey') ? 'given' : 'committed'} key` : `SIGNATURE INVALID: ${result.reason}`}`);
   process.exit(result.ok ? 0 : 1);
 }
