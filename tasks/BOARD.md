@@ -34,7 +34,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0047 | Cold-start baseline and busy port | open | (a) baseline in `docs/verification/` re-checked weekly (fail at +50%); (b) a busy engine port gives a clear Polish message within 5 s. Dynamic port deferred (CSP and about 57 files). | |
 | T-0049 | Weekly EXE start check | open | Start the built EXE on isolated data on a Windows runner and check over CDP that the UI loads. `/health` plus synthesis stays manual until the runtime can be cached. | |
 | T-0051 | Branch protection | blocked | Owner: required checks on `main` (Windows job, structure, publication), so the gates are not advisory. | |
-| T-0052 | Coverage baselines | open | Publish Python `coverage` (CI modules) and `cargo llvm-cov` numbers, no threshold yet. | |
 | T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
 
 ## Done
@@ -67,7 +66,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0038 | `check-structure` rules | 8d5a1b0 |
 | T-0040 | Silent-error rule | 96db58d |
 | T-0029 | Python runtime tests in CI | 5485461 |
-| T-0048 | Launcher contract test | (next) |
+| T-0048 | Launcher contract test | 5383cc6 |
+| T-0052 | Coverage baselines | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

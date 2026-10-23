@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — coverage baselines (T-0052)
+
+`docs/verification/coverage.md` (linked from `docs/README.md`) records the first measured numbers: Python runtime (`scripts/runtime/app` and `install`) 67% of 5,845 statements by the 28 engine-free checks; Rust (`desktop/src`) 41.4% of 2,746 lines and 29.5% of functions by `cargo llvm-cov` (51 tests). Per-file extremes and the commands to reproduce are in the document. No threshold and no gate: the point is to see where checks are thin (`dictation_desktop.rs` 17%, `library.rs` 12%, `main.rs` 0%, the 0% Python modules that need the engine). The tools were installed under the ignored `.tmp/` (cargo-llvm-cov 0.9.1, `llvm-tools-preview` component, `coverage` in the CI venv).
+
+Checks: both measurements run to completion locally; `test:structure` PASS. Not verified: a CI job that publishes the numbers (not added; the manual commands are documented), the frontend (not measured, reasons in the document). Board: T-0048 done (5383cc6).
+
 ## 23 October 2026 — launcher contract test without torch (T-0048)
 
 `launcher.py`'s ownership wrapper was a class buried inside `main()`; it is now the module function `owned_backend(app, token)` (same behaviour, called by `main()`), so it can be tested. New `tests/runtime/test_launcher_contract.py` (6 tests, Starlette `TestClient`, a stub app, `Activity` middleware from `activity.py`, nothing from the engine and no torch): every response, including a 404 and a POST, carries `x-voicestudio-next`; `/next/activity` answers 403 without or with a wrong marker and 200 with it; an empty token never authorises; a request is counted as active while it runs and released afterwards; an empty synthesis text gets a 422 from the middleware before reaching the engine; a missing model folder gets a readable 503. The test is in the CI manifest (28 of 28 pass in the `.venv` + `requirements-ci.txt` setup).

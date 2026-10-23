@@ -45,6 +45,7 @@ Start with the [project map](architecture/project-structure.md), the [project co
 ## Verification
 
 - [Public release verification](verification/verification.md)
+- [Coverage baselines](verification/coverage.md)
 
 ## Contributor rules
 
