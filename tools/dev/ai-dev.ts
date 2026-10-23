@@ -34,7 +34,7 @@ export function aiDevelopmentServer(): Plugin {
     configureServer(server) {
       const privatePython = join(process.env.LOCALAPPDATA ?? '', 'VoiceStudioNext', 'runtime', '.venv', 'Scripts', 'python.exe');
       const python = process.env.VOICESTUDIO_NEXT_PYTHON || (existsSync(privatePython) ? privatePython : 'python');
-      const script = fileURLToPath(new URL('../runtime/app/ai_tagging.py', import.meta.url));
+      const script = fileURLToPath(new URL('../../scripts/runtime/app/ai_tagging.py', import.meta.url));
       child = spawn(python, ['-u', script, '--serve', '--port', String(port), '--parent-stdin'], {
         windowsHide: true, stdio: ['pipe', 'ignore', 'pipe'], env: { ...process.env, VOICESTUDIO_DEV_ORIGINS: '1' },
       });

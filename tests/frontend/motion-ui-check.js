@@ -1,7 +1,7 @@
 import { mount, unmount, tick, createRawSnippet } from 'svelte';
 import VoiceOrb from '../../src/lib/playback/VoiceOrb.svelte';
 import Tooltip from '../../src/lib/ui/Tooltip.svelte';
-import MotionPreview from '../../scripts/preview/motion-preview.svelte';
+import MotionPreview from '../../tools/preview/motion-preview.svelte';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 

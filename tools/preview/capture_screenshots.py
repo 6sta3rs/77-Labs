@@ -1,7 +1,7 @@
 """Capture public UI in a fresh Chromium profile, with backend access blocked.
 
 Optional QA dependency: pip install playwright; playwright install chromium.
-Run a dev server first, then: python scripts/preview/capture_screenshots.py --port 4310
+Run a dev server first, then: python tools/preview/capture_screenshots.py --port 4310
 """
 import argparse
 import json

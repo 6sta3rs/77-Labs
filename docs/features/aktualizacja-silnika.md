@@ -9,12 +9,12 @@ not identify the contents.
 
 ## Preparing the source
 
-`scripts/build/bundle.py` reads the selected commit through `git archive`,
+`tools/release/bundle.py` reads the selected commit through `git archive`,
 without importing the backend. Write a candidate to a separate directory
 instead of overwriting the active ZIP. For example, with your own upstream checkout:
 
 ```powershell
-python scripts/build/bundle.py .tmp/upstream --commit <full-upstream-SHA> --version <version> --output .tmp/engine-candidate/engine.zip
+python tools/release/bundle.py .tmp/upstream --commit <full-upstream-SHA> --version <version> --output .tmp/engine-candidate/engine.zip
 python tests/acceptance/check_engine_candidate.py --current scripts/runtime/vendor/engine.zip --candidate .tmp/engine-candidate/engine.zip --report .tmp/engine-candidate/report.json --prepare
 python -m unittest discover -s scripts/runtime -p test_engine_bundle.py -v
 ```

@@ -11,7 +11,7 @@ mod settings_native;
 use runtime::Runtime;
 use tauri::Manager;
 
-/// True when this build has an update feed (endpoints are injected only by scripts/release/build-update.mjs via `--config`).
+/// True when this build has an update feed (endpoints are injected only by tools/release/build-update.mjs via `--config`).
 #[tauri::command]
 fn app_updates_supported(app: tauri::AppHandle) -> bool {
     app.config().plugins.0.get("updater")

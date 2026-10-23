@@ -25,7 +25,7 @@ jobs:
       - run: npm run test:ui
       - run: npm run test:structure
       - run: python -B tests/runtime/test_publication_check.py
-      - run: python scripts/dev/publication_check.py
+      - run: python tools/dev/publication_check.py
   windows:
     runs-on: windows-latest
     steps:

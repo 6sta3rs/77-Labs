@@ -1,15 +1,17 @@
 # T-0012: `tools/` with an index of what each tool is for
 
-**Problem.** About 85 developer tools (`scripts/dev`, `scripts/preview`, `scripts/release`, `scripts/build`, `tests/acceptance`) have no description of what they are for, when to run them or who calls them. A first inventory found about 25 of the 39 acceptance scripts called by nothing (not re-verified).
+**Problem.** About 85 developer tools (`tools/dev`, `tools/preview`, `tools/release`, `tools/release`, `tests/acceptance`) have no description of what they are for, when to run them or who calls them. A first inventory found about 25 of the 39 acceptance scripts called by nothing (not re-verified).
 
 **Plan.**
 1. Create `tools/README.md`: one table, `tool | purpose | when to run | called by`. Start from the inventory in `.tmp/qa` (ignored) and re-verify each row.
-2. Move `scripts/dev` to `tools/dev`, `scripts/preview` to `tools/preview`, `scripts/release` and `scripts/build` to `tools/release`. `tests/acceptance` STAYS where it is (it holds tests; decision of the 23 October roadmap review). `scripts/runtime/` stays where it is: it is the backend embedded in the EXE through `include_str!`.
+2. Move `tools/dev` to `tools/dev`, `tools/preview` to `tools/preview`, `tools/release` and `tools/release` to `tools/release`. `tests/acceptance` STAYS where it is (it holds tests; decision of the 23 October roadmap review). `scripts/runtime/` stays where it is: it is the backend embedded in the EXE through `include_str!`.
 3. Naming rule: `.mjs` files kebab-case, `.py` files snake_case. Rename the outliers (`test-runtime.py` to `test_runtime.py`, `capture_screenshots.py` stays).
-4. Update `package.json`, `ci.yml`, docs, `check-structure.mjs` and the line-limit exceptions list for the new paths. Also: `AGENTS.md` (`python scripts/dev/publication_check.py`), `CONTRIBUTING.md`, `tests/runtime/test_publication_check.py`, and `tests/runtime_paths.py` (it hard-codes `scripts/build` and `tests/acceptance`). Acceptance for the rewrite: all 27 `tests/runtime/test_*.py` modules still import.
+4. Update `package.json`, `ci.yml`, docs, `check-structure.mjs` and the line-limit exceptions list for the new paths. Also: `AGENTS.md` (`python tools/dev/publication_check.py`), `CONTRIBUTING.md`, `tests/runtime/test_publication_check.py`, and `tests/runtime_paths.py` (it hard-codes `tools/release` and `tests/acceptance`). Acceptance for the rewrite: all 27 `tests/runtime/test_*.py` modules still import.
 
-**Checks.** `npm run test:structure`, `npm run check`, `npm run build`, `python scripts/dev/publication_check.py` (path of the moved tool updated in CI), docs links.
+**Checks.** `npm run test:structure`, `npm run check`, `npm run build`, `python tools/dev/publication_check.py` (path of the moved tool updated in CI), docs links.
 
 **Depends on.** T-0008 and T-0009 (decide what is deleted before moving it), T-0007.
 
 **Done when.** `tools/README.md` explains every tool and nothing in the repo still points at the old paths.
+
+**Done (23 October 2026).** `tools/dev`, `tools/preview`, `tools/release` (now also `bundle.py`) exist with `tools/README.md`; `tests/acceptance/README.md` covers the acceptance scripts; `test-runtime.py` is `test_runtime.py`. The owner decisions T-0008 and T-0009 were not available, so nothing was deleted: the candidates are listed under "Known problems" in `tools/README.md`.

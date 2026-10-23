@@ -8,4 +8,4 @@ All cards use `public/demo/interface-tone.wav`: 3.43 seconds, mono PCM16, 24 kHz
 
 The tone supports metadata, play/pause, seeking, download, and visualization checks. It is not a TTS quality, ASR, or cloning test; supply your own speech reference outside Git.
 
-Generator: `python scripts/dev/generate_demo_tone.py`. Media check: `python scripts/dev/publication_check.py`.
+Generator: `python tools/dev/generate_demo_tone.py`. Media check: `python tools/dev/publication_check.py`.

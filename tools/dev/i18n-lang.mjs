@@ -1,7 +1,7 @@
 // Interface languages: status, translator hand-off and scaffolding for a new language (docs/features/i18n.md).
-//   node scripts/dev/i18n-lang.mjs status                       coverage of every registered language against English
-//   node scripts/dev/i18n-lang.mjs missing <code>               writes .tmp/i18n/<code>-missing.json ({ "Polish source": "English reference" })
-//   node scripts/dev/i18n-lang.mjs add <code> "<Name>" <locale> [rtl]   creates src/lib/i18n/<code>/index.ts and registers it
+//   node tools/dev/i18n-lang.mjs status                       coverage of every registered language against English
+//   node tools/dev/i18n-lang.mjs missing <code>               writes .tmp/i18n/<code>-missing.json ({ "Polish source": "English reference" })
+//   node tools/dev/i18n-lang.mjs add <code> "<Name>" <locale> [rtl]   creates src/lib/i18n/<code>/index.ts and registers it
 // Set I18N_ROOT to run `add` against another checkout (the test does).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'

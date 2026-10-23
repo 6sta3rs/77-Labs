@@ -172,7 +172,7 @@ def main(argv=None):
     parser.add_argument("source", type=Path, help="Repozytorium upstream albo odrębny katalog resources")
     parser.add_argument("--commit", help="Pełny SHA; źródła pobierane bezpośrednio z tego obiektu Git")
     parser.add_argument("--version", help="Oczekiwana wersja, sprawdzana z pyproject.toml")
-    parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parents[1] / "runtime/vendor/engine.zip")
+    parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parents[2] / "scripts/runtime/vendor/engine.zip")
     parser.add_argument("--provenance", type=Path)
     parser.add_argument("--upstream", default=UPSTREAM)
     args = parser.parse_args(argv)

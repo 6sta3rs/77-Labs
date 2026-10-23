@@ -67,7 +67,7 @@ Network integrations are optional. Downloading models and using a selected langu
 npm run check
 npm run build
 npm run test:ui
-python scripts/dev/publication_check.py --deny-file <private-list-outside-repo>.json
+python tools/dev/publication_check.py --deny-file <private-list-outside-repo>.json
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
 

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIRS = (
     ROOT / "scripts/runtime/app",
     ROOT / "scripts/runtime/install",
-    ROOT / "scripts/build",
+    ROOT / "tools/release",
     ROOT / "tests/runtime",
     ROOT / "tests/acceptance",
 )
@@ -18,7 +18,7 @@ for directory in reversed(SOURCE_DIRS):
 def runtime_source(name: str, root: Path = ROOT) -> Path:
     """Find a source resource without confusing it with deployed runtime data."""
     directories = (root / "scripts/runtime/app", root / "scripts/runtime/install",
-                   root / "scripts/build", root / "scripts/runtime/vendor",
+                   root / "tools/release", root / "scripts/runtime/vendor",
                    root / "tests/runtime", root / "tests/acceptance")
     for directory in directories:
         candidate = directory / name

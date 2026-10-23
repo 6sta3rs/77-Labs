@@ -16,13 +16,13 @@ npm run check
 npm run build
 npm run test:ui
 python -B tests/runtime/test_publication_check.py
-python scripts/dev/publication_check.py
+python tools/dev/publication_check.py
 cargo check --manifest-path src-tauri/Cargo.toml
 git diff --check
 git status --short
 ```
 
-The script checks files, the index, all Git objects (including unreachable ones), checkpoint refs, private formats, tokens, personal paths, embedded audio, and the exact engine SHA. The tone is pinned in `public-assets.json` and reproducible with `scripts/dev/generate_demo_tone.py`.
+The script checks files, the index, all Git objects (including unreachable ones), checkpoint refs, private formats, tokens, personal paths, embedded audio, and the exact engine SHA. The tone is pinned in `public-assets.json` and reproducible with `tools/dev/generate_demo_tone.py`.
 
 Supply additional private strings through `--deny-file`: a JSON array stored **outside the repository**. Matched values are not printed. For the first release, add `--require-anonymous` to check authors, committers, and taggers.
 

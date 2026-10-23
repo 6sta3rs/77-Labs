@@ -15,7 +15,7 @@ import wave
 import zipfile
 
 import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/dev"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools/dev"))
 import publication_check as subject
 
 

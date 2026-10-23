@@ -22,8 +22,8 @@ package.json              stays in the repository root (npm scripts, CI, lockfil
 **Blast radius (counted on 23 October 2026).**
 - 113 imports from files in `src/` (mostly `App.svelte`, `main.ts`, `gallery.ts`) point to `./lib/...` and become `./...`.
 - Imports inside `src/lib` stay as they are (the folders move together), except one that leaves it: `settings/pages/UpdatesPage.svelte` imports `../../../../package.json`.
-- 75 files outside `src/` (tests, scripts, CI, config) and 28 documents mention `src/lib`; 16 tests use the `sourceUrl()` helper; `scripts/dev/check-structure.mjs` has a rule about `src/lib`; 6 entries of `scripts/dev/line-limit-exceptions.json` use `src/lib` paths.
-- 24 tracked files outside `src-tauri/` mention `src-tauri` (AGENTS.md, README, docs, `.gitignore`, `vite.config.ts`, `scripts/release/build-update.mjs`, `check-structure.mjs`, a few frontend files and tests).
+- 75 files outside `src/` (tests, scripts, CI, config) and 28 documents mention `src/lib`; 16 tests use the `sourceUrl()` helper; `tools/dev/check-structure.mjs` has a rule about `src/lib`; 6 entries of `tools/dev/line-limit-exceptions.json` use `src/lib` paths.
+- 24 tracked files outside `src-tauri/` mention `src-tauri` (AGENTS.md, README, docs, `.gitignore`, `vite.config.ts`, `tools/release/build-update.mjs`, `check-structure.mjs`, a few frontend files and tests).
 - Moving the HTML entries and Vite configuration into `frontend/` needs Vite `root: 'frontend'` (or `--config`), `build.outDir` pointing back to the repository `dist/` (Tauri `frontendDist` is `../dist` relative to `tauri.conf.json`, it must keep resolving after the rename), and updated `package.json` scripts.
 
 **Known facts.** `tauri info` found a renamed app directory in a scratch copy (it read the Rust dependencies from it). A full `tauri build` on the renamed layout was **not** tested. The Tauri docs do not describe renaming the folder, so this must be proven before merging.

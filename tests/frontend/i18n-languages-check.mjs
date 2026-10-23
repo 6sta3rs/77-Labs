@@ -69,7 +69,7 @@ check('`npm run i18n:add` creates a catalog and registers it before the marker; 
   try {
     mkdirSync(join(temp, 'src/lib/i18n'), { recursive: true })
     cpSync(join(repo, 'src/lib/i18n/languages.ts'), join(temp, 'src/lib/i18n/languages.ts'))
-    const run = (...args) => spawnSync(process.execPath, [join(repo, 'scripts/dev/i18n-lang.mjs'), 'add', ...args], { env: { ...process.env, I18N_ROOT: temp }, encoding: 'utf8' })
+    const run = (...args) => spawnSync(process.execPath, [join(repo, 'tools/dev/i18n-lang.mjs'), 'add', ...args], { env: { ...process.env, I18N_ROOT: temp }, encoding: 'utf8' })
     const first = run('de', 'Deutsch', 'de-DE')
     assert.equal(first.status, 0, first.stderr)
     const registry = readFileSync(join(temp, 'src/lib/i18n/languages.ts'), 'utf8')

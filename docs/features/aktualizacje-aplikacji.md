@@ -23,4 +23,4 @@ Signing key: the private key is `%USERPROFILE%\.tauri\seventy-seven-labs-updater
 - `src/lib/platform/app-update.ts` — check, download/install, restart.
 - `src/lib/settings/pages/UpdatesPage.svelte` — the "Aktualizacja aplikacji" section.
 - `src-tauri/tauri.conf.json` — bundle target `nsis`, `createUpdaterArtifacts`, public key (endpoint injected by the release script); `src-tauri/capabilities/main.json` — `updater:default`, `process:allow-restart`.
-- `scripts/release/build-update.mjs` — release build and `latest.json`.
+- `tools/release/build-update.mjs` — release build and `latest.json`.

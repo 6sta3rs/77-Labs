@@ -26,14 +26,15 @@ Sources are split by application feature. When changing voices, start in
 | Shared styles | `src/lib/styles/`, `src/styles.css` | `ui.css`, `typography.css`, `ui-colors.ts` |
 | Palettes | `src/lib/themes/` | Kept as a separate folder |
 | Shared types and time format | `src/lib/data.ts` | Existing voice, project, and recording contracts |
-| Demo audio | `public/demo/interface-tone.wav` | Procedural tone (`scripts/dev/generate_demo_tone.py`); list in `docs/public-assets.json` |
+| Demo audio | `public/demo/interface-tone.wav` | Procedural tone (`tools/dev/generate_demo_tone.py`); list in `docs/public-assets.json` |
 | Native Windows app | `src-tauri/src/` | `main.rs`, `runtime.rs`, `installer.rs` |
 | Backend adapter | `scripts/runtime/app/` | `launcher.py`, `model_management.py` |
 | Environment installation | `scripts/runtime/install/` | `bootstrap.py`, `prepare.py` |
 | Pinned sources and provenance | `scripts/runtime/vendor/` | `engine.zip`, `engine-provenance.json` |
-| Engine archive rebuild | `scripts/build/` | `bundle.py` |
-| Developer tools | `scripts/dev/` | `check-structure.mjs`, `publication_check.py`, `test-runtime.py`, `filemap/` (Rust file-tree scanner) |
-| Standalone previews | `scripts/preview/` | `inline-preview.mjs`, `capture_screenshots.py` |
+| Release builders | `tools/release/` | `build-update.mjs` (installer and feed), `bundle.py` (engine archive) |
+| Developer tools | `tools/dev/` | `check-structure.mjs`, `run-checks.mjs`, `publication_check.py`, `test_runtime.py`, `filemap/` (Rust file-tree scanner) |
+| Standalone previews | `tools/preview/` | `inline-preview.mjs`, `capture_screenshots.py` |
+| Index of every tool | `tools/README.md` | Purpose, when to run, who calls it; acceptance scripts are in `tests/acceptance/README.md` |
 | CI | `.github/workflows/ci.yml` | Checks run on push and pull requests |
 
 ## Tests and artifacts
@@ -60,7 +61,7 @@ npm run test:ui
 npm run test:structure
 node tests/frontend/tag-check.mjs
 cargo check --manifest-path src-tauri/Cargo.toml
-& "$env:LOCALAPPDATA/VoiceStudioNext/runtime/.venv/Scripts/python.exe" -B scripts/dev/test-runtime.py
+& "$env:LOCALAPPDATA/VoiceStudioNext/runtime/.venv/Scripts/python.exe" -B tools/dev/test_runtime.py
 ```
 
 The full Python tests require a prepared private venv with the backend
@@ -85,7 +86,7 @@ sources. It does not install libraries, download models, or run inference.
    installation, or shared weights and libraries while tidying code.
 7. Keep source files under 600 lines. `npm run test:structure` enforces it;
    a file that legitimately needs more (a translation or colour table) is
-   listed with a reason in `scripts/dev/line-limit-exceptions.json`, and a
+   listed with a reason in `tools/dev/line-limit-exceptions.json`, and a
    listed file may not grow past its `max`.
 
 ## Scope of this reorganization

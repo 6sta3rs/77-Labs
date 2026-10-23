@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const read = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8')
-const main = read('src-tauri/src/main.rs'), release = read('scripts/release/build-update.mjs')
+const main = read('src-tauri/src/main.rs'), release = read('tools/release/build-update.mjs')
 const conf = JSON.parse(read('src-tauri/tauri.conf.json')), page = read('src/lib/settings/pages/UpdatesPage.svelte')
 
 assert.match(main, /get\("updater"\)[\s\S]*get\("endpoints"\)/, 'command must read plugins.updater.endpoints')

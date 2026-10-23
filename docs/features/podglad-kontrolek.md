@@ -23,7 +23,7 @@ synthetic demonstration signal, without a user's voice or a model.
 - `src/lib/ui/`, `src/lib/styles/ui.css`: shared controls.
 - `src/lib/gallery/AudioExamples.svelte`: playback and orb material examples.
 - `src/gallery.ts`, `inputy.html`: development entry point.
-- `scripts/preview/controls-preview.mjs`: optional standalone preview generator.
+- `tools/preview/controls-preview.mjs`: optional standalone preview generator.
 
 Generated HTML is an artifact, not a second source of components. Before sharing
 it, check that its data is clean and that it reflects the current code.

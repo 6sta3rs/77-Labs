@@ -1,5 +1,17 @@
 # Public project progress
 
+## 23 October 2026 — `tools/` with an index of every developer tool (T-0012)
+
+`scripts/dev`, `scripts/preview` and `scripts/release` moved to `tools/dev`, `tools/preview` and `tools/release`; `scripts/build/bundle.py` joined `tools/release/` (so `scripts/` now holds only the embedded backend, `scripts/runtime/`); `test-runtime.py` became `test_runtime.py`. `tools/README.md` has a row for each of the 28 tools (purpose, when to run, who calls it, what it needs) and a "Known problems" list; `tests/acceptance/README.md` does the same for the 40 acceptance scripts, which STAY in `tests/acceptance` (they are tests; decision of the roadmap review). The inventory behind both tables was produced by a read-only sub-agent and the callers column is a basename grep, not proof that something runs the file.
+
+Paths rewritten in 32 files: `package.json`, `ci.yml`, `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `vite.config.ts` (imports `tools/dev/ai-dev.ts`, which now points at `../../scripts/runtime/app/ai_tagging.py`), `src-tauri/src/main.rs` (comment), `tests/runtime/test_publication_check.py`, `tests/runtime_paths.py` (`scripts/build` is now `tools/release`), `tests/frontend/app-update-support-check.mjs`, `bundle.py` (default output path), the line-limit exceptions file, `docs/public-assets.json` and the documentation. This log keeps its historical paths.
+
+Nothing was deleted: T-0008 and T-0009 (broken voice-audit tools, manual previews, orb-music demo) need the owner's answer, so the candidates are only listed in the README. Inventory findings worth knowing: `npm run qa:ui` (`ui-performance-preview.mjs`) serves check scripts from a path that does not exist, `voice-audit-preview.mjs`, `voice-picker-preview.mjs`, `feature-preview.mjs` and `tools-workspace-preview.mjs` have wrong roots or missing checks, `orb-product-preview.py` computes the repository root one level too high. They were broken before the move and are unchanged.
+
+The Vite dev server of another session was holding `scripts/dev` open, so the folder could not be renamed in place; the 11 files were moved one by one with `git mv` (the history follows) and an empty `scripts/dev/filemap` folder remains on disk only.
+
+Checks: `python .tmp` import test of all 27 `tests/runtime/test_*.py` modules: 27 modules, 0 import errors; `test_publication_check.py` OK, `test_engine_bundle.py` OK; `npm run check` 0/0, `build`, `test:ui` (71 checks), `test:structure` PASS (542 documented paths); `node tools/dev/i18n-lang.mjs status` works. Not verified: `npm run desktop:release` and `desktop:build` after the move, the previews and `capture_screenshots.py`, `bundle.py` against a real upstream checkout, GitHub CI.
+
 ## 23 October 2026 — fixes from the independent review of M1
 
 A fresh read-only reviewer (Opus) checked commits `f79cbaf..87cf207` against the roadmap criteria and found problems that are fixed here:

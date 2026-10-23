@@ -1,4 +1,4 @@
-// Open /scripts/preview/editor-performance.html on the dev server, then call this module.
+// Open /tools/preview/editor-performance.html on the dev server, then call this module.
 export async function runEditorPerformanceCheck() {
   const harness = window.__editorPerformanceHarness;
   if (!harness) throw Error('Open the isolated editor-performance.html harness first.');

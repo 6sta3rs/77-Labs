@@ -1,5 +1,5 @@
 import { mount, unmount, tick } from 'svelte';
-import OrbPreview from '../../scripts/preview/orb-preview.svelte';
+import OrbPreview from '../../tools/preview/orb-preview.svelte';
 import VoiceOrb from '../../src/lib/playback/VoiceOrb.svelte';
 import { voiceIdentity } from '../../src/lib/playback/voice-orb';
 import { applyAppearance, defaultAppearance } from '../../src/lib/settings/appearance';

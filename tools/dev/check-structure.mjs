@@ -72,13 +72,13 @@ for (const file of documents) {
 }
 // Limit długości plików kodu: nowe pliki ponad limit nie przechodzą, a istniejące wyjątki (z powodem) nie mogą rosnąć.
 const lineLimit = Number(process.env.LINE_LIMIT) || 600;
-const exceptions = JSON.parse(read('scripts/dev/line-limit-exceptions.json'));
+const exceptions = JSON.parse(read('tools/dev/line-limit-exceptions.json'));
 let oversized = 0;
 const sourceFiles = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => /\.(svelte|ts|mjs|js|py|rs|css)$/.test(file) && existsSync(resolve(root, file)));
 for (const file of sourceFiles) {
   const lines = read(file).split('\n').length - 1;
   const exception = exceptions[file];
-  if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w scripts/dev/line-limit-exceptions.json.`);
+  if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w tools/dev/line-limit-exceptions.json.`);
   else if (exception && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
   else if (exception && lines <= lineLimit) failures.push(`${file}: ${lines} linii mieści się w limicie ${lineLimit}; usuń wyjątek.`);
   if (exception) oversized++;
