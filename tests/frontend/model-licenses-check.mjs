@@ -21,7 +21,7 @@ assert.throws(() => helpers.parseModelLicenseDetails({ ...detail, repo_id: 'othe
 assert.throws(() => helpers.parseModelLicenseDetails({ ...detail, info: { variants: [null] } }, repo));
 assert.throws(() => helpers.parseModelLicenseDetails({ ...detail, history: [null] }, repo));
 const blocked = helpers.modelLicenseFailure({ detail: { code: 'model_licence_required', models: [{ repo_id: repo, license: 'NOASSERTION', category: 'unknown', fingerprint }] } }, 403);
-assert.equal(blocked.code, 'model_licence_required'); assert.match(blocked.message, /NOASSERTION/); assert.match(blocked.message, /Modele i silnik/);
+assert.equal(blocked.code, 'model_licence_required'); assert.match(blocked.message, /NOASSERTION/); assert.match(blocked.message, /Ustawienia → Modele → Warunki modelu/);
 assert.equal(helpers.modelLicenseFailure({ detail: { code: 'other' } }, 403), undefined);
 assert.equal(helpers.modelLicenseFailure({ detail: { code: 'model_licence_required' } }, 500), undefined);
 assert.equal(helpers.modelLicenseFailure({ code: 'model_licence_required', models: [{ repo_id: 'https://secret.invalid', license: 'other' }] }, 403).models.length, 0);

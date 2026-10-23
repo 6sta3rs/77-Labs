@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — every frontend check runs (T-0007)
+
+Triage: 36 `tests/frontend/*-check.mjs` files were in no npm script. A read-only run (one by one, results in the ignored `.tmp/qa/T-0007/`) gave 34 PASS and 2 FAIL; both failures were stale tests, not product bugs: `model-licenses-check.mjs` expected the old page name "Modele i silnik" (the message now says "Ustawienia → Modele → Warunki modelu"), and `speech-app-contract-check.mjs` evaluated the real `App.svelte` generate function without `userMessage`, `markEngineConfirmed` and `unmarkEngineConfirmed` in its fixture. Both were fixed in the tests only. Nothing was deleted.
+
+Change: `scripts/dev/run-checks.mjs` replaces the 33-segment `&&` chain in `test:ui`. It runs every `*-check.mjs` plus `ui-rules.mjs` (sorted, four at a time), prints the tail of every failing check, exits 1 on any failure or when a name filter matches nothing, and has an empty `SKIPPED` list (file to reason) for checks that cannot run in CI. `ARGUMENTS` keeps `--summary` for `orb-reactivity-check.mjs`. `test:styles` and `test:buttons` stay as standalone scripts. The 8 unreferenced `*-check.js` files are browser-console scripts; they are documented in the new `tests/frontend/README.md` (kept, to be replaced by the Playwright smoke T-0030).
+
+Checks: `node scripts/dev/run-checks.mjs` 71/71 passed in about 18 s; `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0. Not verified: the runner on GitHub (Ubuntu and Windows); the failure output format with a real failing check (exit code and the empty-filter path were tested, a deliberately failing check was not added). Board: T-0002 done (ebdc9a7).
+
 ## 23 October 2026 — stale documentation paths fixed and checked (T-0002)
 
 `npm run test:structure` now also checks every path written in backticks or in a fenced block in `docs/**` (except this log, which is history), `tasks/**`, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md` and `THIRD_PARTY_NOTICES.md`. Paths are recognised by one list of roots in `scripts/dev/check-structure.mjs` (`pathRoots`), so the check survives later moves (T-0012, T-0011 only edit that list); a path that does not exist yet or any more is marked `(planned)` or `(removed)` right after it. The first run found 67 stale paths in 17 documents (the old flat `src/lib/*.ts` and `scripts/runtime/*.py` layout, `scripts/*-check.mjs`, `scripts/controls-preview.mjs`, `CONTRIBUTING.md` citing `scripts/tag-check.mjs`); each was replaced by the unique tracked file of the same name, and the i18n example uses `src/lib/i18n/<code>/index.ts`. The check now covers 502 paths.

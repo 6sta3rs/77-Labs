@@ -10,8 +10,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 
 | ID | Title | Status | Next step | Evidence |
 | --- | --- | --- | --- | --- |
-| T-0002 | Fix stale paths in docs | doing | Stale paths fixed in 15 documents and the check added to `test:structure` (backticked paths under a single list of roots; `(planned)` / `(removed)` marks a path that does not exist yet or any more). Done once the commit hash is recorded. | file does not exist at the old path |
-| T-0007 | Triage the 36 checks that never run | open | See `specs/T-0007-unrun-checks.md`. Only after it, replace the `&&` chain in `test:ui` with a loop. | 36 of 69 `tests/frontend/*-check.mjs` are in no npm script; CI runs only `npm run test:ui` |
 | T-0008 | Decide on the broken voice-audit tools | blocked | Owner: keep or delete? `scripts/preview/voice-audit-preview.mjs` and `voice-picker-preview.mjs` resolve `scripts/scripts/...` (does not exist), `voice-audit-build.mjs` has no runner. | |
 | T-0009 | Decide on manual previews and the orb-music demo | blocked | Owner: delete `scripts/preview/{audiobook,orb-product,tools-workspace}-preview*`, `orb-reactivity-gpu.html`, and `orb-demo.html` + `src/orb-music-demo.ts` + `src/OrbMusicDemo.svelte` + `scripts/dev/generate_demo_music.py`? Keep `inline-preview`, `capture_screenshots`, `controls-preview`, the performance previews (documented or used). | nothing references the candidates |
 | T-0010 | Run `test:structure` in CI | open | Merged into T-0028 (Windows CI job); do the one-line step first. | |
@@ -67,6 +65,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0016 | Share `no_links` with a message parameter | 1530c99 |
 | T-0020 | Add `postcss` to devDependencies | 2479c91 |
 | T-0035 | Dev origins out of production | dce08fc |
+| T-0002 | Fix stale paths in docs | ebdc9a7 |
+| T-0007 | Triage the 36 checks that never run | (this commit) |
 
 ## Rejected (do not propose again without new evidence)
 

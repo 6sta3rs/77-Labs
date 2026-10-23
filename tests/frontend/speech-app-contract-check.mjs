@@ -22,7 +22,7 @@ for(const preset of [false,true]){
  const generationContext={hasReference:false,supportsWavBits:true,supportsPresetVoice:true,supportsDesignRecipe:true};
  const generationUsesPreset=preset,ttsFamily={backends:[{id:generationEngine,display_name:'QA fixture engine'}]};
  const voices=[{id:'qa-voice',name:'QA voice',kind:'Projektowany',demo:false}],primaryVoice=voices[0];
- function scheduleProjectSave(){};function goToPage(){};function notify(){};`;
+ function scheduleProjectSave(){};function goToPage(){};function notify(){};function userMessage(error){return error.message};function markEngineConfirmed(){};function unmarkEngineConfirmed(){};`;
  const exposure=`return {generate,restore,persistProject,openProject,changeSpeechSettings,get result(){return {speechSettings,projects,blocks}},set settings(value){speechSettings=value}};`;
  const code=ts.transpileModule(fixture+actual+exposure,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const dependencies={...speech,...audio,initial,preset,localStorage:{setItem:(key,value)=>storage.set(key,value)},api:{generate:async(input)=>{
