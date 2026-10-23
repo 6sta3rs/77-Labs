@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — audit documents moved out of `.tmp/qa` (T-0017)
+
+`tasks/audits/` now holds both audit documents: `audit-2026-10-22.md` (the generated fix checklist with files and test steps; it moved there with the previous commit and its generator in `.tmp/qa` now writes to the new path) and `app-audit-2026-10-22.md`, an English translation of the internal Polish application audit (findings as of 22 October 2026, before the 0.2.2 fixes; it says so in its first paragraph). The Polish task list in `.tmp/qa/zadania-audyt-2026-10-22.md` is not copied: `audit-2026-10-22.md` is generated from the same data. The translation was made by a sub-agent from the Polish file, which contained no home paths, names, e-mail addresses, account names, voice-profile names or tokens (the sub-agent reported none and a grep for paths, `@`, names and key words found only the phrase "Hugging Face token" as a diagnostics warning). The board links point to the new folder.
+
+Checks: `npm run test:structure` PASS (links and documented paths), publication check 0 file findings. Not verified: a human proofread of the translation against the Polish original (a sample of the opening and headings was read). Board: T-0038 done (8d5a1b0).
+
 ## 23 October 2026 — naming and index rules in `test:structure` (T-0038)
 
 `tools/dev/check-structure.mjs` now enforces: file names under `tools/`, `tests/` and `scripts/runtime/` are kebab-case for `.mjs`, `.ts`, `.js`, `.svelte`, `.html`, `.css` and snake_case for `.py`; every tracked file under `tools/` has a row (or a folder row ending in `/`) in `tools/README.md`, and every file under `tests/acceptance/` in `tests/acceptance/README.md`. A deliberately badly named, unlisted file made the check fail with both messages (tried and removed). Nine existing outliers were renamed with `git mv` and their references updated (only full file names were replaced, not tokens that merely look like them): `tests/acceptance/ai_runtime_smoke.py`, `feature_smoke.py`, `select_ui_check.py`, `slider_ui_check.py`, `wav_format_verify.py`, `stop-observer-check.mjs`; `tests/frontend/audit_upstream.py`, `speech_settings_backend_check.py`; `tools/preview/orb_product_preview.py`. The check reports 223 named files and 69 indexed tools.

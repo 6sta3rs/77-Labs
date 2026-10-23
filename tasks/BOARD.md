@@ -15,7 +15,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0011 | `frontend/src/` and `desktop/` instead of `src/lib/` and `src-tauri/` | open | Decided layout and blast radius in `specs/T-0011-rename-src-folders.md` (sources up from `src/lib`, UI config into `frontend/`, `package.json` stays in the root). Still needs a full `tauri build` proof on the new layout. |
 | T-0013 | Create `prototypes/` | blocked | Deferred by `specs/ROADMAP-to-8.md`: needs a privacy review of what leaves `.tmp`, nothing depends on it. | |
 | T-0014 | Clean `.tmp` | blocked | Owner confirms the delete list first (about 28k files, mostly repo copies, `*-dist`, a 2 GB cargo target). Keep `qa/`, `release/` and the pinned checkouts. | filemap map |
-| T-0017 | Move the audit and task lists out of `.tmp/qa` | open | Review `.tmp/qa/zadania-audyt-2026-10-22.md` and `audyt-aplikacji-2026-10-22.md` for private data, then add them to `tasks/audits/` (planned) in English or as a summary. | |
 | T-0019 | Remove the local `refs/t3` | blocked | Owner: 273 local refs today (growing; the T3 tool recreates them), not four. Delete them (`git update-ref -d`), acceptance is zero refs matching `refs/t3/`. CI clones are already green. | `publication_check.py:236` |
 | T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audits/audit-2026-10-22.md`. | audit list |
 | T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audits/audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/progress.md` |
@@ -33,7 +32,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0034 | Supply-chain hygiene | open | SHA-pinned actions, `dependabot.yml`, scheduled `npm audit --omit=dev` and `cargo audit`, checksum for the NSIS download. | |
 | T-0036 | Security docs | open | Extend `SECURITY.md`, add `docs/architecture/security.md` (planned) (token is a marker, CSP `unsafe-inline` rationale, trust boundaries). | |
 | T-0037 | Free open-source code signing | blocked | Owner: apply to SignPath Foundation or Azure Trusted Signing (eligibility unverified), wire into `release.yml` if granted. | |
-| T-0038 | `check-structure` rules | open | After T-0012: naming per extension, every file under `tools/` listed in the README, no orphan scripts. | |
 | T-0039 | Split large modules, ratchet limits | open | Burn-down. Split `runtime.rs` (tests into their own file) and `engine_catalogue_metadata.py`; ratchet every exception to its current size; per-file longest-line ratchet (`App.svelte`: 85 lines over 200 characters); no non-data file over 1000 lines. Size XL. | |
 | T-0040 | Silent-error rule | open | Empty `catch {}` and statement-less `catch {` without a `// reason` fail in `check-structure`; `App.svelte:164` shows a toast when `saveAppearance` returns false. | |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | open | Bundle size and test counts written by a script into `docs/verification/`; user-facing `CHANGELOG.md`; extend `CONTRIBUTING.md` (add a tool, language, task; run each gate). | |
@@ -67,6 +65,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0010 | Run `test:structure` in CI | f79cbaf |
 | T-0012 | Create `tools/` with an index of what each tool is for | 887fa1e |
 | T-0015 | English names for docs | bf62bdb |
+| T-0038 | `check-structure` rules | 8d5a1b0 |
+| T-0017 | Move the audit and task lists out of `.tmp/qa` | (next) |
 
 ## Rejected (do not propose again without new evidence)
 
