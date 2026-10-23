@@ -174,7 +174,7 @@ impl StartupClock {
     fn advance_stage(&mut self, id: &str) {
         let Some(rank) = STAGES.iter().position(|stage| *stage == id) else { return; };
         let current = self.progress.stage.as_deref().and_then(|stage| STAGES.iter().position(|known| *known == stage));
-        if current.map_or(true, |current| rank > current) { self.progress.stage = Some(id.into()); }
+        if current.is_none_or(|current| rank > current) { self.progress.stage = Some(id.into()); }
     }
 
     fn counter(value: &serde_json::Value, key: &str) -> Option<u64> {

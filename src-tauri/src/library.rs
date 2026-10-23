@@ -42,7 +42,7 @@ pub(crate) fn read_profiles() -> Result<Vec<Value>, String> {
                 record.insert((*name).to_owned(), value);
             }
             let id = record.get("id").and_then(Value::as_str).unwrap_or_default();
-            let image_url = safe_id(&id)
+            let image_url = safe_id(id)
                 .then(|| root.join("voices").join(format!("{id}.portrait.jpg")))
                 .and_then(|p| fs::metadata(p).ok())
                 .and_then(|m| m.modified().ok())

@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — clippy fix-up before the Rust gate (T-0028)
+
+Two lints blocked `cargo clippy -D warnings`: a needless borrow in `src-tauri/src/library.rs` and `Option::map_or(true, ..)` in `runtime.rs` (now `is_none_or`). No behaviour change.
+
+Checks: `cargo clippy --locked --all-targets -- -D warnings` clean, `cargo test --locked` 50 passed, 2 ignored. Not verified: other Rust toolchains than the one installed here (1.97).
+
 ## 23 October 2026 — CI runs the structure check (T-0028, first step)
 
 `ci.yml` now runs `npm run test:structure` after `npm run test:ui`; before, the structure, docs-link and line-limit rules were enforced only on the developer machine.
