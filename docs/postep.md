@@ -21,6 +21,8 @@ Run in the real desktop app (release EXE, real engine, driven over the WebView2 
 
 Not verified in the app: the dubbing translation message and dubbing/audiobook flows, the Codex bridge (not built), Ollama/LM Studio persistence and migration of the old list, the "model-only" provider flow (Together, Fireworks…), the LLM notices in the translation/dictation screens, English rendering of the new strings in the window, the update path from 0.2.1 to 0.2.2 (needs the published release), and the skip-reason text of the startup card for missing licence/weights.
 
+Published: tag `v0.2.2` and GitHub release `v0.2.2` with the signed installer, its `.sig` and `latest.json` (created through the GitHub API because `gh` is not installed); `releases/latest/download/latest.json` reports 0.2.2 (it returned 404 for about a minute after the upload). The update from an installed 0.2.1 was not run.
+
 Limitations: with a saved turbo pick and Systran not installed, WhisperX still defaults to large-v3; "Użyj" on turbo switches the ASR backend to Faster-Whisper (no forced alignment); the confirmed-engine mark is local (browser storage) and never expires; the skip reason of the warm-up is derived in the client because the engine does not report it.
 
 ## 23 October 2026 — 600-line limit for source files
