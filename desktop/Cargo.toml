@@ -10,7 +10,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 sha2 = "0.10"
-zip = { version = "2", default-features = false, features = ["deflate"] }
+zip = { version = "9", default-features = false, features = ["deflate"] }
 tauri = { version = "2", features = [] }
 tauri-plugin-http = "2"
 tauri-plugin-global-shortcut = "2"

@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — known advisories in the Rust dependencies fixed (T-0034, step 1)
+
+Running `cargo audit` once for the first time (cargo-audit 0.22.2 installed under the ignored `.tmp/`; the advisory database is fetched live) reported 9 vulnerabilities in `desktop/Cargo.lock`. Fixed by `cargo update`: `tokio` 1.54.0 to 1.54.1 (RUSTSEC-2026-0384, a race in `time::Interval`), `rustls-webpki` 0.103.15 to 0.103.16 (RUSTSEC-2026-0382, distrusted intermediates accepted), `webpki-roots` 1.0.9 to 1.0.11 (RUSTSEC-2026-0381); and by moving the direct `zip` dependency from 2 to 9 (`desktop/Cargo.toml`; RUSTSEC-2026-0367/0368/0369 are about `extract()` creating symlinks and keeping SUID bits; the installer only copies one entry by hand, but the fix costs nothing). No code change was needed for the new `zip` API.
+
+Remaining: `zip` 4.6.1 with the same three advisories comes in through `tauri-plugin-updater` 2.14.0; it cannot be bumped from this repository. On Windows the updater runs an NSIS installer and does not extract archives, so the weekly audit (next commit) lists the three IDs as ignored with that reason; this must be revisited when the plugin updates. Also reported and left as warnings: `proc-macro-error` (unmaintained), `glib` 0.18.5 (unsound `VariantStrIter`; a Linux-only GTK dependency of Tauri), and yanked `clipboard-win` 5.4.1 (unchanged by this change).
+
+Checks: `cargo check`, `cargo test --locked` (51 passed, 2 ignored, includes the uv extraction tests on the new `zip`), `cargo clippy --all-targets -D warnings` clean, `cargo audit` afterwards: 3 advisories left (the updater's `zip` 4.6.1). Not verified: a release build and the installer flow with the new `zip` and `tokio` (no EXE was run after this change), `rustls` behaviour in a real update check.
+
 ## 23 October 2026 — engine analytics kept off, and a privacy page (T-0050)
 
 Finding: the pinned engine ships `backend/core/analytics.py`, an opt-in PostHog client with an upstream project key as the default destination (`token_configured()` is true even in a source build), and the app's **Prywatność i użycie** page offered a consent switch for it while `launcher.py` did not set the engine's kill switch `OMNIVOICE_ANALYTICS_DISABLED`. Default behaviour verified by reading the engine code and by the new test: with no opt-in `enabled()` is false (nothing is sent by default), but after the user turned the switch on, events would have gone to the upstream project.
