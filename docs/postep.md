@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — one `durationLabel` (T-0004)
+
+`src/lib/settings/system-settings.ts` exported a second `durationLabel` with a different format (seconds, minutes, hours with "godz."). It is renamed `longDurationLabel` (one user: `PrivacyPage.svelte`); `src/lib/data.ts` keeps `durationLabel` (the `m:ss` player format) with its five users.
+
+Checks: `npm run check` 0/0, `build`, `test:ui`, `test:structure` exit 0. Not verified: the privacy page in the running app.
+
 ## 23 October 2026 — remove dead exports (T-0001)
 
 Deleted exports that nothing used (verified by `git grep` before and after): `BUILT_IN_THEMES`, `BuiltInThemeId`, `MobileThemeId`, `UNPUBLISHABLE_THEME_IDS`, `MOBILE_THEME_IDS`, `MOBILE_DEFAULT_THEME_ID` (`themes/t3-palettes.ts`), `systemSectionTitles`, `sharingLinks` (`settings/system-settings.ts`), `remoteProxyPath`, `remoteSocketUrl` (`platform/remote-backend.ts`), `initialText` (`data.ts`), `downloadLabels` (`models/model-management.ts`). 47 lines removed.

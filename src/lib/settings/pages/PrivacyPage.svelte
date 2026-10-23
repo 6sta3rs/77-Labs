@@ -10,7 +10,7 @@
   import FilePicker from '../../ui/FilePicker.svelte'
   import StatusBadge from '../../ui/StatusBadge.svelte'
   import { productionJson } from '../../tools/production/production'
-  import { durationLabel, putSettings, settingsError, type AnalyticsState, type SystemInfo, type UsageState } from '../system-settings'
+  import { longDurationLabel, putSettings, settingsError, type AnalyticsState, type SystemInfo, type UsageState } from '../system-settings'
   import { parseWatermarkResult, watermarkFileError, watermarkSettingsPath, watermarkTitle, type WatermarkResult, type WatermarkSettings } from '../../platform/integrations'
 
   let { ready = false, onnavigate }: { ready?: boolean; onnavigate?: (id: SettingsSection) => void } = $props()
@@ -88,7 +88,7 @@
   }) }
 
   /* ---------- usage ---------- */
-  const stats = $derived(usage ? [['Nagrania', usage.takes.toLocaleString(tr.locale)], ['Długość audio', durationLabel(usage.audio_seconds)], ['Głosy', usage.voices.toLocaleString(tr.locale)], ['Aktywne dni', usage.active_days.toLocaleString(tr.locale)], ['Dubbingi', usage.dubs.toLocaleString(tr.locale)], ['Ulubione', usage.starred.toLocaleString(tr.locale)]] : [])
+  const stats = $derived(usage ? [['Nagrania', usage.takes.toLocaleString(tr.locale)], ['Długość audio', longDurationLabel(usage.audio_seconds)], ['Głosy', usage.voices.toLocaleString(tr.locale)], ['Aktywne dni', usage.active_days.toLocaleString(tr.locale)], ['Dubbingi', usage.dubs.toLocaleString(tr.locale)], ['Ulubione', usage.starred.toLocaleString(tr.locale)]] : [])
   const top = (rows: { count: number }[]) => Math.max(1, ...rows.map(r => r.count))
 </script>
 

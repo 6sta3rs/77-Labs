@@ -58,7 +58,7 @@ export function settingsTimeout(value: string | number): number {
   if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 21600) throw new Error(translateUi("Limit musi być większy od 0 i wynosić najwyżej 21600 sekund."))
   return seconds
 }
-export function durationLabel(value: number): string {
+export function longDurationLabel(value: number): string {
   const seconds = Math.max(0, Math.round(Number(value) || 0))
   return seconds < 60 ? `${seconds} s` : seconds < 3600 ? `${Math.floor(seconds / 60)} min ${seconds % 60} s` : `${Math.floor(seconds / 3600)} godz. ${Math.floor(seconds % 3600 / 60)} min`
 }
