@@ -252,9 +252,15 @@ class RemoteFixtureTests(unittest.TestCase):
         self.assertNotIn(TOKEN, self.sessions)
         self.assertEqual(self.client.get("/next/remote/proxy/echo").status_code, 409)
 
+    def test_dev_server_origin_is_rejected_in_production_mode(self):
+        self.connect()
+        with self.assertRaises(Exception):
+            with self.client.websocket_connect("/next/remote/ws?path=/ws/transcribe&pcm=1&sr=16000&model=fixture", headers={"origin": "http://127.0.0.1:4310"}):
+                pass
+
     def test_one_use_ticket_relays_binary_dictation_and_text_transcript(self):
         self.connect()
-        with self.client.websocket_connect("/next/remote/ws?path=/ws/transcribe&pcm=1&sr=16000&model=fixture", headers={"origin": "http://127.0.0.1:4310"}) as websocket:
+        with self.client.websocket_connect("/next/remote/ws?path=/ws/transcribe&pcm=1&sr=16000&model=fixture", headers={"origin": "tauri://localhost"}) as websocket:
             websocket.send_bytes(b"\x00\x01" * 160)
             result = websocket.receive_json()
             self.assertEqual(result, {"type": "final", "text": "fixture transcript", "bytes": 320})

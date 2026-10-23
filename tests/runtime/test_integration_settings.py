@@ -88,7 +88,10 @@ class IntegrationSettingsTests(unittest.TestCase):
             self.assertEqual(os.environ["OMNIVOICE_API_URL"], "")
             self.assertEqual(os.environ["OMNIVOICE_MCP_BASE_PATH"], "")
             hosts = os.environ["OMNIVOICE_MCP_ALLOWED_HOSTS"].split(",")
-            self.assertEqual(set(hosts), {"127.0.0.1:4312", "localhost:4312", "127.0.0.1:4310", "localhost:4310"})
+            self.assertEqual(set(hosts), {"127.0.0.1:4312", "localhost:4312"})
+        with patch.dict(os.environ, {"VOICESTUDIO_DEV_ORIGINS": "1"}, clear=True):
+            integrations.apply_environment(self.data)
+            self.assertEqual(set(os.environ["OMNIVOICE_MCP_ALLOWED_HOSTS"].split(",")), {"127.0.0.1:4312", "localhost:4312", "127.0.0.1:4310", "localhost:4310"})
 
     def test_pending_restart_and_mount_are_distinct_from_successful_protocol_test(self):
         integrations.save_settings(self.data, {"mcp_enabled": True, "mcp_output_mode": "files"})

@@ -19,6 +19,7 @@ import asyncio
 from contextlib import suppress
 import json
 import math
+import os
 from pathlib import Path
 import re
 import time
@@ -393,7 +394,9 @@ def create_router(data: Path):
         # An HTTP admin session from another machine must never acquire the
         # desktop proxy's encrypted remote credentials.
         origin = local.headers.get("origin")
-        allowed = {"http://tauri.localhost", "https://tauri.localhost", "tauri://localhost", "http://127.0.0.1:4310", "http://localhost:4310"}
+        allowed = {"http://tauri.localhost", "https://tauri.localhost", "tauri://localhost"}
+        if os.environ.get("VOICESTUDIO_DEV_ORIGINS") == "1":
+            allowed |= {"http://127.0.0.1:4310", "http://localhost:4310"}
         if not is_loopback(local.client.host if local.client else None) or (origin is not None and origin not in allowed):
             await local.close(code=1008)
             return

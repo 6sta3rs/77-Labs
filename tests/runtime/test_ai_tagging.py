@@ -86,7 +86,12 @@ class TaggingTests(unittest.TestCase):
                 self.assertEqual(client.get("/ai/settings").status_code, 403)
                 headers = {"X-VoiceStudio-AI": "1", "Origin": "https://foreign.example"}
                 self.assertEqual(client.get("/ai/settings", headers=headers).status_code, 403)
+                # The Vite dev origin is rejected in production mode and accepted only with the dev flag.
                 headers["Origin"] = "http://127.0.0.1:4310"
+                self.assertEqual(client.get("/ai/settings", headers=headers).status_code, 403)
+                with patch.dict(os.environ, {"VOICESTUDIO_DEV_ORIGINS": "1"}):
+                    self.assertEqual(client.get("/ai/settings", headers=headers).json()["enabled"], True)
+                headers["Origin"] = "http://127.0.0.1:4312"
                 self.assertEqual(client.get("/ai/settings", headers=headers).json()["enabled"], True)
                 settings = Settings(reactions=False, intensity="subtle")
                 response = client.put("/ai/settings", headers=headers, json=settings.model_dump())

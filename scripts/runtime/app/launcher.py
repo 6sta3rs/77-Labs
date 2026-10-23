@@ -216,7 +216,7 @@ def configure_environment():
         "OMNIVOICE_PRELOAD_CAPTURE_ASR": "0", "OMNIVOICE_PRELOAD_WATERMARK": "0",
         "OMNIVOICE_PRELOAD_TTS_ASR": "0", "OMNIVOICE_MCP_DISABLE": "1",
         "OMNIVOICE_STARTUP_WATCHDOG_S": "120",
-        "OMNIVOICE_ALLOWED_ORIGINS": "http://127.0.0.1:4310,http://localhost:4310,http://tauri.localhost,tauri://localhost",
+        "OMNIVOICE_ALLOWED_ORIGINS": "http://tauri.localhost,tauri://localhost" + (",http://127.0.0.1:4310,http://localhost:4310" if os.environ.get("VOICESTUDIO_DEV_ORIGINS") == "1" else ""),
         "OMNIVOICE_DESKTOP_CONTAINED": "1",
         "PYTHONPYCACHEPREFIX": str(pycache), "PYTHONUTF8": "1",
     })

@@ -79,7 +79,7 @@ def apply_environment(data: Path):
         "OMNIVOICE_MCP_BASE_PATH": "",  # agents cannot read arbitrary host files
         "OMNIVOICE_API_URL": "",  # in-process MCP calls, never a remote override
         "OMNIVOICE_BIND_HOST": "127.0.0.1",
-        "OMNIVOICE_MCP_ALLOWED_HOSTS": "127.0.0.1:4312,localhost:4312,127.0.0.1:4310,localhost:4310",
+        "OMNIVOICE_MCP_ALLOWED_HOSTS": "127.0.0.1:4312,localhost:4312" + (",127.0.0.1:4310,localhost:4310" if os.environ.get("VOICESTUDIO_DEV_ORIGINS") == "1" else ""),
     })
     return settings
 

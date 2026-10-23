@@ -64,8 +64,13 @@ SCHEMA = {
     "type": "object", "properties": {"enhanced_blocks": {"type": "array", "items": {"type": "string"}}},
     "required": ["enhanced_blocks"], "additionalProperties": False,
 }
-ALLOWED_ORIGINS = {"http://127.0.0.1:4310", "http://localhost:4310", "http://127.0.0.1:4312",
-                   "tauri://localhost", "http://tauri.localhost", "https://tauri.localhost"}
+ALLOWED_ORIGINS = {"http://127.0.0.1:4312", "tauri://localhost", "http://tauri.localhost", "https://tauri.localhost"}
+# The Vite dev server origin is accepted only when the developer opts in.
+DEV_ORIGINS = {"http://127.0.0.1:4310", "http://localhost:4310"}
+
+
+def origin_allowed(origin: str) -> bool:
+    return origin in ALLOWED_ORIGINS or (os.environ.get("VOICESTUDIO_DEV_ORIGINS") == "1" and origin in DEV_ORIGINS)
 BUSY = threading.Lock()
 SETTINGS_LOCK = threading.Lock()
 
@@ -380,7 +385,7 @@ def create_router() -> APIRouter:
 
     def guard(request: Request):
         origin = request.headers.get("origin")
-        if origin and origin not in ALLOWED_ORIGINS:
+        if origin and not origin_allowed(origin):
             raise HTTPException(403, "Niedozwolone źródło żądania AI.")
         if request.headers.get("x-voicestudio-ai") != "1":
             raise HTTPException(403, "Brak nagłówka aplikacji AI.")

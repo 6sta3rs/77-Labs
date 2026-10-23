@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — dev origins only with a dev flag (T-0035)
+
+Before, the engine trusted `http://127.0.0.1:4310` and `http://localhost:4310` (the Vite dev server) in every build, so a page served on that port could call the production engine. Now `launcher.py` (`OMNIVOICE_ALLOWED_ORIGINS`), `ai_tagging.py` (`origin_allowed`), `remote_backend.py` (WebSocket origin) and `integration_settings.py` (MCP allowed hosts) add the dev origins only when `VOICESTUDIO_DEV_ORIGINS=1`. `src-tauri/src/runtime.rs` sets the flag from `cfg!(debug_assertions)` (so `tauri dev` keeps working, the release EXE does not trust 4310); `scripts/dev/ai-dev.ts` sets it for the dev AI adapter. Documented in `docs/architecture/runtime.md`. The per-run token is deliberately not part of the criterion: it is not an access control.
+
+Checks: `tests/runtime/test_ai_tagging.py` 15 OK (new: 4310 gives 403 without the flag, 200 with it), `test_remote_backend.py` 15 OK (new negative test: the 4310 WebSocket origin is closed), `test_integration_settings.py` 11 OK (hosts without 4310 by default, with it under the flag), `test_general_settings.py` 9 OK, `cargo check` PASS, `npm run check` 0/0, `npm run test:structure` PASS. `test_windows_runtime_paths.py` has one failure (`test_real_private_mcp_import...` needs the private `.venv`), unrelated and environmental: input for the T-0029 module table. Not verified: `tauri dev` and the browser dev flow in a running session; the release EXE rejecting 4310 end to end (only the unit-level contract).
+
 ## 23 October 2026 — Windows CI job (T-0028, T-0010)
 
 `.github/workflows/ci.yml` gains: `concurrency` with cancel-in-progress; a `windows` job (`npm ci`, `test:structure`, `test:ui`, `npm run build` first because `tauri::generate_context!` embeds `../dist`, `Swatinem/rust-cache`, `cargo check --locked`, `cargo test --locked`, `cargo clippy --locked --all-targets -D warnings`); and a `tauri-build` job (`npm run desktop:build`) that runs its steps only when `src-tauri/` or the npm manifests changed (decided by a `git diff` step, so the job always reports a status and can be made required). The Ubuntu job is unchanged. The interactive hotkey test in `dictation_desktop.rs` is already `#[ignore]`, so no extra skip list is needed; the other `#[cfg(windows)]` test only reads `GetForegroundWindow`.

@@ -683,6 +683,8 @@ impl Runtime {
                 .env_remove("PYTHONHOME")
                 .env("VOICESTUDIO_NEXT_BUNDLE", bundle)
                 .env("PYTHONUTF8", "1")
+                // The Vite dev origin (:4310) is trusted only in debug builds.
+                .env("VOICESTUDIO_DEV_ORIGINS", if cfg!(debug_assertions) { "1" } else { "0" })
                 // Warm the TTS model in the background so the first synthesis does not wait for the weights (user-switchable).
                 .env("VOICESTUDIO_NEXT_PRELOAD_TTS", if preload_tts { "1" } else { "0" })
                 .stdin(Stdio::piped())

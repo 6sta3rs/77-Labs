@@ -58,3 +58,7 @@ Vite proxies `/backend` to port 4312, but the browser does not start the Tauri s
 `cargo check --manifest-path src-tauri/Cargo.toml` checks Rust code. `tests/acceptance/smoke.py` checks start/health/stop, not generation. `tests/acceptance/qa_session.py` starts a disposable backend with local weights; `production_acceptance.py` and `tools_acceptance.py` then exercise real inference and the built-in tools against it. Speech tests require an explicitly chosen profile or reference. Write results to ignored `.tmp/qa`.
 
 The demo tone is for player and UI tests, not cloning or valid speech in ASR. Full acceptance requires short UI synthesis, playback, save/reload, stop, and port release. Dubbing, audiobooks, and hardware configurations need separate tests. Preparing the public release did not involve new inference or weight downloads.
+
+## Development origins
+
+The Vite dev server origin (`http://127.0.0.1:4310`, `http://localhost:4310`) is trusted by the engine only when `VOICESTUDIO_DEV_ORIGINS=1`. The Rust supervisor sets it in debug builds (`tauri dev`) and sets `0` in release builds; `scripts/dev/ai-dev.ts` sets it for its own adapter. The per-run token is a marker, not an access control (it is echoed on every response), so production safety rests on the origin allow-lists in `launcher.py`, `ai_tagging.py`, `remote_backend.py` and `integration_settings.py`.
