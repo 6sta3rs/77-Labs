@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { userMessage } from '../platform/user-message';
   function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
 
   import { uiLanguage, createUiTranslator } from "../i18n"
@@ -110,7 +111,7 @@
     try {
       await onrefresh()
     } catch (cause) {
-      if (!disposed) selectionError = cause instanceof Error ? cause.message : String(cause)
+      if (!disposed) selectionError = userMessage(cause, 'Nie udało się wybrać modelu.')
     } finally {
       if (!disposed) refreshing = false
     }
@@ -133,7 +134,7 @@
       if (interaction === current) finishSelection()
     } catch (cause) {
       if (!disposed && interaction === current) {
-        selectionError = cause instanceof Error ? cause.message : String(cause)
+        selectionError = userMessage(cause, 'Nie udało się wybrać modelu.')
       }
     } finally {
       if (!disposed) busyId = ''

@@ -72,11 +72,11 @@ try {
   const derived = Object.assign(value => value, { by: fn => fn() });
   const props = Object.assign(() => ({ ready: false }), { id: () => 'cold-automation' });
   let profileReads = 0;
-  const component = await load('AutomationWorkspace.svelte', { ...automation, automation: coldService, $state: value => value, $derived: derived, $props: props, $effect: fn => effects.push(fn), onMount: fn => mounts.push(fn), profiles: async () => { profileReads++; throw Error('Cold local view must not read backend profiles'); }, productionLanguages: [], watchFolder: { subscribe(fn) { fn({ enabled: false }); return () => {}; } } }, 'template, chooseFiles, run, get loaded(){return loaded}, get error(){return error}');
+  const component = await load('AutomationWorkspace.svelte', { ...automation, automation: coldService, $state: value => value, userMessage: (cause, fallback) => cause?.message || fallback, $derived: derived, $props: props, $effect: fn => effects.push(fn), onMount: fn => mounts.push(fn), profiles: async () => { profileReads++; throw Error('Cold local view must not read backend profiles'); }, productionLanguages: [], watchFolder: { subscribe(fn) { fn({ enabled: false }); return () => {}; } } }, 'template, chooseFiles, run, get loaded(){return loaded}, get error(){return error}');
   for (const mount of mounts) { const stop = mount(); if (stop) cleanups.push(stop); }
   for (let trial = 0; trial < 40 && !component.loaded; trial++) await Promise.resolve();
   for (const effect of effects) { const stop = effect(); if (stop) cleanups.push(stop); }
-  component.template('audio'); component.chooseFiles({ currentTarget: { files: [new File([source], 'cold-public.wav', { type: 'audio/wav' })] } });
+  component.template('audio'); component.chooseFiles([new File([source], 'cold-public.wav', { type: 'audio/wav' })]);
   for (const effect of effects) { const stop = effect(); if (stop) cleanups.push(stop); }
   await component.run();
   for (let trial = 0; trial < 100 && coldService.snapshot().runs.some(automation.activeAutomationRun); trial++) await new Promise(resolve => setImmediate(resolve));

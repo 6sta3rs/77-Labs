@@ -4,10 +4,10 @@
 
   import { Tags, ChevronDown, LoaderCircle, Square, Settings2, History } from '@lucide/svelte'
   import Button from './Button.svelte'
-  let { tagging = false, running = false, tagDisabled = false, generateDisabled = false,
+  let { tagging = false, running = false, tagDisabled = false, generateDisabled = false, generateHint = '',
     tagLabel = 'Automatyczne tagowanie', generateLabel = 'Wygeneruj mowę', progressLabel = 'Przerwij generowanie',
     ontag, ontags, ongenerate, oncancel, onsettings, onhistory }: {
-    tagging?: boolean; running?: boolean; tagDisabled?: boolean; generateDisabled?: boolean
+    tagging?: boolean; running?: boolean; tagDisabled?: boolean; generateDisabled?: boolean; /** Why the generate button is disabled (Polish source text). */ generateHint?: string
     tagLabel?: string; generateLabel?: string; progressLabel?: string
     ontag: () => void | Promise<void>; ontags: () => void; ongenerate: () => void | Promise<void>; oncancel?: () => void
     /** Narrow windows only: open the side panel as a bottom sheet. */
@@ -25,8 +25,10 @@
   <Button class="studio-action-generate" disabled={!running && (generateDisabled || tagging)} onclick={()=>running ? oncancel?.() : void ongenerate()}>
     {#if running}<Square size={12} fill="currentColor"/>{/if}{tr(running ? progressLabel : generateLabel)}
   </Button>
+  {#if generateHint && !running}<p class="studio-action-hint" role="status">{tr(generateHint)}</p>{/if}
 </div>
 <style>
+  .studio-action-hint{flex:1 0 100%;margin:0;font-size:var(--ui-text-12);color:var(--muted)}
   .studio-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;min-width:0}.studio-action-split{display:flex;align-items:stretch;height:36px;border:1px solid var(--input-border);border-radius:8px;overflow:hidden;background:var(--control-background)}
   .studio-actions :global(.vs-button){height:36px;font-size:var(--ui-text-12);font-weight:500}
   .studio-action-split :global(.vs-button){height:34px;border:0;box-shadow:none;border-radius:0;scale:1}

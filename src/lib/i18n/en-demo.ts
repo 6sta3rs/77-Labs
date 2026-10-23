@@ -14,5 +14,19 @@ export const enDemo: Record<string, string> = {
   "Przep\u0142yw": "Flow",
   "Muzyka i wizualizacja": "Music and visualization",
   "Zmie\u0144 j\u0119zyk na polski": "Switch to Polish",
-  "Zmie\u0144 j\u0119zyk na angielski": "Switch to English"
+  "Zmie\u0144 j\u0119zyk na angielski": "Switch to English",
+  "Pole wyboru": "Checkbox",
+  "Szuflada": "Drawer",
+  "Pola wyboru": "Checkboxes",
+  "Zaznaczone": "Checked",
+  "Niezaznaczone": "Unchecked",
+  "Nieokre\u015blone (gdy powy\u017csze si\u0119 r\u00f3\u017cni\u0105)": "Indeterminate (when the above differ)",
+  "Wy\u0142\u0105czone, zaznaczone": "Disabled, checked",
+  "Wy\u0142\u0105czone": "Disabled",
+  "Z b\u0142\u0119dem": "With error",
+  "Otw\u00f3rz szuflad\u0119": "Open drawer",
+  "Zamyka j\u0105 Esc, klikni\u0119cie w t\u0142o albo przeci\u0105gni\u0119cie uchwytu w d\u00f3\u0142.": "Esc, a click on the backdrop, or dragging the handle down closes it.",
+  "Przyk\u0142adowa szuflada": "Sample drawer",
+  "Tre\u015b\u0107 szuflady. Na ma\u0142ym ekranie tak wysuwaj\u0105 si\u0119 panele boczne.": "Drawer content. This is how side panels slide in on a small screen.",
+  "Zamknij": "Close"
 }

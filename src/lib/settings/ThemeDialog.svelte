@@ -7,6 +7,7 @@
   import { THEME_COLOR_ROLES, getThemeColorsForAppearance, type ThemeDefinition, type ThemeAppearance, type ThemeColorRole } from '../themes/t3-palettes'
   import { defaultColors, validThemeColor, parseThemeFile, MAX_THEME_BYTES } from '../themes/library'
   import Button from '../ui/Button.svelte'
+  import FilePicker from '../ui/FilePicker.svelte'
   import Tooltip from '../ui/Tooltip.svelte'
   import { mountModal } from '../ui/overlay'
 
@@ -48,8 +49,7 @@
     context.fillStyle = color; context.fillRect(0, 0, 1, 1)
     return '#' + [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => value.toString(16).padStart(2, '0')).join('')
   }
-  async function readFile(event: Event) {
-    const file = (event.currentTarget as HTMLInputElement).files?.[0]
+  async function readFile(file?: File) {
     if (!file) return
     error = ''
     if (file.size > MAX_THEME_BYTES) { error = 'Plik może mieć najwyżej 256 KB.'; return }
@@ -74,7 +74,7 @@
     <header><div><h2 id="theme-dialog-title">{tr(titles[kind])}</h2><p>{kind === 'import' ? tr("Wczytaj plik JSON motywu lub wklej jego zawartość.") : tr('Zmieniaj kolory osobno dla jasnego i ciemnego wariantu.')}</p></div><Tooltip content={tr("Zamknij edytor motywu")}><Button variant="ghost" size="icon" aria-label={tr("Zamknij edytor motywu")} onclick={onclose}><X/></Button></Tooltip></header>
     <div class="dialog-content">
       {#if kind === 'import'}
-        <label class="upload-theme"><Upload size={16}/><span>{importedName || tr('Wybierz plik JSON')}</span><input class="vs-file-input" type="file" accept=".json,application/json" onchange={readFile}/></label>
+        <div class="upload-theme"><FilePicker label={importedName || tr('Wybierz plik JSON')} accept=".json,application/json" showName={false} onchange={files => void readFile(files[0])}/></div>
         <label class="field-label" for="theme-json">{tr("JSON motywu")}</label>
         <textarea id="theme-json" class="text-input json-input" bind:value={json} spellcheck="false" placeholder={'{\n  "version": 1,\n  "name": "Mój motyw",\n  "appearance": "dark",\n  "colors": { "accent": "#346bf1" }\n}'}></textarea>
         <p class="hint">{tr("Format JSON v1, maks. 256 KB. Brakujące kolory uzupełnimy paletą Labs dla danego trybu.")}</p>

@@ -1,9 +1,13 @@
 <script lang="ts">
+  import { userMessage } from '../../platform/user-message';
+  import Input from '../../ui/Input.svelte'
   import { uiLanguage, createUiTranslator } from "../../i18n"
+  import { confirmDialog } from "../../ui/confirm"
   const tr = $derived(createUiTranslator($uiLanguage))
 
   import '../../ui/document-editor.css'
-  import Button from '../../ui/Button.svelte';
+  import Button from '../../ui/Button.svelte'
+  import FilePicker from '../../ui/FilePicker.svelte';
   import AudioPreview from '../../playback/AudioPreview.svelte';
   import { onDestroy, onMount } from 'svelte'
   import { FileAudio, Upload, Download, LoaderCircle, X, Mic, Square, Trash2, ChevronLeft, ChevronRight } from '@lucide/svelte'
@@ -26,7 +30,7 @@
   let results = $state<TranscriptionResult[]>([]), currentId = $state(''), tab = $state<'settings' | 'history'>('settings'), dragging = $state(false), page = $state(0)
   let microphone = $state<'idle' | 'requesting' | 'recording' | 'stopping'>('idle'), recordedSeconds = $state(0)
   let fastReady = $state<boolean>(), readinessNotice = $state('')
-  let input: HTMLInputElement | undefined, controller: AbortController | undefined, readinessController: AbortController | undefined, disposed = false
+  let input: { open: () => void } | undefined, controller: AbortController | undefined, readinessController: AbortController | undefined, disposed = false
   let recorder: MediaRecorder | undefined, microphoneStream: MediaStream | undefined, recordingTimer: ReturnType<typeof setInterval> | undefined
   let saveTimer: ReturnType<typeof setTimeout> | undefined, storage: Storage | undefined, historyWritable = false, micRevision = 0
   const capturing = $derived(microphone !== 'idle')
@@ -54,7 +58,6 @@
     if (busy || capturing) return
     flushSave(); releaseSource()
     file = undefined; text = ''; segments = []; refinement = undefined; currentId = ''; message = ''; error = ''; saved = ''; page = 0
-    if (input) input.value = ''
   }
   function persist() {
     if (!storage || !historyWritable) { results = results.slice(0, 20); saved = 'Brak zapisu historii. Pobierz tekst lub napisy, aby zachować wynik.'; saveFailed = true; return }
@@ -108,19 +111,19 @@
     } catch (cause) {
       if (!disposed) {
         if (current.signal.aborted) message = 'Przerwano oczekiwanie. Silnik może nadal kończyć rozpoznawanie.'
-        else error = cause instanceof Error ? cause.message : String(cause)
+        else error = userMessage(cause, 'Transkrypcja nie powiodła się. Spróbuj ponownie.')
       }
     } finally { if (controller === current) { controller = undefined; if (!disposed) busy = false } }
   }
   function restore(result: TranscriptionResult) {
     if (busy || capturing) return
-    flushSave(); releaseSource(); file = undefined; if (input) input.value = ''
+    flushSave(); releaseSource(); file = undefined;
     currentId = result.id; text = result.text; segments = result.segments.map(segment => ({ ...segment })); refinement = result.refinement ? { ...result.refinement } : undefined; resultLanguage = result.language; page = 0
     message = `Otworzono wynik: ${result.name}. Historia zawiera tekst i czasy; nagranie źródłowe nie jest zapisywane.`; error = ''; saved = 'Otworzono zapis z tego urządzenia.'; saveFailed = false; tab = 'settings'
   }
-  function deleteResult(id: string) {
+  async function deleteResult(id: string) {
     const row = results.find(result => result.id === id)
-    if (!row || busy || capturing || !confirm(`Usunąć zapis transkrypcji „${row.name}”? Plik źródłowy nie zostanie usunięty.`)) return
+    if (!row || busy || capturing || !(await confirmDialog({ message: tr('Usunąć zapis transkrypcji „{name}”? Plik źródłowy nie zostanie usunięty.', { name: row.name }), confirmLabel: tr('Usuń'), danger: true }))) return
     flushSave(); results = results.filter(result => result.id !== id)
     if (currentId === id) currentId = ''
     persist()
@@ -129,7 +132,7 @@
     try {
       const output = exportTranscription(text, segments, format, refinement)
       saveTextFile(output, `transkrypcja.${format}`, format === 'vtt' ? 'text/vtt;charset=utf-8' : 'text/plain;charset=utf-8')
-    } catch (cause) { error = cause instanceof Error ? cause.message : String(cause) }
+    } catch (cause) { error = userMessage(cause, 'Transkrypcja nie powiodła się. Spróbuj ponownie.') }
   }
   function stopTracks() { microphoneStream?.getTracks().forEach(track => track.stop()); microphoneStream = undefined; clearInterval(recordingTimer); recordingTimer = undefined }
   function stopRecording() { if (recorder?.state === 'recording') { microphone = 'stopping'; recorder.stop(); stopTracks() } }
@@ -193,14 +196,14 @@
   {#snippet content()}
     <div class="transcription-content">
       {#if !ready}<p class="transcription-notice" role="status">{tr("Uruchom lokalny silnik w „Silnik”, aby rozpoznać mowę. Nagrywanie mikrofonu jest dostępne bez silnika.")}</p>{/if}
-      <label class="transcription-source" class:dragging class:has-file={Boolean(file)} class:disabled={busy || capturing}
+      <button type="button" class="transcription-source" class:dragging class:has-file={Boolean(file)} class:disabled={busy || capturing} disabled={busy || capturing} onclick={() => input?.open()}
         ondragover={event => { event.preventDefault(); if (!busy && !capturing) dragging = true }} ondragleave={() => dragging = false}
         ondrop={event => { event.preventDefault(); dragging = false; choose(event.dataTransfer?.files[0]) }}>
         <span class="source-icon">{#if file}<FileAudio size={23}/>{:else}<Upload size={23}/>{/if}</span>
         <strong>{file?.name || tr("Kliknij, aby wybrać nagranie, lub przeciągnij je tutaj")}</strong>
         <span>{file ? `${(file.size / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : tr("WAV, MP3, M4A, OGG lub FLAC · do 64 MB")}</span>
-        <input bind:this={input} type="file" aria-label={tr("Nagranie do transkrypcji")} accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.opus,.webm" disabled={busy || capturing} onchange={event => choose(event.currentTarget.files?.[0])}/>
-      </label>
+      </button>
+      <FilePicker bind:this={input} bare accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.opus,.webm" disabled={busy || capturing} onchange={files => choose(files[0])}/>
       <div class="microphone-row">
         {#if microphone === 'recording'}<Button variant="outline" class=" recording" onclick={stopRecording}><Square size={14}/>{ready ? 'Zatrzymaj i przepisz' : 'Zatrzymaj nagranie'}</Button><span role="status">{tr("Nagrywanie ·")} {Math.floor(recordedSeconds / 60)}:{String(recordedSeconds % 60).padStart(2, '0')}</span>
         {:else if capturing}<span class="transcription-notice" role="status"><LoaderCircle size={14} class="spin"/>{microphone === 'requesting' ? tr("Oczekiwanie na zgodę na mikrofon…") : tr("Kończenie nagrania…")}</span>{#if microphone === 'requesting'}<Button variant="ghost" onclick={() => { micRevision++; microphone = 'idle'; message = 'Anulowano oczekiwanie na mikrofon.' }}>{tr("Anuluj")}</Button>{/if}
@@ -228,7 +231,7 @@
         <div class="transcription-segments">
           {#each segments.slice(page * pageSize, (page + 1) * pageSize) as segment, offset}
             {@const index = page * pageSize + offset}
-            <article class="transcription-segment"><header><strong>{tr("Segment")} {index + 1}</strong><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label={tr("Usuń segment {arg0}", { arg0: String(index + 1) })} onclick={() => removeSegment(index)}><Trash2 size={14}/></Button></header><div class="segment-times"><label>{tr("Początek")} <input aria-label={tr("Początek segmentu {arg0} w sekundach", { arg0: String(index + 1) })} type="number" min="0" step="0.001" value={Number.isFinite(segment.start) ? segment.start : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { start: event.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec")} <input aria-label={tr(String(`Koniec segmentu ${index + 1} w sekundach`))} type="number" min="0" step="0.001" value={Number.isFinite(segment.end) ? segment.end : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { end: event.currentTarget.valueAsNumber })}/></label></div><textarea class="text-input" aria-label={tr("Tekst segmentu {arg0}", { arg0: String(index + 1) })} value={segment.text} disabled={busy || capturing} rows="2" oninput={event => changeSegment(index, { text: event.currentTarget.value })}></textarea></article>
+            <article class="transcription-segment"><header><strong>{tr("Segment")} {index + 1}</strong><Button variant="ghost" size="icon" disabled={busy || capturing} aria-label={tr("Usuń segment {arg0}", { arg0: String(index + 1) })} onclick={() => removeSegment(index)}><Trash2 size={14}/></Button></header><div class="segment-times"><label>{tr("Początek")} <Input aria-label={tr("Początek segmentu {arg0} w sekundach", { arg0: String(index + 1) })} type="number" min="0" step="0.001" value={Number.isFinite(segment.start) ? segment.start : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { start: event.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec")} <Input aria-label={tr(String(`Koniec segmentu ${index + 1} w sekundach`))} type="number" min="0" step="0.001" value={Number.isFinite(segment.end) ? segment.end : ''} disabled={busy || capturing} oninput={event => changeSegment(index, { end: event.currentTarget.valueAsNumber })}/></label></div><textarea class="text-input" aria-label={tr("Tekst segmentu {arg0}", { arg0: String(index + 1) })} value={segment.text} disabled={busy || capturing} rows="2" oninput={event => changeSegment(index, { text: event.currentTarget.value })}></textarea></article>
           {/each}
         </div>
         {#if pages > 1}<nav class="segment-pagination" aria-label={tr("Strony segmentów")}><Button variant="outline" disabled={page === 0} onclick={() => page--}><ChevronLeft size={14}/>{tr("Poprzednie")}</Button><span>{page + 1} / {pages}</span><Button variant="outline" disabled={page >= pages - 1} onclick={() => page++}>{tr("Następne")}<ChevronRight size={14}/></Button></nav>{/if}
@@ -263,5 +266,5 @@
 </ToolWorkspace>
 
 <style>
-  .transcription-content{display:flex;flex-direction:column;gap:18px;min-width:0}.transcription-source{position:relative;display:flex;min-height:210px;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:var(--surface)}.transcription-source.dragging{border-color:var(--foreground);background:var(--surface-hover)}.transcription-source.has-file{min-height:150px}.transcription-source.disabled{opacity:.5;cursor:wait}.source-icon{display:grid;place-items:center;width:43px;height:43px;border:1px solid var(--border);border-radius:10px;color:var(--muted)}.transcription-source strong{font-size:var(--ui-text-13);font-weight:500;overflow-wrap:anywhere;max-width:100%}.transcription-source>span:last-of-type{font-size:var(--ui-text-11);color:var(--muted)}.transcription-source input{position:absolute;width:1px;height:1px;opacity:0}.transcription-source:has(:focus-visible:not([data-focus-passive])){outline:2px solid var(--focus);outline-offset:3px}.source-preview{display:flex;align-items:center;gap:10px}.transcription-label{display:flex;justify-content:space-between;align-items:center;font-size:var(--ui-text-12);gap:12px}.transcription-label span{font-size:var(--ui-text-10);color:var(--muted)}.transcription-editor{display:block;width:100%;min-height:280px;resize:vertical;border:0;border-radius:0;padding:8px 0;background:transparent;color:var(--foreground);font-family:var(--font-editor);font-size:15px;line-height:1.9}.transcription-editor::placeholder{color:var(--muted)}.transcript-summary{min-height:120px;max-height:240px}.transcription-notice,.transcription-error{display:flex;align-items:center;gap:8px;font-size:var(--ui-text-12);line-height:1.8;margin:0;overflow-wrap:anywhere}.transcription-notice{color:var(--muted)}.transcription-error{color:var(--danger)}.transcription-exports,.transcription-actions,.microphone-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.microphone-row>span{font-size:var(--ui-text-12);color:var(--muted)}.microphone-row :global(.recording){color:var(--danger)}.transcription-excerpt{font-size:var(--ui-text-11);line-height:1.8;color:var(--muted);margin:0;overflow-wrap:anywhere}.transcription-segments{display:flex;flex-direction:column;gap:12px}.transcription-segment{padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.transcription-segment header{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-text-12);margin-bottom:8px}.segment-times{display:flex;gap:12px;margin-bottom:12px}.segment-times label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:var(--ui-text-11);min-width:0}.segment-times input{min-width:0;width:100px;border:1px solid var(--border);border-radius:6px;padding:7px 8px;background:var(--input);color:var(--foreground);font:inherit;font-variant-numeric:tabular-nums}.segment-pagination{display:flex;justify-content:center;align-items:center;gap:12px;font-size:var(--ui-text-12);color:var(--muted)}@media(max-width:600px){.transcription-source{padding:24px 16px;min-height:180px}.transcription-editor{min-height:230px}.transcription-actions{width:100%}.segment-times{flex-wrap:wrap}.segment-times label{flex:1}.segment-times input{width:80px}.transcription-segment{padding:12px}}
+  .transcription-content{display:flex;flex-direction:column;gap:18px;min-width:0}.transcription-source{font:inherit;color:inherit;width:100%;position:relative;display:flex;min-height:210px;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:var(--surface)}.transcription-source.dragging{border-color:var(--foreground);background:var(--surface-hover)}.transcription-source.has-file{min-height:150px}.transcription-source.disabled{opacity:.5;cursor:wait}.source-icon{display:grid;place-items:center;width:43px;height:43px;border:1px solid var(--border);border-radius:10px;color:var(--muted)}.transcription-source strong{font-size:var(--ui-text-13);font-weight:500;overflow-wrap:anywhere;max-width:100%}.transcription-source>span:last-of-type{font-size:var(--ui-text-11);color:var(--muted)}.transcription-source:has(:focus-visible:not([data-focus-passive])){outline:2px solid var(--focus);outline-offset:3px}.source-preview{display:flex;align-items:center;gap:10px}.transcription-label{display:flex;justify-content:space-between;align-items:center;font-size:var(--ui-text-12);gap:12px}.transcription-label span{font-size:var(--ui-text-10);color:var(--muted)}.transcription-editor{display:block;width:100%;min-height:280px;resize:vertical;border:0;border-radius:0;padding:8px 0;background:transparent;color:var(--foreground);font-family:var(--font-editor);font-size:15px;line-height:1.9}.transcription-editor::placeholder{color:var(--muted)}.transcript-summary{min-height:120px;max-height:240px}.transcription-notice,.transcription-error{display:flex;align-items:center;gap:8px;font-size:var(--ui-text-12);line-height:1.8;margin:0;overflow-wrap:anywhere}.transcription-notice{color:var(--muted)}.transcription-error{color:var(--danger)}.transcription-exports,.transcription-actions,.microphone-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.microphone-row>span{font-size:var(--ui-text-12);color:var(--muted)}.microphone-row :global(.recording){color:var(--danger)}.transcription-excerpt{font-size:var(--ui-text-11);line-height:1.8;color:var(--muted);margin:0;overflow-wrap:anywhere}.transcription-segments{display:flex;flex-direction:column;gap:12px}.transcription-segment{padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.transcription-segment header{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-text-12);margin-bottom:8px}.segment-times{display:flex;gap:12px;margin-bottom:12px}.segment-times label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:var(--ui-text-11);min-width:0}.segment-times :global(input){min-width:0;width:100px;border:1px solid var(--border);border-radius:6px;padding:7px 8px;background:var(--input);color:var(--foreground);font:inherit;font-variant-numeric:tabular-nums}.segment-pagination{display:flex;justify-content:center;align-items:center;gap:12px;font-size:var(--ui-text-12);color:var(--muted)}@media(max-width:600px){.transcription-source{padding:24px 16px;min-height:180px}.transcription-editor{min-height:230px}.transcription-actions{width:100%}.segment-times{flex-wrap:wrap}.segment-times label{flex:1}.segment-times :global(input){width:80px}.transcription-segment{padding:12px}}
 </style>

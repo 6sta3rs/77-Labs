@@ -138,5 +138,11 @@ export const enToolsExtra: Record<string, string> = {
   "Preferencje dotycz\u0105 nowych wynik\u00f3w i obs\u0142uguj\u0105cych je eksport\u00f3w. Nie zmieniaj\u0105 wcze\u015bniej zapisanych nagra\u0144.": "Preferences apply to new results and supported exports. They do not change previously saved recordings.",
   "W tym katalogu nie ma wag dla wybranej kategorii. Dost\u0119pno\u015b\u0107 silnik\u00f3w zewn\u0119trznych jest pokazywana powy\u017cej.": "This directory has no weights for the selected category. External engine availability is shown above.",
   "Backend sprawdza ten odcisk przy zapisie. Zmiana warunk\u00f3w wymaga ich ponownego odczytania i nowej decyzji.": "The backend checks this fingerprint when saving. Changed terms require a fresh read and a new decision.",
-  "Brak zgody na mikrofon. Zezw\u00f3l na nagrywanie w ustawieniach aplikacji lub przegl\u0105darki i spr\u00f3buj ponownie.": "Microphone permission denied. Allow recording in the app or browser settings and try again."
+  "Brak zgody na mikrofon. Zezw\u00f3l na nagrywanie w ustawieniach aplikacji lub przegl\u0105darki i spr\u00f3buj ponownie.": "Microphone permission denied. Allow recording in the app or browser settings and try again.",
+  "Podgląd wideo": "Video preview",
+  "Włącz dźwięk": "Unmute",
+  "Wycisz": "Mute",
+  "Głośność": "Volume",
+  "Pełny ekran": "Fullscreen",
+  "Nie można odtworzyć tego pliku. Możesz go pobrać i sprawdzić.": "This file cannot be played. You can download it and check it."
 }

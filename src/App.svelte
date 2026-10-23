@@ -7,13 +7,15 @@
   import Button from './lib/ui/Button.svelte';
   import { mountModal, visibleFocusTarget } from './lib/ui/overlay';
   import { onMount, tick } from 'svelte';
-  import { AudioLines, BookOpen, Check, ChevronDown, ChevronRight, Clock3, Cpu, Download, Ellipsis, FileText, Film, Folder, Globe2, LoaderCircle, Mic2, Palette, PanelLeft, Plus, Search, Settings2, SlidersHorizontal, Smile, Sparkles, Square, Upload, X, RotateCcw, Play, Pause, Copy, ArrowUpRight, Info, Undo2 } from '@lucide/svelte';
+  import { AudioLines, BookOpen, Check, ChevronDown, ChevronRight, Clock3, Cpu, Download, Ellipsis, FileText, Film, Folder, Globe2, LoaderCircle, Mic2, Palette, PanelLeft, Plus, Search, Settings2, SlidersHorizontal, Smile, Sparkles, Square, Upload, X, RotateCcw, Play, Pause, Copy, ArrowUpRight, Undo2 } from '@lucide/svelte';
   import SpeechEditor from './lib/tts/SpeechEditor.svelte';
   import VoicePicker from './lib/voices/VoicePicker.svelte';
   import { engineCatalogSnapshot } from './lib/models/engine-catalog-state';
   import NavigationSidebar from './lib/shell/NavigationSidebar.svelte';
   import Dashboard from './lib/shell/Dashboard.svelte';
   import ShellTopbar from './lib/shell/ShellTopbar.svelte';
+  import DownloadIndicator from './lib/models/DownloadIndicator.svelte';
+  import { probeDownloads } from './lib/models/download-monitor';
   import './lib/shell/shell.css';
   import SettingsShell from './lib/settings/SettingsShell.svelte';
   import GeneralPage from './lib/settings/pages/GeneralPage.svelte';
@@ -29,6 +31,9 @@
   import StoragePage from './lib/settings/pages/StoragePage.svelte';
   import PrivacyPage from './lib/settings/pages/PrivacyPage.svelte';
   import Toaster from './lib/ui/Toaster.svelte';
+  import ConfirmDialog from './lib/ui/ConfirmDialog.svelte';
+  import { toast } from './lib/ui/toast';
+  import { userMessage } from './lib/platform/user-message';
   import EngineStartup from './lib/platform/EngineStartup.svelte';
   import type { SettingsSection } from './lib/shell/navigation';
   import './lib/shell/navigation-layout.css';
@@ -119,7 +124,7 @@
   let history=$state<Render[]>([]);let recording=$state<Render>();let running=$state(false);let generationStage=$state('');
   let language=$state('Polish');let speed=$state(1);let steps=$state(16);let seed=$state('');let effect=$state('raw');let speechSettings=$state(defaultSpeechSettings());
   let modal=$state<'voices'|'search'|'project'|null>(null);let voiceBlockId=$state('');let query=$state('');let voiceFilter=$state('all');
-  let toast=$state('');let noticeTimer:ReturnType<typeof setTimeout>;let loaded=$state(false);
+  let loaded=$state(false);
   let speechEditor=$state<SpeechEditor>();let player=$state<Player>();let audioInput:HTMLInputElement;let textInput:HTMLInputElement;
   let runtime=$state<{state:string;message:string;port:number;managed:boolean;dataDir?:string}>({state:'stopped',message:'Uruchamianie lokalnego silnika…',port:4312,managed:true});
   let runtimeBusy=$state(false);let controller:AbortController|undefined;
@@ -152,9 +157,10 @@
   let primaryPlaybackLabel=$derived(recording?.url ? tr(playbackActivity.playing?'Wstrzymaj nagranie {title}':'Odtwórz nagranie {title}',{title:recording.title}) : tr('Odtwórz próbkę głosu {name}',{name:primaryVoice.name}));
   let filteredVoices=$derived(voices.filter(voice=>`${voice.name} ${voice.description}`.toLocaleLowerCase('pl').includes(query.toLocaleLowerCase('pl'))&&(voiceFilter==='all'||voice.kind===voiceFilter)));
   let canGenerate=$derived(totalText.trim().length>0&&charCount<=10000&&!running&&!tagging);
+  let generateHint=$derived(canGenerate?'':tagging?'Trwa tagowanie tekstu — poczekaj na zakończenie.':!totalText.trim()?'Wpisz tekst, aby wygenerować mowę.':charCount>10000?'Tekst przekracza limit 10 000 znaków — skróć go.':'');
   let currentRecordings=$derived(history.filter(item=>item.projectId===projectId||(!item.projectId&&item.blocks?.some(block=>blocks.some(current=>current.id===block.id)))).slice(0,4));
 
-  function notify(message:string){toast=message;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>toast='',6000);}
+  function notify(message:string,kind:'info'|'bad'='info'){toast[kind](tr(message));}
   function changeAppearance(value:AppearanceSettings){appearance=value;applyAppearance(value);saveAppearance(value);}
   let projectSaveTimer:ReturnType<typeof setTimeout>|undefined;
   let projectSaveDeadline:ReturnType<typeof setTimeout>|undefined;
@@ -212,14 +218,14 @@
       generationCapabilities=snapshot.capabilities;
       speechSettings=resetPresetForEngine(speechSettings,generationBackend,generationCapabilities.preset_voice);
       language=preferredSpeechLanguage(generationLanguages,language);
-    }catch(error){if(!modelRequestsDisposed&&(error as Error).name!=='AbortError')notify((error as Error).message);}
+    }catch(error){if(!modelRequestsDisposed&&(error as Error).name!=='AbortError')notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}
   }
   async function refreshRuntime(){
-    try{const previous=runtime.state;runtime=await getRuntimeStatus();if(runtime.state==='ready'&&previous!=='ready'){await refreshVoices();await refreshEngine();}}
-    catch(error){runtime={state:'error',message:(error as Error).message,port:4312,managed:true};}
+    try{const previous=runtime.state;runtime=await getRuntimeStatus();if(runtime.state==='ready'&&previous!=='ready'){void probeDownloads();await refreshVoices();await refreshEngine();}}
+    catch(error){runtime={state:'error',message:userMessage(error,'Nie udało się uruchomić silnika.'),port:4312,managed:true};}
   }
-  async function bootRuntime(){if(demoMode){notify('Tryb demonstracyjny nie uruchamia silnika.');return;}runtimeBusy=true;try{await ensureRuntime();runtime=await getRuntimeStatus();if(runtime.state==='ready'){await refreshVoices();await refreshEngine();}}catch(error){notify((error as Error).message);}finally{runtimeBusy=false;}}
-  async function endRuntime(){if(demoMode)return;if(running){notify('Zakończ generowanie przed zatrzymaniem silnika.');return;}runtimeBusy=true;try{runtime=await stopRuntime();}catch(error){notify((error as Error).message);}finally{runtimeBusy=false;}}
+  async function bootRuntime(){if(demoMode){notify('Tryb demonstracyjny nie uruchamia silnika.');return;}runtimeBusy=true;try{await ensureRuntime();runtime=await getRuntimeStatus();if(runtime.state==='ready'){void probeDownloads();await refreshVoices();await refreshEngine();}}catch(error){notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}finally{runtimeBusy=false;}}
+  async function endRuntime(){if(demoMode)return;if(running){notify('Zakończ generowanie przed zatrzymaniem silnika.');return;}runtimeBusy=true;try{runtime=await stopRuntime();}catch(error){notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}finally{runtimeBusy=false;}}
   async function restartRuntime(){if(running)throw new Error('Zakończ generowanie przed restartem silnika.');runtimeBusy=true;try{runtime=await stopRuntime();if(runtime.state!=='stopped')throw new Error(runtime.message||'Nie zatrzymano silnika. Spróbuj ponownie po zakończeniu bieżącej operacji.');await ensureRuntime();runtime=await getRuntimeStatus();await refreshVoices();await refreshEngine();}finally{runtimeBusy=false;}}
   async function storeAudio(row:Render){cancelVoicePreview();history=[row,...history];recording=row;if(demoMode)return;try{let retentionCap:number|undefined;if(row.source==='generation'){try{retentionCap=(await storageSettings.retention(AbortSignal.timeout(4000))).cap;}catch{notify('Nie odczytano limitu historii. Zachowano wszystkie lokalne nagrania.');}}const removed=await saveRecording(row,retentionCap);if(removed.length){const ids=new Set(removed);for(const item of history)if(ids.has(item.id)&&item.url)URL.revokeObjectURL(item.url);history=history.filter(item=>!ids.has(item.id));}}catch{notify('Nagranie jest gotowe, ale lokalny zapis nie powiódł się. Pobierz plik, aby go zachować.');}}
   async function generate(){
@@ -232,7 +238,7 @@
     if(isDesktop&&(runtime.state!=='ready'||!generationEngine)){
       running=true;generationStage='Uruchamianie silnika…';controller=new AbortController();
       try{await ensureRuntime(controller.signal);runtime=await getRuntimeStatus();await refreshVoices();await refreshEngine();}
-      catch(error){if((error as Error).name!=='AbortError')notify((error as Error).message);return;}
+      catch(error){if((error as Error).name!=='AbortError')notify(userMessage(error,'Operacja nie powiodła się.'),'bad');return;}
       finally{running=false;generationStage='';}
     }
     if(runtime.state!=='ready'){notify('To podgląd interfejsu. Synteza działa w aplikacji Windows z własnym silnikiem.');return;}
@@ -240,7 +246,7 @@
     const usesSavedVoice=!generationUsesPreset && generationBackend?.supports_cloning!==false;
     const speechSnapshot=cloneSpeechSettings(speechSettings);
     let parameters:Record<string,string>;
-    try{parameters=serializeSpeechSettings(speechSnapshot,generationBackend,{...generationContext,hasReference:usesSavedVoice&&blocks.every(block=>voices.find(voice=>voice.id===block.voiceId)?.kind==='Klonowany')});}catch(error){notify((error as Error).message);return;}
+    try{parameters=serializeSpeechSettings(speechSnapshot,generationBackend,{...generationContext,hasReference:usesSavedVoice&&blocks.every(block=>voices.find(voice=>voice.id===block.voiceId)?.kind==='Klonowany')});}catch(error){notify(userMessage(error,'Operacja nie powiodła się.'),'bad');return;}
     const effectiveSpeech=cloneSpeechSettings({...speechSnapshot,wav_bits:parameters.wav_bits as SpeechSettings['wav_bits']||'16',preset_voice:parameters.preset_voice,design_recipe:parameters.design_recipe?JSON.parse(parameters.design_recipe):undefined});
     const generationSettings={engine:generationEngine,language,speed,steps,seed,effect,parameters};
     const generationModelName=ttsFamily?.backends.find(row=>row.id===generationSettings.engine)?.display_name||generationSettings.engine;
@@ -265,7 +271,7 @@
       controller.signal.throwIfAborted();
       const row:Render={id:crypto.randomUUID(),title,projectId:renderProjectId,text:snapshot.map(block=>block.text).join('\n\n'),voice:!usesSavedVoice?`${generationModelName} · ${effectiveSpeech.preset_voice||'głos silnika'}`:snapshot.length>1?`${snapshot.length} mówców`:voices.find(voice=>voice.id===snapshot[0].voiceId)!.name,created:new Date().toISOString(),kind:'audio',source:'generation',modelId:generationSettings.engine,modelName:generationModelName,voiceId:usesSavedVoice&&snapshot.length===1?snapshot[0].voiceId:undefined,blob,url:URL.createObjectURL(blob),filename:`${title.replace(/[^\p{L}\p{N} _-]/gu,'').slice(0,70)||'narracja'}.wav`,duration:duration||undefined,peaks,blocks:snapshot,speechSettings:effectiveSpeech,wavBits:effectiveSpeech.wav_bits,presetVoice:effectiveSpeech.preset_voice,designRecipe:effectiveSpeech.design_recipe};
       generationStage='Zapisywanie nagrania…';await storeAudio(row);notify('Nagranie gotowe.');
-    }catch(error){if((error as Error).name!=='AbortError')notify((error as Error).message);}finally{running=false;generatingPreview=undefined;generationStage='';}
+    }catch(error){if((error as Error).name!=='AbortError')notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}finally{running=false;generatingPreview=undefined;generationStage='';}
   }
   async function tagWithAI(){
     if(tagging||running||!totalText.trim())return;
@@ -284,7 +290,7 @@
       speechEditor?.applyAutomaticTags(next);
       aiResultMarker=`${projectId}:${JSON.stringify(next)}`;
       notify(`Dodano tagi AI · ${result.model} · ${result.seconds.toLocaleString(tr.locale)} s.`);
-    }catch(error){if((error as Error).name!=='AbortError')notify((error as Error).message);}
+    }catch(error){if((error as Error).name!=='AbortError')notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}
     finally{tagging=false;aiController=undefined;}
   }
   function undoAITags(){if(canUndoAI){speechEditor?.undoAutoTag();aiResultMarker='';}}
@@ -295,7 +301,7 @@
     if(recording?.url){cancelVoicePreview();await player?.toggle();}
     else await previewPrimaryVoice();
   }
-  async function previewPrimaryVoice(){try{await previewVoice(primaryVoice);}catch(error){notify((error as Error).message);}}
+  async function previewPrimaryVoice(){try{await previewVoice(primaryVoice);}catch(error){notify(userMessage(error,'Operacja nie powiodła się.'),'bad');}}
   async function previewVoice(voice:Voice){
     if(voicePreviewBusy&&voicePreviewId===voice.id){cancelVoicePreview();return;}
     if(recording?.id===`voice-preview-${voice.id}`){await player?.toggle();return;}
@@ -336,7 +342,7 @@
       const snapshot=await readEngineFamily();
       if(snapshot&&!modelRequestsDisposed&&load===modelLoadEpoch&&snapshot.epoch===engineCatalogEpoch){ttsFamily=snapshot.family;generationCapabilities=snapshot.capabilities;speechSettings=resetPresetForEngine(speechSettings,generationBackend,generationCapabilities.preset_voice);}
     }
-    catch(error) { if(!modelRequestsDisposed&&load===modelLoadEpoch&&(error as Error).name!=='AbortError')modelError=`Nie można odczytać lokalnego katalogu. Uruchom silnik w ustawieniach. ${(error as Error).message}`; }
+    catch(error) { if(!modelRequestsDisposed&&load===modelLoadEpoch&&(error as Error).name!=='AbortError')modelError=`Nie można odczytać lokalnego katalogu. Uruchom silnik w ustawieniach. ${userMessage(error,'')}`.trim(); }
     finally { if(!modelRequestsDisposed&&load===modelLoadEpoch)modelLoading=false; }
   }
   async function openModelPicker() { choosingModel=true; await loadPickerModels(); }
@@ -397,8 +403,8 @@
         const rows=await fixture.demoRecordings(projects);
         if(disposed){rows.forEach(row=>row.url&&URL.revokeObjectURL(row.url));return;}
         history=rows;demoAudio=rows[0];
-      }).catch(error=>{if(!disposed)notify('Nie można przygotować danych demonstracyjnych: '+(error as Error).message);});
-      return()=>{disposed=true;disposeModelRequests();clearTimeout(projectSaveTimer);clearTimeout(projectSaveDeadline);clearTimeout(noticeTimer);history.forEach(row=>row.url&&URL.revokeObjectURL(row.url));};
+      }).catch(error=>{if(!disposed)notify(userMessage(error,'Nie można przygotować danych demonstracyjnych.'),'bad');});
+      return()=>{disposed=true;disposeModelRequests();clearTimeout(projectSaveTimer);clearTimeout(projectSaveDeadline);history.forEach(row=>row.url&&URL.revokeObjectURL(row.url));};
     }
     const raw=localStorage.getItem('voicestudio.projects.v2')||'';let lost=false;
     try{const stored=JSON.parse(raw||'[]');if(Array.isArray(stored)){projects=stored.filter(item=>typeof item.id==='string'&&typeof item.name==='string'&&Array.isArray(item.blocks)&&item.blocks.length&&item.blocks.every((block:SpeechBlock)=>typeof block.text==='string'&&typeof block.voiceId==='string'&&typeof block.id==='string'));lost=projects.length!==stored.length;}else lost=true;const current=projects.find(item=>item.id===localStorage.getItem('voicestudio.activeProject.v2'))||projects[0];if(current){projectId=current.id;projectName=current.name;blocks=current.blocks;speechSettings=readStoredSpeechSettings(current.speechSettings);}}catch{lost=true;/* Retain an empty project. */}
@@ -411,10 +417,10 @@
     void loadRecordings().then(rows=>history=rows).catch(()=>{});
     const runtimeChanged=(event:Event)=>{runtime=(event as CustomEvent).detail;};
     window.addEventListener('studio-runtime',runtimeChanged);
-    if(isDesktop){void refreshRuntime();if(!demoMode)void bootRuntime();void refreshVoices().catch(error=>notify((error as Error).message));}else{runtime={state:'stopped',message:'Podgląd interfejsu · synteza w aplikacji Windows',port:4312,managed:false};void api.health().then(async()=>{runtime={state:'ready',message:'Lokalny silnik gotowy',port:4312,managed:false};await refreshVoices();await refreshEngine();}).catch(()=>{});}
+    if(isDesktop){void refreshRuntime();if(!demoMode)void bootRuntime();void refreshVoices().catch(error=>notify(userMessage(error,'Operacja nie powiodła się.'),'bad'));}else{runtime={state:'stopped',message:'Podgląd interfejsu · synteza w aplikacji Windows',port:4312,managed:false};void api.health().then(async()=>{runtime={state:'ready',message:'Lokalny silnik gotowy',port:4312,managed:false};await refreshVoices();await refreshEngine();}).catch(()=>{});}
     let lastRuntimeRefresh=0;
     const refresh=setInterval(()=>{if(isDesktop&&!document.hidden&&!runtimeBusy&&(runtime.state==='starting'||runtime.state==='ready'&&Date.now()-lastRuntimeRefresh>10000)){lastRuntimeRefresh=Date.now();void refreshRuntime();}},2500);
-    return()=>{window.removeEventListener('studio-runtime',runtimeChanged);disposeModelRequests();flushProjectSave();window.removeEventListener('pagehide',flushProjectSave);window.removeEventListener('beforeunload',flushProjectSave);document.removeEventListener('visibilitychange',flushHidden);voiceRefreshSequence++;portraits.dispose();clearInterval(refresh);clearTimeout(noticeTimer);controller?.abort();aiController?.abort();voicePreviewController?.abort();if(voicePreviewUrl)URL.revokeObjectURL(voicePreviewUrl);history.forEach(item=>{if(item.url)URL.revokeObjectURL(item.url);});};
+    return()=>{window.removeEventListener('studio-runtime',runtimeChanged);disposeModelRequests();flushProjectSave();window.removeEventListener('pagehide',flushProjectSave);window.removeEventListener('beforeunload',flushProjectSave);document.removeEventListener('visibilitychange',flushHidden);voiceRefreshSequence++;portraits.dispose();clearInterval(refresh);controller?.abort();aiController?.abort();voicePreviewController?.abort();if(voicePreviewUrl)URL.revokeObjectURL(voicePreviewUrl);history.forEach(item=>{if(item.url)URL.revokeObjectURL(item.url);});};
   });
 </script>
 
@@ -424,13 +430,13 @@
 
 <div class="app-shell" class:sidebar-hidden={!sidebar} class:settings-underlay={settingsOpen} inert={settingsOpen}>
   <NavigationSidebar items={uiOptions([...mainNav,...toolNav])} active={page} {projects} {projectId} runtimeState={runtime.state} onnavigate={navigate} onnew={newProject} onproject={openProject} onsettings={section=>section==='models'?void showModels():openSettings(section)} onnotify={notify} onaddvoice={openVoiceCreate} onsearch={openSearch} onback={backPage} backLabel={tr(pageNames[navigationTrail.at(-1)||'dashboard'])} backDisabled={!navigationTrail.length&&page==='dashboard'} onrefresh={checkAppUpdates} refreshing={false}/>
-  <main class="main"><ShellTopbar title={tr(pageNames[page])} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>{#snippet children()}{#if page==='studio'}<span class="breadcrumb-divider">/</span><button class="project-name" onclick={()=>{projectDraftName=projectName;modal='project';}}>{projectName}<ChevronDown size={12}/></button>{/if}{/snippet}{#snippet actions()}{#if $remoteBackendState.active}<button class="remote-mode-status" title={$remoteBackendState.url} onclick={()=>openSettings('network','remote')}>{$remoteBackendState.error?tr('Zdalny silnik wymaga uwagi'):tr('Zdalny silnik')}</button>{/if}{#if page==='studio'}{/if}{/snippet}</ShellTopbar>
+  <main class="main"><ShellTopbar title={tr(pageNames[page])} collapsed={!sidebar} ontoggle={()=>sidebar=!sidebar}>{#snippet children()}{#if page==='studio'}<span class="breadcrumb-divider">/</span><button class="project-name" onclick={()=>{projectDraftName=projectName;modal='project';}}>{projectName}<ChevronDown size={12}/></button>{/if}{/snippet}{#snippet actions()}{#if $remoteBackendState.active}<button class="remote-mode-status" title={$remoteBackendState.url} onclick={()=>openSettings('network','remote')}>{$remoteBackendState.error?tr('Zdalny silnik wymaga uwagi'):tr('Zdalny silnik')}</button>{/if}<DownloadIndicator onclick={()=>openSettings('models')}/>{#if page==='studio'}{/if}{/snippet}</ShellTopbar>
     <div class="workspace" class:full-width={page!=='studio'}>
       <section class="content" class:tts-demo-content={demoMode&&page==='studio'} aria-label={tr(pageNames[page])}>
         {#if demoMode}<div class="tts-demo-notice" role="note"><strong>{tr("Dane przykładowe")}</strong><span>{tr("Fikcyjne głosy i projekty. Audio to syntetyczny ton bez mowy.")}</span><a href="/">{tr("Wyjdź z podglądu")}</a></div>{/if}
         {#if page==='dashboard'}<Dashboard voiceId={activeOrbVoiceId} orbVariant={appearance.orbVariant} orbSyncGroup="global-playback" orbSuspended={settingsOpen} level={playbackActivity.level} bands={playbackActivity.bands} orbAudio={playbackActivity.orbAudio} features={playbackActivity.features} playing={playbackActivity.playing} {voices} {projects} recordings={history} ready={isDesktop||runtime.state==='ready'} onnavigate={navigate} onnew={newProject} onproject={openProject} onvoice={voice=>{voiceBlockId=blocks[0].id;chooseVoice(voice);goToPage('studio');}} onplay={play}/>
         {:else if page==='studio'}
-          <div class="speech-workspace"><div class="speech-scroll"><div class="speech-column"><SpeechEditor bind:this={speechEditor} {blocks} {voices} onblockschange={changeBlocks} onchoosevoice={(id)=>{voiceBlockId=id;query='';voiceFilter='all';modal='voices';}} disabled={running||tagging} hideToolbar={true}/></div></div><div class="studio-bottom"><div class="generation-grid">{#if generatingPreview}<GenerationCard recording={generatingPreview} index={history.length+1} generating generationLabel={generationStage} onplay={()=>{}}/>{/if}{#each currentRecordings as row,index}<GenerationCard recording={row} index={history.length-index} state={recording?.id===row.id?playbackState:undefined} onseek={recording?.id===row.id?seconds=>player?.seek(seconds):undefined} onplay={()=>play(row)} onrestore={()=>restore(row)} onstar={()=>toggleRecordingStar(row)}/>{/each}</div><div class="composer-actions"><div class="composer-tools"><Button variant="ghost" size="icon" aria-label={tr("Wczytaj tekst")} onclick={()=>textInput.click()}><Upload size={16}/></Button><Button variant="ghost" size="icon" aria-label={tr("Pobierz tekst")} disabled={!totalText.trim()} onclick={downloadText}><Download size={16}/></Button><span class="character-count" class:over-limit={charCount>10000}>{charCount.toLocaleString(tr.locale)} <span>/ 10 000</span></span></div><div class="composer-submit">{#if canUndoAI}<div class="ai-result-actions" aria-label={tr("Wynik tagowania AI")}><Button variant="ghost" onclick={undoAITags}>{tr("Cofnij")}</Button><Button variant="ghost" onclick={keepAITags}>{tr("Zachowaj")}</Button></div>{/if}<ActionBar generateLabel={demoMode?tr("Dodaj przykład"):tr("Wygeneruj mowę")} tagLabel={demoMode?tr("Dodaj pauzy"):tr("Automatyczne tagowanie")} {tagging} {running} tagDisabled={!totalText.trim()||charCount>10000} generateDisabled={!canGenerate} progressLabel={generationStage} ontag={tagWithAI} ontags={()=>speechEditor?.toggleTags()} ongenerate={generate} oncancel={cancel} onsettings={()=>{panelTab='settings';inspector=true;}} onhistory={()=>{panelTab='history';inspector=true;}}/></div></div></div></div>
+          <div class="speech-workspace"><div class="speech-scroll"><div class="speech-column"><SpeechEditor bind:this={speechEditor} {blocks} {voices} onblockschange={changeBlocks} onchoosevoice={(id)=>{voiceBlockId=id;query='';voiceFilter='all';modal='voices';}} disabled={running||tagging} hideToolbar={true}/></div></div><div class="studio-bottom"><div class="generation-grid">{#if generatingPreview}<GenerationCard recording={generatingPreview} index={history.length+1} generating generationLabel={generationStage} onplay={()=>{}}/>{/if}{#each currentRecordings as row,index}<GenerationCard recording={row} index={history.length-index} state={recording?.id===row.id?playbackState:undefined} onseek={recording?.id===row.id?seconds=>player?.seek(seconds):undefined} onplay={()=>play(row)} onrestore={()=>restore(row)} onstar={()=>toggleRecordingStar(row)}/>{/each}</div><div class="composer-actions"><div class="composer-tools"><Button variant="ghost" size="icon" aria-label={tr("Wczytaj tekst")} onclick={()=>textInput.click()}><Upload size={16}/></Button><Button variant="ghost" size="icon" aria-label={tr("Pobierz tekst")} disabled={!totalText.trim()} onclick={downloadText}><Download size={16}/></Button><span class="character-count" class:over-limit={charCount>10000}>{charCount.toLocaleString(tr.locale)} <span>/ 10 000</span></span></div><div class="composer-submit">{#if canUndoAI}<div class="ai-result-actions" aria-label={tr("Wynik tagowania AI")}><Button variant="ghost" onclick={undoAITags}>{tr("Cofnij")}</Button><Button variant="ghost" onclick={keepAITags}>{tr("Zachowaj")}</Button></div>{/if}<ActionBar generateLabel={demoMode?tr("Dodaj przykład"):tr("Wygeneruj mowę")} tagLabel={demoMode?tr("Dodaj pauzy"):tr("Automatyczne tagowanie")} {tagging} {running} tagDisabled={!totalText.trim()||charCount>10000} generateDisabled={!canGenerate} {generateHint} progressLabel={generationStage} ontag={tagWithAI} ontags={()=>speechEditor?.toggleTags()} ongenerate={generate} oncancel={cancel} onsettings={()=>{panelTab='settings';inspector=true;}} onhistory={()=>{panelTab='history';inspector=true;}}/></div></div></div></div>
         {:else if page==='dubbing'||page==='audiobooks'}{#key page}<ProductionWorkspace kind={page} ready={isDesktop||runtime.state==='ready'} onnotify={notify}/>{/key}
         {:else if page==='stories'}<StoriesWorkspace ready={isDesktop||runtime.state==='ready'} onnotify={notify}/>
         {:else if page==='audio-lab'}<div class="page-body"><AudioLab ready={runtime.state==='ready'} onresult={async result=>{const peaks=await audioPeaks(result.blob);await storeAudio({id:crypto.randomUUID(),title:result.title,text:'',voice:tr("Obróbka audio"),created:new Date().toISOString(),kind:'audio',source:'import',blob:result.blob,url:URL.createObjectURL(result.blob),filename:result.filename,duration:result.duration,peaks});}}/></div>
@@ -488,9 +494,8 @@
   {:else if settingsSection==='privacy'}<PrivacyPage ready={runtime.state==='ready'} onnavigate={goSettings}/>
   {/if}
   {/key}
-</SettingsShell>{/if}<EngineStartup {runtime}/><Toaster/>
+</SettingsShell>{/if}<EngineStartup {runtime}/><Toaster/><ConfirmDialog/>
 {#if !demoMode}<ModelLicenseOnboarding ready={runtime.state==='ready'} selection={`${ttsFamily?.active || ''}:${ttsFamily?.active_model || ''}`} onsetup={()=>void showModels()}/>{/if}
-{#if toast}<div class="toast" role="status"><Info size={16}/><span>{tr(toast)}</span><Button variant="ghost" size="icon-xs" aria-label={tr("Zamknij komunikat")} onclick={()=>toast=''}><X size={14}/></Button></div>{/if}
 {#if modal==='voices'}<VoicePicker {voices} initialVoiceId={linkedVoiceId} onrefresh={demoMode?undefined:loadPickerModels} modelLanguages={voiceModel?.supported_language_names||[]} modelName={voiceModel?.display_name||voiceModelFamily?.active||''} languageLoading={!demoMode&&modelLoading} languageNotice={!demoMode&&modelError?tr("Nie udało się odczytać języków modelu. ")+modelError:''} selectedId={blocks.find(block=>block.id===voiceBlockId)?.voiceId||primaryVoice.id} demo={demoMode} ready={demoMode?!!demoAudio:isDesktop||runtime.state==='ready'} busyId={voicePreviewId} playingId={playbackState.status==='playing'?recording?.voiceId||'':''} onselect={chooseVoice} onpreview={previewVoice} onclose={()=>{cancelVoicePreview();linkedVoiceId='';modal=null;}} oncreate={()=>{openVoiceCreate();}}/>{/if}
 {#if modal&&modal!=='voices'}{#key modal}<dialog class="modal" use:mountAppModal aria-label={modal==='project'?tr("Nazwa projektu"):'Szukaj'} oncancel={event=>{event.preventDefault();modal=null}} onkeydown={event=>{if(event.key==='Escape')event.stopPropagation()}} onclick={closeModalBackdrop}><Button variant="ghost" size="icon" class="modal-close " aria-label={tr("Zamknij okno")} onclick={()=>modal=null}><X size={18}/></Button>
 {#if modal==='project'}<h2>{tr("Nazwa projektu")}</h2><label class="form-label" for="project-name">{tr("Nazwa")}</label><input class="text-input" id="project-name" bind:value={projectDraftName} maxlength="80" onkeydown={(event)=>{if(event.key==='Enter'&&projectDraftName.trim()){projectName=projectDraftName.trim();persistProject();modal=null;}}}/><Button variant="default" class=" full" disabled={!projectDraftName.trim()} onclick={()=>{projectName=projectDraftName.trim();persistProject();modal=null;}}>{tr("Zapisz")}</Button>

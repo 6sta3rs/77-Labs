@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { userMessage } from '../../platform/user-message';
   import { uiLanguage, createUiTranslator } from "../../i18n"
   const tr = $derived(createUiTranslator($uiLanguage))
 
@@ -28,7 +29,7 @@
   const available = $derived(ready && catalog?.engine_available === true && model?.installed === true)
   const labels: Record<DictationPhase, string> = { idle: 'Gotowe do rozpoczęcia', connecting: 'Łączenie z lokalnym silnikiem…', loading: 'Przygotowywanie modelu…', microphone: 'Oczekiwanie na dostęp do mikrofonu…', listening: 'Mikrofon włączony · dyktuj', finishing: 'Mikrofon wyłączony · oczekiwanie na podsumowanie…', complete: 'Sesja zakończona', error: 'Sesja przerwana' }
 
-  function fail(cause: unknown) { if (!disposed && !(cause instanceof Error && cause.name === 'AbortError')) error = cause instanceof Error ? cause.message : String(cause) }
+  function fail(cause: unknown) { if (!disposed && !(cause instanceof Error && cause.name === 'AbortError')) error = userMessage(cause, 'Operacja dyktowania nie powiodła się. Spróbuj ponownie.') }
   function release() { const lease = releaseLease; releaseLease = undefined; if (lease) void lease().catch(fail) }
   function archive() { if (text.trim()) sessions = [{ id: crypto.randomUUID(), text, complete: transcript.complete, created: new Date().toISOString(), engine: transcript.engine }, ...sessions].slice(0, 20) }
   async function refresh() {

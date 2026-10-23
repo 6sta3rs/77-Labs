@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — UI feedback batch (UI-013 to UI-021, UI-037)
+
+User request: implement the open UI feedback items and test them. Six parallel agents, one area each; integrated and checked in one pass.
+
+Change: `ConfirmDialog` (promise helper `confirmDialog()`, mounted in `App.svelte`) replaces all 11 native `confirm()` calls; `VideoCard` replaces three native `<video controls>`; `Checkbox` and `Drawer` components (gallery sections 21–22), raw number inputs moved to `Input`; the file inputs now go through `FilePicker` (also fixed its Polish plural, `polishPlural` in `src/lib/i18n/plural.ts`); one toast queue for the whole app (the old single 6 s toast in `App.svelte` is gone) and `userMessage(error, fallback)` at the main catch sites; `ActionBar` explains why "Generuj" is disabled; Modele shows download speed and ETA (`download-eta.ts`) with a global header indicator that polls only while a job is active; audiobook read-along uses measured portion durations with word-length weights (`read-along.ts`); `tests/frontend/ui-rules.mjs` guards rule 2 and runs in `test:ui`. `docs/uwagi-ui.md` statuses updated.
+
+Checks: `npm run check` 0/0, `npm run build` PASS, `npm run test:ui` PASS (new checks: confirm-dialog, video-card, toast, user-message, download-eta, read-along, plural, ui-rules), `test:structure` PASS, `tag-check` PASS. `async-ui-check` needed its `ModelsPage` harness stubbed for the new download monitor (32/32). No Rust was changed, so `cargo check` was not run.
+
+Not verified: none of the new components was exercised in a running window (dialog, video card, checkbox, drawer, indicator, hint); the header indicator may be hidden behind the settings overlay. Limitations: `userMessage` is not yet used at every catch site (ModelLicense*, AudioLab, VoiceManager, UpdatesPage, AiPage, EnginePage and others still show `.message`); `Drawer` is not yet used for the inspector; UI-019 is an estimate — exact word times need an engine change (faster-whisper `word_timestamps`). Still waiting for the user's decision: UI-010, 011, 027, 030, 034.
+
 ## 22 October 2026 — engine starts at launch, model warm-up, visible startup progress
 
 User request: start the VoiceStudio TTS model immediately and show what is happening (and what already works) while the engine starts — previously nothing outside Ustawienia → Silnik showed startup, and only for the data backup.

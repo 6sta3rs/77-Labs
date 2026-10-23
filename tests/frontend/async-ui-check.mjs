@@ -83,6 +83,7 @@ async function modelsPage(deps = {}, props = {}) {
   return runesComponent('ModelsPage.svelte', { props: { ready: true, onchange: async () => {}, onnavigate() {}, ...props }, deps: {
     toast: quiet, modelsCatalog: async () => ({ models: [] }), productionJson: async () => ({}), request: async () => ({}),
     readOnboardingPlan: async () => ({ models: [] }), canSelectEngine: () => true, engineReadinessLabel: () => '', needsEngineVerification: () => false,
+    reportDownloads() {}, downloadState: { subscribe: run => (run({ jobs: [], eta: {} }), () => {}) },
     activeDownload: () => false, byteLabel: String, downloadPercent: () => 0, engineLicenses: {}, modelFamily: () => 'other',
     modelManagement: { status: async () => ({ jobs: [], storage: {} }) }, requiredLicenseRepos: () => [], validModelRepo: () => true,
     openLicenseSource: async () => {}, hfMirrorAddress: String, putSettings: async () => ({}), settingsError: cause => String(cause?.message ?? cause),

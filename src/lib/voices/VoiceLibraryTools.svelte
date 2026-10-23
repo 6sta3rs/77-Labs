@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Checkbox from '../ui/Checkbox.svelte'
   function uiOptions<T extends { label: string }>(items: readonly T[]): T[] { return items.map(item => ({ ...item, label: tr(item.label) })); }
 
   import { uiLanguage, createUiTranslator } from "../i18n"
@@ -165,7 +166,7 @@
         {#if sourceMetadata}<p class="page-footnote">{tr("Zaimportowano z:")} {sourceMetadata.source}{tr(". Licencja źródłowa:")} {sourceMetadata.license}{tr(". Metadane są zapisane lokalnie w tej aplikacji.")}</p>{/if}
         <Select label={tr("Licencja zapisana w pakiecie")} value={license} onchange={value => license = value} options={licenseOptions} disabled={locked}/>
         <label for={`${uid}-tags`}>{tr("Tagi oddzielone przecinkami")}</label><input id={`${uid}-tags`} class="text-input" bind:value={tags} disabled={locked}/>
-        <label class="tool-checkbox"><input type="checkbox" bind:checked={includeReference} disabled={locked}/>{tr("Dołącz pełne nagranie referencyjne i utrwalone ujęcie")}</label>
+        <label class="tool-checkbox"><Checkbox bind:checked={includeReference} disabled={locked}/>{tr("Dołącz pełne nagranie referencyjne i utrwalone ujęcie")}</label>
         <p class="page-footnote">{tr("Bez pełnej referencji pakiet zawiera tylko podgląd do 8 sekund, który będzie referencją po imporcie. Zapisane nagranie zgody jest dołączane niezależnie od tej opcji. Licencja jest metadanymi wybranymi przez eksportującego.")}</p>
         <Button variant="default" disabled={!ready || locked || !exportId} onclick={exportBundle}><Download size={15}/>{tr("Zapisz plik persony")}</Button>
       </div>

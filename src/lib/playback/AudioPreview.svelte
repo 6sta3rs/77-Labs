@@ -3,7 +3,7 @@
   import { audioPeaks } from '../projects/library'
   import { idlePlaybackState, type PlaybackState, type PlaybackStatus } from './playback-state'
 
-  // Styled replacement for <audio controls>: the same waveform card as Studio recordings.
+  // Styled replacement for the native audio element controls: the same waveform card as Studio recordings.
   let { src, title = 'Odsłuch', meta = '', filename, onerror, onduration }: {
     src: string; title?: string; meta?: string
     /** When set, a download button is shown. */

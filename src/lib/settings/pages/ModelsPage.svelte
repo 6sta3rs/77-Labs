@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { userMessage } from '../../platform/user-message';
   import { uiLanguage, createUiTranslator } from '../../i18n';
   const tr = $derived(createUiTranslator($uiLanguage));
 
@@ -17,6 +18,8 @@
   import { productionJson } from '../../tools/production/production';
   import { request } from '../../platform/api';
   import { canSelectEngine, engineReadinessLabel, needsEngineVerification } from '../../models/engine-readiness';
+  import { downloadState, reportDownloads } from '../../models/download-monitor';
+  import { rateText } from '../../models/download-eta';
   import { activeDownload, byteLabel, downloadPercent, engineLicenses, modelFamily, modelManagement, type ManagedModel, type ModelDownload, type ModelStorage } from '../../models/model-management';
   import { requiredLicenseRepos, validModelRepo } from '../../models/model-licenses';
   import { readOnboardingPlan, type LicenseOnboardingPlan } from '../../models/license-onboarding';
@@ -88,7 +91,7 @@
         const [engines, weights, status] = await Promise.all([engineCatalog(signal), modelsCatalog(signal), modelManagement.status(signal)]);
         signal.throwIfAborted();
         if (disposed || refreshController !== controller) return;
-        catalog = engines; models = weights.models; freeGb = weights.disk_free_gb; jobs = status.jobs; storage = status.storage;
+        catalog = engines; models = weights.models; freeGb = weights.disk_free_gb; jobs = status.jobs; storage = status.storage; reportDownloads(jobs);
         // Secondary reads: their failure must not hide the model catalogue.
         const [nextPlan, credentials, nextMirror, nextProviders] = await Promise.allSettled([
           readOnboardingPlan(request, signal), productionJson<CredentialState>('/next/settings/credentials', { signal }),
@@ -115,12 +118,12 @@
     let polling = false;
     void refresh(controller.signal).catch(cause => { if (!controller.signal.aborted) fail(cause); });
     const poll = setInterval(() => {
-      if (polling || disposed || controller.signal.aborted || document.hidden || busy || loading) return;
+      if (polling || disposed || controller.signal.aborted || document.hidden || busy || loading || !transferring) return; // idle: no polling
       polling = true;
       void modelManagement.status(controller.signal).then(async status => {
         if (controller.signal.aborted) return;
         const finished = jobs.filter(job => activeDownload(job)).map(job => ({ job, next: status.jobs.find(next => next.repo_id === job.repo_id) })).filter(({ next }) => !activeDownload(next));
-        jobs = status.jobs; storage = status.storage;
+        jobs = status.jobs; storage = status.storage; reportDownloads(jobs);
         for (const { job, next } of finished) {
           const name = models.find(model => model.repo_id === job.repo_id)?.label || job.repo_id;
           if (next?.state === 'complete') toast.ok(tr('Pobrano {name}. Można go wybrać jako aktywny.', { name }));
@@ -202,7 +205,7 @@
   }
   function saveMirror() {
     let url: string;
-    try { url = hfMirrorAddress(mirrorUrl); mirrorError = ''; } catch (cause) { mirrorError = cause instanceof Error ? cause.message : String(cause); return; }
+    try { url = hfMirrorAddress(mirrorUrl); mirrorError = ''; } catch (cause) { mirrorError = userMessage(cause, 'Nieprawidłowy adres.'); return; }
     void access(async signal => { applyMirror(await putSettings<HfMirrorState>('/api/settings/hf-mirror', { url, mode: 'manual' }, signal)); toast.ok(tr('Zapisano adres mirroru. Zapis nie sprawdza dostępności serwera.')); });
   }
   async function retest() {
@@ -231,7 +234,7 @@
   }
   function progressText(job: ModelDownload) {
     const pct = downloadPercent(job);
-    return [pct !== undefined ? `${pct}%` : '', `${byteLabel(job.downloaded_bytes)}${job.total_bytes ? ` / ${byteLabel(job.total_bytes)}` : ` · ${tr('ustalanie rozmiaru')}`}`].filter(Boolean).join(' · ');
+    return [pct !== undefined ? `${pct}%` : '', `${byteLabel(job.downloaded_bytes)}${job.total_bytes ? ` / ${byteLabel(job.total_bytes)}` : ` · ${tr('ustalanie rozmiaru')}`}`, rateText($downloadState.eta[job.repo_id], tr, byteLabel)].filter(Boolean).join(' · ');
   }
 </script>
 

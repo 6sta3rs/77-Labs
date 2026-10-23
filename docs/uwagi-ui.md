@@ -28,24 +28,24 @@ Statuses: **new** -> **analysis** -> **to decide** -> **done** (with a commit) o
 |---|---|---|---|---|
 | UI-010 | Voices | Remove the voice "Nowa narracja" ("New narration") | In the code this is the default project name, not a voice. If it is a library profile, it lives in the private database. A screenshot showing where it appears is needed. | to decide |
 | UI-011 | Voices | A test voice for cloning | Proposal: a public-domain sample (e.g. LibriVox, Polish). Needs permission to download. | to decide |
-| UI-013 | Many screens | 12x system `confirm()` | A `ConfirmDialog` component in the app style. | new |
-| UI-014 | Forms | Number fields with browser arrows, no Checkbox component | Use `Input type=number` (hides the arrows); add `Checkbox`. | new |
-| UI-015 | Whole app | One toast per 6 s, errors disappear | Typed toast queue; an error stays until dismissed; `role="alert"`. | new |
-| UI-016 | Whole app | Raw technical errors in messages | A shared `userMessage(error, fallback)` function. | new |
-| UI-017 | Studio | Grayed-out "Generuj" / "Zatrzymaj" ("Generate" / "Stop") without explanation | A hint with the reason (as in the audiobook). | new |
-| UI-018 | Settings -> Models | No download speed or ETA, no global indicator | Progress events from the backend and an indicator in the header. | new |
-| UI-019 | Audiobook | Reading tracking is estimated from time | Exact word times need alignment (e.g. Whisper). | new |
-| UI-020 | Gallery | No bottom drawer in `/inputy.html` | Extract the drawer as a component. | new |
-| UI-021 | Repo | No automatic guard for rule 2 | `tests/frontend/ui-rules.mjs` in `test:ui`. | new |
+| UI-019 | Audiobook | Reading tracking is estimated from time | Now uses measured per-portion durations and word-length weights (`read-along.ts`); exact word times still need engine word timestamps (faster-whisper `word_timestamps`). | partly done |
 | UI-027 | Forms | Is the default field height of 32 px OK? Input/Textarea also have small sizes (`sm` 26 px, `compact` 28 px) | Evaluate after UI-026: possibly a 36 px default like shadcn (`h-9`) and remove `sm`/`compact` from Input/Textarea too. | to decide |
 | UI-030 | Action buttons (`Button`) | `Button` has long had `scale .97` on click (e.g. "Wygeneruj mowę" / "Generate speech") | Remove for consistency with UI-025/029, or keep it only for action buttons. | to decide |
 | UI-034 | Language lists | Flags only for 62 languages, the rest show a globe; rare languages have English names | Pull more flags from circle-flags (`flags/language`, MIT, with provenance) and possibly Polish names; many minority languages have no flag. Needs permission to download assets. | to decide |
-| UI-037 | Video preview | Dubbing and tools still have native `<video controls>` (3 places) | A separate video component in the style of the audio card. | new |
 
 ## Done
 
 | # | Feedback | Solution |
 |---|---|---|
+| UI-013 | 12x system `confirm()` | `ConfirmDialog` + `confirmDialog()` replace all native `confirm()` |
+| UI-014 | Number fields with browser arrows, no Checkbox component | Raw number inputs use `Input type=number` (no arrows); new `Checkbox` |
+| UI-015 | One toast per 6 s, errors disappear | One typed toast queue for the whole app; errors stay until dismissed, `role="alert"` |
+| UI-016 | Raw technical errors in messages | `userMessage(error, fallback)` at the main catch sites (other sites still to migrate) |
+| UI-017 | Grayed-out "Generuj" / "Zatrzymaj" ("Generate" / "Stop") without explanation | `ActionBar` shows the reason when "Generuj" is disabled |
+| UI-018 | No download speed or ETA, no global indicator | Speed and ETA in download rows plus a global header indicator; polling only while a job is active |
+| UI-020 | No bottom drawer in `/inputy.html` | `Drawer` component and gallery sections for it and for `Checkbox` |
+| UI-021 | No automatic guard for rule 2 | `tests/frontend/ui-rules.mjs` in `test:ui` |
+| UI-037 | Dubbing and tools still have native `<video controls>` (3 places) | `VideoCard` replaces the three native `<video controls>` |
 | UI-001 | The "Pierwsze kroki" ("First steps") window returns despite acceptance; decorative icon tile | The window opens only when the engine reports unaccepted terms; tile removed |
 | UI-002 | Background under "+" at Voices always visible | Background on hover only |
 | UI-003 | X and trash next to a speaker do the same thing | One X; Ctrl+Z undoes |

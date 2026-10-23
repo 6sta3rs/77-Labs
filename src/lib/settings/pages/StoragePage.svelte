@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Checkbox from '../../ui/Checkbox.svelte'
   // "Przechowywanie": data folder, model folder (single owner of all paths), disk usage, DB backups, history cap, preview cache.
   import { onDestroy, tick, untrack } from 'svelte'
   import { FolderOpen, RotateCcw, RefreshCw, Database, Trash2, LoaderCircle } from '@lucide/svelte'
@@ -278,7 +279,7 @@
 
       {#if cache.voices.length}
         <div class="sp-voices" role="group" aria-label={tr('Głosy do przygotowania')}>
-          {#each cache.voices as v (v.id)}<label><input type="checkbox" checked={selected.includes(v.id)} disabled={sampleLocked} onchange={e => toggle(v.id, e.currentTarget.checked)}/><span>{v.name}</span>{#if v.cached}<small>{tr('w cache')}</small>{/if}</label>{/each}
+          {#each cache.voices as v (v.id)}<label><Checkbox checked={selected.includes(v.id)} disabled={sampleLocked} onchange={checked => toggle(v.id, checked)}/><span>{v.name}</span>{#if v.cached}<small>{tr('w cache')}</small>{/if}</label>{/each}
         </div>
         <div class="p-actions"><Button disabled={!selected.length || sampleLocked} onclick={prepare}>{tr('Przygotuj zaznaczone próbki ({count})', { count: selected.length })}</Button>
           {#if progress}<Button variant="outline" disabled={stopRequested} onclick={() => stopRequested = true}>{stopRequested ? tr('Zatrzymanie po bieżącej próbce…') : tr('Zatrzymaj po bieżącej próbce')}</Button>{/if}
@@ -324,7 +325,7 @@
   .storage-page :global(.vs-button svg.spin){color:var(--accent)}
   .sp-voices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px 16px;max-height:260px;overflow:auto}
   .sp-voices label{display:flex;align-items:center;gap:8px;font-size:var(--ui-text-12)}
-  .sp-voices input{accent-color:var(--accent)}
+
   .sp-voices small{font-size:var(--ui-text-10);color:var(--muted)}
   @media(max-width:600px){.sp-card{padding:16px}}
 </style>

@@ -9,6 +9,8 @@
   import Select from '../ui/Select.svelte'
   import Slider from '../ui/Slider.svelte'
   import Switch from '../ui/Switch.svelte'
+  import Checkbox from '../ui/Checkbox.svelte'
+  import Drawer from '../ui/Drawer.svelte'
   import SpeechEditor from '../tts/SpeechEditor.svelte'
   import Input from '../ui/Input.svelte'
   import Textarea from '../ui/Textarea.svelte'
@@ -47,6 +49,7 @@
     update(); media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
   })
+  let drawerOpen = $state(false), checkA = $state(true), checkB = $state(false), checkAll = $state(false)
   let enabled = $state(true), reduced = $state(false), fileName = $state(''), resetKey = $state(0)
   const initialBlocks = (): SpeechBlock[] => [{ id: 'gallery-speaker', voiceId: voices[0].id, text: 'Dobry głos zaczyna się od dobrego tekstu. [pause 250ms] Sprawdź tagi i dopisz swoją historię.' }]
   let blocks = $state<SpeechBlock[]>(initialBlocks())
@@ -58,7 +61,7 @@
     ['Suwak', 'Slider'], ['Przełącznik', 'Switch'], ['Wybór pliku', 'FilePicker'], ['Edytor narracji', 'SpeechEditor'],
     ['Przyciski', 'Button'], ['Podpowiedzi', 'Tooltip'], ['Formularz', 'form'], ['Motywy', 'ThemeCard'], ['Inwentarz', 'moduły'],
     ['Audio i kula głosu', 'Player'], ['Grupy i filtry', 'FilterChip'], ['Wybór modeli', 'ModelPicker'],
-    ['Pasek postępu', 'progress'], ['Awatar głosu', 'VoiceAvatar'], ['Flaga języka', 'LanguageFlag'], ['Sekcja zwijana', 'InspectorSection'],
+    ['Pasek postępu', 'progress'], ['Awatar głosu', 'VoiceAvatar'], ['Flaga języka', 'LanguageFlag'], ['Sekcja zwijana', 'InspectorSection'], ['Pole wyboru', 'Checkbox'], ['Szuflada', 'Drawer'],
   ].map(([label, code], index) => ({ id: `control-${index + 1}`, label, code }))
   let activeSection = $state('intro')
   onMount(() => {
@@ -142,6 +145,15 @@
       <section class="control-card" id="control-18"><div class="card-heading"><span class="section-number">18</span><h2>{tr("Awatar głosu")}</h2><span class="type-label">VoiceAvatar</span></div><div class="avatar-demo">{#each [16, 24, 32, 48] as size}<VoiceAvatar voiceId={voices[0].id} name={voices[0].name} {size}/>{/each}<VoiceAvatar voiceId={voices[1].id} name={voices[1].name} size={48}/></div><p class="card-hint">{tr("Bez portretu awatar pokazuje kulę głosu wyliczoną z identyfikatora — ten sam głos ma zawsze ten sam kolor.")}</p></section>
       <section class="control-card" id="control-19"><div class="card-heading"><span class="section-number">19</span><h2>{tr("Flaga języka")}</h2><span class="type-label">LanguageFlag</span></div><div class="flag-demo">{#each ['Polski', 'English', 'Deutsch', 'Español', 'Nieznany'] as language}<span><LanguageFlag {language}/>{language}</span>{/each}</div><p class="card-hint">{tr("Nieznany język pokazuje ikonę globu zamiast flagi.")}</p></section>
       <section class="control-card" id="control-20"><div class="card-heading"><span class="section-number">20</span><h2>{tr("Sekcja zwijana")}</h2><span class="type-label">InspectorSection</span></div><div class="disclosure-demo"><InspectorSection label={tr("Język")} summary={languageOptions.find(option => option.value === language)?.label || language}><Select language ariaLabel={tr("Język generowania")} value={language} options={uiOptions(languageOptions)} onchange={v => language = v}/></InspectorSection><InspectorSection label={tr("Efekty audio")} summary={effectOptions.find(option => option.value === selectedEffect)?.label || selectedEffect} defaultOpen><Select ariaLabel={tr("Preset efektów audio")} value={selectedEffect} options={uiOptions(effectOptions)} onchange={v => selectedEffect = v}/></InspectorSection><Slider label={tr("Stabilność")} collapsible value={stability} min={0} max={100} valueLabel={`${stability}%`} startLabel={tr("Kreatywny")} endLabel={tr("Solidny")} onchange={v => stability = v}/></div><p class="card-hint">{tr("Panel ustawień Studio. Sekcja z listą rozwija się tą samą animacją wysokości co zwijany suwak; zwinięta pokazuje wybraną wartość obok strzałki.")}</p></section>
+      <section class="control-card" id="control-21"><div class="card-heading"><span class="section-number">21</span><h2>{tr("Pola wyboru")}</h2><span class="type-label">Checkbox</span></div><div class="checkbox-demo">
+        <Checkbox bind:checked={checkA}>{tr("Zaznaczone")}</Checkbox><Checkbox bind:checked={checkB}>{tr("Niezaznaczone")}</Checkbox>
+        <Checkbox bind:checked={checkAll} indeterminate={checkA !== checkB}>{tr("Nieokreślone (gdy powyższe się różnią)")}</Checkbox>
+        <Checkbox checked disabled>{tr("Wyłączone, zaznaczone")}</Checkbox><Checkbox disabled>{tr("Wyłączone")}</Checkbox><Checkbox aria-invalid="true">{tr("Z błędem")}</Checkbox>
+      </div></section>
+      <section class="control-card" id="control-22"><div class="card-heading"><span class="section-number">22</span><h2>{tr("Szuflada")}</h2><span class="type-label">Drawer</span></div><div class="drawer-demo">
+        <Button variant="outline" onclick={() => drawerOpen = true}>{tr("Otwórz szufladę")}</Button>
+        <small>{tr("Zamyka ją Esc, kliknięcie w tło albo przeciągnięcie uchwytu w dół.")}</small>
+      </div><Drawer bind:open={drawerOpen} label={tr("Przykładowa szuflada")}><p>{tr("Treść szuflady. Na małym ekranie tak wysuwają się panele boczne.")}</p><Button variant="default" onclick={() => drawerOpen = false}>{tr("Zamknij")}</Button></Drawer></section>
     </div>{/key}
     <footer class="gallery-footer"><span>{tr("Seventy Seven Labs · Wspólne kontrolki aplikacji")}</span><span>{tr("Tab — następne pole")} <span class="dot">·</span> {tr("Shift + Tab — poprzednie")}</span></footer>
   </main>
@@ -161,6 +173,7 @@
 .size-variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 24px;margin-top:24px;padding-top:22px;border-top:1px solid var(--border)}.stack-variants{display:grid;gap:18px;margin-top:22px;padding-top:22px;border-top:1px solid var(--border)}@media(max-width:700px){.size-variants{grid-template-columns:1fr}}
 
   .gallery-file-pickers{display:grid;gap:10px;margin-top:14px}
+  .checkbox-demo,.drawer-demo{display:grid;gap:12px;justify-items:start;font-size:var(--ui-text-12)}.drawer-demo small{color:var(--muted)}
   .disclosure-demo{display:grid;gap:18px;max-width:340px}
 
   /* Docs layout: sticky component list on the left, one column of demos on the right. */

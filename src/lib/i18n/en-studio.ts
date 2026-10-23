@@ -1112,5 +1112,8 @@ export const enStudio: Record<string, string> = {
   "Po pauzie pomiar wraca do zera, a ruch łagodnie wraca do spokojnego dryfu. Ograniczenie animacji zachowuje działanie audio.": "After pausing, the measurement returns to zero and motion gently returns to a calm drift. Reduced motion keeps audio working.",
   "Brak stabilnego tonu": "No stable pitch",
   "Zakończ podgląd stanu": "End state preview",
-  "Pokaż stan generowania": "Show generation state"
+  "Pokaż stan generowania": "Show generation state",
+  "Trwa tagowanie tekstu — poczekaj na zakończenie.": "Text tagging is in progress — wait for it to finish.",
+  "Wpisz tekst, aby wygenerować mowę.": "Enter some text to generate speech.",
+  "Tekst przekracza limit 10 000 znaków — skróć go.": "The text exceeds the 10,000 character limit — shorten it."
 };

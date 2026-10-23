@@ -1,6 +1,7 @@
 import { translateUi } from '../i18n';
 import { productionJson, postJson } from '../tools/production/production'
 import { redactDiagnosticText } from '../platform/runtime-diagnostics'
+import { userMessage } from '../platform/user-message'
 
 export type SystemSection = 'network' | 'sharing' | 'credentials' | 'compute' | 'usage' | 'remote-workers' | 'privacy' | 'permissions' | 'preflight' | 'audio-tools' | 'logs'
 export const systemSectionTitles: Record<SystemSection, string> = {
@@ -33,7 +34,7 @@ export const gpuEngineLabels: Record<string, string> = { gpu: 'GPU', gpu_caveat:
 export const gpuOptionLabels: Record<string, string> = { vulkan_engines: 'Można użyć silników obsługujących Vulkan.', rocm_windows_manual: 'ROCm na Windows wymaga zgodnej ręcznej konfiguracji runtime.', rocm_variant_linux: 'Można przygotować zgodny wariant ROCm dla Linux.', rocm_device_access: 'Sprawdź uprawnienia dostępu do urządzenia ROCm.', reinstall_cuda_torch: 'Wybierz oddzielny runtime CUDA w instalatorze aplikacji.', update_nvidia_driver: 'Sprawdź sterownik karty NVIDIA.' }
 
 export function settingsError(cause: unknown) {
-  return cause instanceof Error && cause.name === 'TimeoutError' ? translateUi("Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.") : redactDiagnosticText(cause instanceof Error ? cause.message : cause).slice(0, 900)
+  return cause instanceof Error && cause.name === 'TimeoutError' ? translateUi("Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.") : translateUi(userMessage(cause instanceof Error ? new Error(redactDiagnosticText(cause.message)) : redactDiagnosticText(cause), 'Nie udało się wykonać operacji. Sprawdź stan silnika i spróbuj ponownie.')).slice(0, 900)
 }
 export function putSettings<T>(path: string, body: unknown, signal?: AbortSignal) { return productionJson<T>(path, { ...postJson(body, signal), method: 'PUT' }) }
 export function hfMirrorAddress(value: string): string {

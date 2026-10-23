@@ -1,8 +1,12 @@
 <script lang="ts">
+  import { userMessage } from '../../platform/user-message';
+  import Input from '../../ui/Input.svelte'
   import { uiLanguage, createUiTranslator } from "../../i18n"
+  import { confirmDialog } from "../../ui/confirm"
   const tr = $derived(createUiTranslator($uiLanguage))
 
-  import Button from '../../ui/Button.svelte';
+  import Button from '../../ui/Button.svelte'
+  import FilePicker from '../../ui/FilePicker.svelte';
   import AudioPreview from '../../playback/AudioPreview.svelte';
   import { onDestroy, onMount } from 'svelte'
   import { Plus, Trash2, ArrowUp, ArrowDown, Save, FolderOpen, Download, RefreshCw, Play, BookOpen, Upload, LoaderCircle } from '@lucide/svelte'
@@ -26,7 +30,6 @@
   let render = $state(emptyStoryRender()), previewUrl = $state(''), previewName = $state(''), previewError = $state('')
   let controller: AbortController | undefined, refreshController: AbortController | undefined, draftTimer: ReturnType<typeof setTimeout> | undefined, disposed = false
   let draftStorage: Storage | undefined, draftWritable = true
-  let importInput = $state<HTMLInputElement>()
   const locked = $derived(busy || modelBusy)
   const stats = $derived(storyStats(story))
   const knownVoices = $derived(new Set(voices.map(voice => voice.id)))
@@ -35,7 +38,7 @@
   const voiceOptions = $derived([{ value: '', label: 'Głos wspólny historii' }, ...voices.map(voice => ({ value: voice.id, label: voice.name }))])
   const renderedPartially = $derived(render.phase === 'done' && render.failed.length > 0)
 
-  function fail(cause: unknown) { if (!disposed && !(cause instanceof Error && cause.name === 'AbortError')) error = cause instanceof Error ? cause.message : String(cause) }
+  function fail(cause: unknown) { if (!disposed && !(cause instanceof Error && cause.name === 'AbortError')) error = userMessage(cause, 'Operacja nie powiodła się. Spróbuj ponownie.') }
   function writeDraft() {
     if (!draftStorage || !draftWritable) { draftFailed = true; draftMessage = 'Szkic lokalny jest niedostępny. Zapisz projekt w silniku lub pobierz JSON.'; return }
     try {
@@ -52,16 +55,16 @@
   function sceneTitle(value: string) { if (!selectedScene) return; story = { ...story, scenes: story.scenes.map(scene => scene.id === selectedScene.id ? { ...scene, title: value } : scene) }; changed() }
   function patchBlock(id: string, patch: Partial<StoryBlock>) { story = { ...story, scenes: story.scenes.map(scene => ({ ...scene, blocks: scene.blocks.map(block => block.id === id ? { ...block, ...patch } : block) })) }; changed() }
   function addScene() { const scene = newStoryScene(`Scena ${story.scenes.length + 1}`); story = { ...story, scenes: [...story.scenes, scene] }; selectedSceneId = scene.id; changed() }
-  function removeScene(id: string) {
+  async function removeScene(id: string) {
     const scene = story.scenes.find(row => row.id === id)
-    if (!scene || story.scenes.length < 2 || !confirm(`Usunąć scenę „${scene.title}” i jej ${scene.blocks.length} bloków z bieżącego szkicu?`)) return
+    if (!scene || story.scenes.length < 2 || !(await confirmDialog({ message: tr('Usunąć scenę „{title}” i jej {count} bloków z bieżącego szkicu?', { title: scene.title, count: scene.blocks.length }), confirmLabel: tr('Usuń'), danger: true }))) return
     story = { ...story, scenes: story.scenes.filter(row => row.id !== id) }; selectedSceneId = story.scenes[0]?.id || ''; changed()
   }
   function moveScene(id: string, direction: -1 | 1) { story = { ...story, scenes: moveStoryItem(story.scenes, id, direction) }; changed() }
   function addBlock(pauseOnly = false) { if (!selectedScene) return; const block = newStoryBlock(); if (pauseOnly) block.pauseMs = 500; story = { ...story, scenes: story.scenes.map(scene => scene.id === selectedScene.id ? { ...scene, blocks: [...scene.blocks, block] } : scene) }; changed() }
-  function removeBlock(id: string) {
+  async function removeBlock(id: string) {
     const block = selectedScene?.blocks.find(row => row.id === id)
-    if (block?.text.trim() && !confirm('Usunąć ten blok wypowiedzi z bieżącego szkicu?')) return
+    if (block?.text.trim() && !(await confirmDialog({ message: tr('Usunąć ten blok wypowiedzi z bieżącego szkicu?'), confirmLabel: tr('Usuń'), danger: true }))) return
     story = { ...story, scenes: story.scenes.map(scene => ({ ...scene, blocks: scene.blocks.filter(block => block.id !== id) })) }; changed()
   }
   function moveBlock(id: string, direction: -1 | 1) { story = { ...story, scenes: story.scenes.map(scene => ({ ...scene, blocks: moveStoryItem(scene.blocks, id, direction) })) }; changed() }
@@ -109,8 +112,8 @@
       if (warnings.length) error = warnings.join(' ')
     } finally { if (refreshController === abort) { loading = false; refreshController = undefined } }
   }
-  function newProject() {
-    if (locked || dirty && !confirm('Otworzyć nową historię? Bieżące zmiany projektu zastąpi nowy szkic.')) return
+  async function newProject() {
+    if (locked || dirty && !(await confirmDialog({ message: tr('Otworzyć nową historię? Bieżące zmiany projektu zastąpi nowy szkic.'), confirmLabel: tr('Otwórz') }))) return
     flushDraft(); story = newStory(); selectedSceneId = story.scenes[0].id; projectId = ''; dirty = false; view = 'editor'; render = emptyStoryRender(); error = ''; message = ''; writeDraft()
   }
   async function saveProject() {
@@ -123,7 +126,7 @@
     })
   }
   async function openProject(id: string) {
-    if (!ready || locked || dirty && !confirm('Otworzyć zapisany projekt? Bieżące zmiany zastąpi zapis z biblioteki.')) return
+    if (!ready || locked || dirty && !(await confirmDialog({ message: tr('Otworzyć zapisany projekt? Bieżące zmiany zastąpi zapis z biblioteki.'), confirmLabel: tr('Otwórz') }))) return
     await work(async signal => {
       const result = await productionJson<StoryProject>(`/projects/${encodeURIComponent(id)}`, { signal })
       const next = readStory(result.state); signal.throwIfAborted()
@@ -136,10 +139,9 @@
     try {
       if (file.size > STORIES_MAX_BYTES) throw new Error('Projekt JSON nie może przekraczać 1 MB.')
       const data = JSON.parse(await file.text()); const next = readStory(data.story || data.state || data)
-      if (dirty && !confirm('Otworzyć projekt z pliku? Bieżące zmiany zastąpi importowany szkic.')) return
+      if (dirty && !(await confirmDialog({ message: tr('Otworzyć projekt z pliku? Bieżące zmiany zastąpi importowany szkic.'), confirmLabel: tr('Otwórz') }))) return
       flushDraft(); story = next; projectId = ''; selectedSceneId = next.scenes[0]?.id || ''; dirty = true; view = 'editor'; render = emptyStoryRender(); writeDraft(); message = 'Wczytano projekt z pliku. Zapisz go w bibliotece, aby utworzyć osobny projekt.'
     } catch (cause) { fail(cause) }
-    finally { if (importInput) importInput.value = '' }
   }
   function consumeEvent(event: { type: string; [key: string]: unknown }) { if (!disposed) render = applyStoryEvent(render, event) }
   function beginRender() { render = emptyStoryRender(); render.phase = 'running' }
@@ -226,7 +228,7 @@
             <article class="story-block"><header><strong>{tr("Blok")} {index + 1}{!block.text.trim() && block.pauseMs > 0 ? ' · przerwa' : ''}</strong><div><Button variant="ghost" size="icon" aria-label={tr("Przenieś blok {arg0} wcześniej", { arg0: String(index + 1) })} disabled={locked || index === 0} onclick={() => moveBlock(block.id, -1)}><ArrowUp size={14}/></Button><Button variant="ghost" size="icon" aria-label={tr("Przenieś blok {arg0} później", { arg0: String(index + 1) })} disabled={locked || index === selectedScene.blocks.length - 1} onclick={() => moveBlock(block.id, 1)}><ArrowDown size={14}/></Button><Button variant="ghost" size="icon" aria-label={tr("Usuń blok {arg0}", { arg0: String(index + 1) })} disabled={locked} onclick={() => removeBlock(block.id)}><Trash2 size={14}/></Button></div></header>
               <Select label={tr("Głos bloku {arg0}", { arg0: String(index + 1) })} value={block.voiceId} onchange={value => patchBlock(block.id, { voiceId: value })} options={block.voiceId && !knownVoices.has(block.voiceId) ? [...voiceOptions, { value: block.voiceId, label: tr("Profil niedostępny · {arg0}", { arg0: String(block.voiceId) }), disabled: true }] : voiceOptions} disabled={locked}/>
               <textarea class="text-input story-script" aria-label={tr("Wypowiedź bloku {arg0}", { arg0: String(index + 1) })} value={block.text} rows="3" placeholder={tr("Wpisz wypowiedź. Pusty blok z przerwą dodaje ciszę.")} disabled={locked} oninput={event => patchBlock(block.id, { text: event.currentTarget.value })}></textarea>
-              <div class="story-block-settings"><label>{tr("Przerwa po bloku · ms")}<input type="number" min="0" max="10000" step="50" aria-label={tr(String(`Przerwa po bloku ${index + 1} w milisekundach`))} value={Number.isFinite(block.pauseMs) ? block.pauseMs : ''} disabled={locked} oninput={event => patchBlock(block.id, { pauseMs: event.currentTarget.valueAsNumber })}/></label><label>{tr("Tempo · ×")}<input type="number" min="0.5" max="2" step="0.05" aria-label={tr(String(`Tempo bloku ${index + 1}`))} value={block.speed ?? story.settings.speed} disabled={locked} oninput={event => patchBlock(block.id, { speed: event.currentTarget.valueAsNumber })}/></label>{#if block.speed !== null}<Button variant="ghost" disabled={locked} onclick={() => patchBlock(block.id, { speed: null })}>{tr("Przywróć wspólne tempo")}</Button>{/if}</div>
+              <div class="story-block-settings"><label>{tr("Przerwa po bloku · ms")}<Input type="number" min="0" max="10000" step="50" aria-label={tr(String(`Przerwa po bloku ${index + 1} w milisekundach`))} value={Number.isFinite(block.pauseMs) ? block.pauseMs : ''} disabled={locked} oninput={event => patchBlock(block.id, { pauseMs: event.currentTarget.valueAsNumber })}/></label><label>{tr("Tempo · ×")}<Input type="number" min="0.5" max="2" step="0.05" aria-label={tr(String(`Tempo bloku ${index + 1}`))} value={block.speed ?? story.settings.speed} disabled={locked} oninput={event => patchBlock(block.id, { speed: event.currentTarget.valueAsNumber })}/></label>{#if block.speed !== null}<Button variant="ghost" disabled={locked} onclick={() => patchBlock(block.id, { speed: null })}>{tr("Przywróć wspólne tempo")}</Button>{/if}</div>
               {#if story.scenes.length > 1}<Select label={tr("Przenieś blok {arg0} do sceny", { arg0: String(index + 1) })} value={selectedScene.id} onchange={value => transferBlock(block.id, value)} options={story.scenes.map(scene => ({ value: scene.id, label: scene.title || tr("Scena bez tytułu") }))} disabled={locked}/>{/if}
             </article>
           {/each}</div>
@@ -235,7 +237,7 @@
         {/if}
         <details class="story-plan"><summary>{tr("Plan historii ·")} {stats.scenes} {tr("scen ·")} {stats.blocks} {tr("bloków ·")} {stats.voices} {tr("głosów")}</summary><p class="tool-workspace-note">{stats.characters.toLocaleString(tr.locale)} {tr("znaków do wypowiedzenia. Jawne przerwy:")} {(stats.pauseMs / 1000).toLocaleString(tr.locale)} {tr("s. Sceny zostaną rozdziałami nagrania. Czas mowy poznamy po syntezie.")}</p>{#each story.scenes as scene}<p><strong>{scene.title || tr("Scena bez tytułu")}</strong> · {scene.blocks.length} {tr("bloków")}</p>{/each}</details>
         {#if validation}<p class="tool-workspace-note" role="status">{tr("Przed generowaniem:")} {validation}</p>{/if}
-        <div class="story-file-actions"><Button variant="ghost" disabled={locked} onclick={() => importInput?.click()}><Upload size={14}/>{tr("Wczytaj projekt JSON")}</Button><Button variant="ghost" disabled={locked} onclick={exportProject}><Download size={14}/>{tr("Pobierz projekt JSON")}</Button><input bind:this={importInput} type="file" accept="application/json,.json" aria-label={tr("Projekt historii JSON")} disabled={locked} onchange={event => void importProject(event.currentTarget.files?.[0])}/></div>
+        <div class="story-file-actions"><FilePicker variant="ghost" label={tr("Wczytaj projekt JSON")} ariaLabel={tr("Projekt historii JSON")} accept="application/json,.json" showName={false} disabled={locked} onchange={files => void importProject(files[0])}/><Button variant="ghost" disabled={locked} onclick={exportProject}><Download size={14}/>{tr("Pobierz projekt JSON")}</Button></div>
       {/if}
       {#if busy}<p class="story-status" role="status"><LoaderCircle size={14} class="spin"/>{render.phase !== 'idle' ? render.message || tr('Generowanie historii…') : tr('Przetwarzanie…')}<Button variant="ghost" onclick={() => controller?.abort()}>{tr("Przerwij oczekiwanie")}</Button></p><p class="tool-workspace-note">{tr("Po przerwaniu silnik może kończyć bieżącą scenę. Odśwież historię przed wznowieniem.")}</p>{/if}
       {#if render.total}<div class="story-progress"><span>{tr("Gotowe sceny:")} {render.completed.length} / {render.total}{render.failed.length ? " " + tr("· błędy: {arg0}", { arg0: String(render.failed.length) }) : ''}</span><progress max={render.total} value={render.completed.length}></progress></div>{/if}
@@ -279,5 +281,5 @@
 </ToolWorkspace>
 
 <style>
-  .stories-content{display:flex;flex-direction:column;gap:18px;min-width:0}.story-header-actions,.story-main-actions,.story-history-actions,.story-add-actions,.story-file-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.story-header-actions{justify-content:flex-end}.story-label{font-size:var(--ui-text-12);color:var(--muted)}.story-title{font-size:var(--ui-text-20)!important;font-weight:600}.story-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.story-section-heading h2{font-size:var(--ui-text-14);font-weight:600}.story-scenes{display:flex;flex-wrap:wrap;gap:8px}.story-scene-tab{display:flex;gap:8px;align-items:center;max-width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;color:var(--muted);background:var(--surface);font-size:var(--ui-text-12);text-align:left;overflow-wrap:anywhere}.story-scene-tab.selected{border-color:var(--foreground);color:var(--foreground);background:var(--surface-hover)}.story-scene-tab>span,.story-scene-tab>small{font-size:var(--ui-text-10);color:var(--muted)}.story-scene-heading{display:flex;align-items:center;gap:4px}.story-scene-heading>input{flex:1;min-width:0}.story-blocks{display:flex;flex-direction:column;gap:16px}.story-block{display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.story-block>header{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:var(--ui-text-12)}.story-block>header>div{display:flex;gap:2px}.story-script{resize:vertical;min-height:100px;line-height:1.8}.story-block-settings{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}.story-block-settings label{display:flex;flex-direction:column;gap:7px;font-size:var(--ui-text-11);color:var(--muted)}.story-block-settings input{width:126px;max-width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;background:var(--input);color:var(--foreground);font:inherit}.story-plan,.story-log{font-size:var(--ui-text-12);line-height:1.8;padding:14px 0;border-top:1px solid var(--border)}summary{cursor:pointer;font-size:var(--ui-text-12)}.story-plan p,.story-log p{margin:8px 0;overflow-wrap:anywhere}.story-file-actions>input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.story-status{display:flex;align-items:center;gap:8px;font-size:var(--ui-text-12)}.story-progress{display:flex;flex-direction:column;gap:9px;font-size:var(--ui-text-12);color:var(--muted)}.story-progress progress{width:100%;height:6px;accent-color:var(--foreground)}.story-error{font-size:var(--ui-text-12);line-height:1.8;color:var(--danger);overflow-wrap:anywhere}.story-result,.story-audio{display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid var(--border);border-radius:10px;font-size:var(--ui-text-12)}.story-result>span{color:var(--muted);overflow-wrap:anywhere}.story-result>div{display:flex;flex-wrap:wrap;gap:8px}.story-audio strong{overflow-wrap:anywhere}.story-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:var(--ui-text-12)}.story-advanced{display:flex;flex-direction:column;gap:18px;padding-top:18px}.story-project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.story-project{display:flex;flex-direction:column;gap:12px;border:1px solid var(--border);border-radius:10px;padding:18px;font-size:var(--ui-text-12)}.story-project>small{color:var(--muted)}.story-project>strong{overflow-wrap:anywhere}@media(max-width:700px){.story-header-actions{justify-content:flex-start}.story-block{padding:12px}.story-main-actions{width:100%}}
+  .stories-content{display:flex;flex-direction:column;gap:18px;min-width:0}.story-header-actions,.story-main-actions,.story-history-actions,.story-add-actions,.story-file-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.story-header-actions{justify-content:flex-end}.story-label{font-size:var(--ui-text-12);color:var(--muted)}.story-title{font-size:var(--ui-text-20)!important;font-weight:600}.story-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.story-section-heading h2{font-size:var(--ui-text-14);font-weight:600}.story-scenes{display:flex;flex-wrap:wrap;gap:8px}.story-scene-tab{display:flex;gap:8px;align-items:center;max-width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;color:var(--muted);background:var(--surface);font-size:var(--ui-text-12);text-align:left;overflow-wrap:anywhere}.story-scene-tab.selected{border-color:var(--foreground);color:var(--foreground);background:var(--surface-hover)}.story-scene-tab>span,.story-scene-tab>small{font-size:var(--ui-text-10);color:var(--muted)}.story-scene-heading{display:flex;align-items:center;gap:4px}.story-scene-heading>input{flex:1;min-width:0}.story-blocks{display:flex;flex-direction:column;gap:16px}.story-block{display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.story-block>header{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:var(--ui-text-12)}.story-block>header>div{display:flex;gap:2px}.story-script{resize:vertical;min-height:100px;line-height:1.8}.story-block-settings{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}.story-block-settings label{display:flex;flex-direction:column;gap:7px;font-size:var(--ui-text-11);color:var(--muted)}.story-block-settings input{width:126px;max-width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;background:var(--input);color:var(--foreground);font:inherit}.story-plan,.story-log{font-size:var(--ui-text-12);line-height:1.8;padding:14px 0;border-top:1px solid var(--border)}summary{cursor:pointer;font-size:var(--ui-text-12)}.story-plan p,.story-log p{margin:8px 0;overflow-wrap:anywhere}.story-status{display:flex;align-items:center;gap:8px;font-size:var(--ui-text-12)}.story-progress{display:flex;flex-direction:column;gap:9px;font-size:var(--ui-text-12);color:var(--muted)}.story-progress progress{width:100%;height:6px;accent-color:var(--foreground)}.story-error{font-size:var(--ui-text-12);line-height:1.8;color:var(--danger);overflow-wrap:anywhere}.story-result,.story-audio{display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid var(--border);border-radius:10px;font-size:var(--ui-text-12)}.story-result>span{color:var(--muted);overflow-wrap:anywhere}.story-result>div{display:flex;flex-wrap:wrap;gap:8px}.story-audio strong{overflow-wrap:anywhere}.story-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:var(--ui-text-12)}.story-advanced{display:flex;flex-direction:column;gap:18px;padding-top:18px}.story-project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.story-project{display:flex;flex-direction:column;gap:12px;border:1px solid var(--border);border-radius:10px;padding:18px;font-size:var(--ui-text-12)}.story-project>small{color:var(--muted)}.story-project>strong{overflow-wrap:anywhere}@media(max-width:700px){.story-header-actions{justify-content:flex-start}.story-block{padding:12px}.story-main-actions{width:100%}}
 </style>

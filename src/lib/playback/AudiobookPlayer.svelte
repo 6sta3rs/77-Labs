@@ -8,6 +8,7 @@
   import { request } from '../platform/api'
   import { durationLabel } from '../data'
   import { AudiobookPlayback, emptyBookPlayback, type BookAudioChunk } from './audiobook-playback'
+  import { readingAt } from './read-along'
 
   let audio: HTMLAudioElement
   let playback: AudiobookPlayback | undefined
@@ -16,15 +17,7 @@
   let complete = false
   // Text and length of each appended portion, indexed by sequence, for the read-along window.
   let portions = $state<{ text: string; duration: number }[]>([])
-  const reading = $derived.by(() => {
-    const index = book.current - 1, portion = portions[index]
-    if (!portion?.text) return undefined
-    const words = portion.text.split(/\s+/).filter(Boolean)
-    const start = portions.slice(0, index).reduce((sum, item) => sum + item.duration, 0)
-    // ponytail: word position is estimated from elapsed time; exact word timing needs forced alignment.
-    const word = Math.min(words.length - 1, Math.floor(Math.max(0, book.time - start) / portion.duration * words.length))
-    return { words, word }
-  })
+  const reading = $derived(readingAt(portions, book.current, book.time))
   onMount(() => {
     playback = new AudiobookPlayback(audio, async (path, signal) => {
       const response = await request(path, { signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]) })

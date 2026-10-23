@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { userMessage } from '../../platform/user-message';
   // "Słownik wymowy": entries live in the engine's private database (/pronunciation).
   import { onDestroy, untrack } from 'svelte';
   import { Pencil, Trash2, Download, Plus, Check, Search } from '@lucide/svelte';
@@ -44,7 +45,7 @@
     if (!ready || busy || disposed) return;
     const abort = new AbortController(); controller = abort; busy = true;
     try { await action(abort.signal); }
-    catch (cause) { if (!disposed && !abort.signal.aborted) toast.bad(cause instanceof Error ? cause.message : String(cause)); }
+    catch (cause) { if (!disposed && !abort.signal.aborted) toast.bad(userMessage(cause, 'Operacja na słowniku nie powiodła się.')); }
     finally { if (!disposed) busy = false; }
   }
   const reload = async (signal: AbortSignal) => { entries = await productionJson<Entry[]>('/pronunciation', { signal }); loaded = true; };

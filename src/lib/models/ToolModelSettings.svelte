@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { userMessage } from '../platform/user-message';
   import { uiLanguage, createUiTranslator } from "../i18n"
   const tr = $derived(createUiTranslator($uiLanguage))
 
@@ -28,7 +29,7 @@
     try {
       await engineCatalog(controller.signal)
     } catch (cause) {
-      if (!disposed && current === revision && !(cause instanceof Error && cause.name === 'AbortError')) error = cause instanceof Error ? cause.message : String(cause)
+      if (!disposed && current === revision && !(cause instanceof Error && cause.name === 'AbortError')) error = userMessage(cause, 'Nie udało się odczytać modeli.')
     } finally { if (!disposed && current === revision) busy = false }
   }
   async function choose(id: string) {

@@ -1,10 +1,14 @@
 <script lang="ts">
+  import Input from '../../ui/Input.svelte'
   import { uiLanguage, createUiTranslator } from "../../i18n"
+  import { confirmDialog } from "../../ui/confirm"
   const tr = $derived(createUiTranslator($uiLanguage))
 
   import '../../ui/document-editor.css'
-  import Button from '../../ui/Button.svelte';
+  import Button from '../../ui/Button.svelte'
+  import FilePicker from '../../ui/FilePicker.svelte';
   import AudioPreview from '../../playback/AudioPreview.svelte';
+  import VideoCard from '../../ui/VideoCard.svelte';
   import { onDestroy } from 'svelte'
   import { Sparkles, Undo2, BookOpen, Clapperboard, Download, FileText, LoaderCircle, RefreshCw, Save, Upload, Plus, Library, RotateCcw } from '@lucide/svelte'
   import { profiles, request, type Profile } from '../../platform/api'
@@ -258,8 +262,7 @@
     finally { cleaning = false }
   }
   function changedText(next: string) { text = next; plan = undefined; done = false; output = ''; total = 0; completed = 0; log = []; message = ''; error = ''; bookPlayer?.reset() }
-  async function importText(event: Event) {
-    const imported = (event.target as HTMLInputElement).files?.[0]
+  async function importText(imported?: File) {
     if (!imported) return
     if (imported.size > 8 * 1024 * 1024) { error = 'Wybierz plik tekstowy mniejszy niż 8 MB.'; return }
     const form = new FormData(); form.append('file', imported)
@@ -273,12 +276,12 @@
     sourceLanguage = 'auto'; quality = currentGeneralPreferences().translationQuality; timing = 'strict_slot'; speed = 1
     translated = false; done = false
   }
-  function newBook() {
-    if (busy || bookDrain || (text.trim() && !confirm('Otworzyć pusty projekt? Niezapisany tekst i ustawienia zostaną zastąpione.'))) return
+  async function newBook() {
+    if (busy || bookDrain || (text.trim() && !(await confirmDialog({ message: tr('Otworzyć pusty projekt? Niezapisany tekst i ustawienia zostaną zastąpione.'), confirmLabel: tr('Otwórz') })))) return
     title = ''; changedText(''); projectId = ''; voice = ''; language = 'pl'; resetSettings(); bookView = 'editor'; tab = 'settings'; message = ''; error = ''; log = []; total = 0
   }
   async function openProject(id: string) {
-    if (!id || busy || (text.trim() && !confirm('Otworzyć zapisany projekt? Bieżące niezapisane zmiany zostaną zastąpione.'))) return
+    if (!id || busy || (text.trim() && !(await confirmDialog({ message: tr('Otworzyć zapisany projekt? Bieżące niezapisane zmiany zostaną zastąpione.'), confirmLabel: tr('Otwórz') })))) return
     await work(async signal => {
       const project = await productionJson<ProductionProject>(`/projects/${encodeURIComponent(id)}`, { signal })
       if (project.state?.kind !== 'audiobooks') throw new Error('To projekt innego rodzaju. Wybierz zapisany audiobook.')
@@ -317,6 +320,7 @@
       message = `Próbka rozdziału gotowa · ${result.duration_s.toFixed(1)} s${result.cached ? ' · użyto zapisanego audio' : ''}`
     })
   }
+  let dubPicker = $state<{ open: () => void }>()
   function selectFile(next?: File) {
     if (busy || !next) return
     if (!/\.(mp4|mkv|mov|webm|avi|wav|mp3|m4a|ogg|flac|aac)$/i.test(next.name) && !/^(audio|video)\//.test(next.type)) { error = 'Wybierz obsługiwany plik audio lub wideo.'; return }
@@ -367,7 +371,7 @@
         const status = await productionJson<{ pairs: Array<{ installed: boolean }> }>('/engines/translation/argos/packs/status', postJson(packs, signal))
         signal.throwIfAborted()
         if (status.pairs.some(pair => !pair.installed)) {
-          if (!confirm('Tłumaczenie lokalne (Argos) wymaga pakietu językowego dla tej pary języków. Pobrać go teraz z internetu? Zwykle to kilkadziesiąt MB, pobiera się jednorazowo.')) throw new Error('Tłumaczenie wymaga pakietu językowego Argos. Pobierz go albo wybierz inny silnik tłumaczenia w ustawieniach.')
+          if (!(await confirmDialog({ message: tr('Tłumaczenie lokalne (Argos) wymaga pakietu językowego dla tej pary języków. Pobrać go teraz z internetu? Zwykle to kilkadziesiąt MB, pobiera się jednorazowo.'), confirmLabel: tr('Pobierz') }))) throw new Error('Tłumaczenie wymaga pakietu językowego Argos. Pobierz go albo wybierz inny silnik tłumaczenia w ustawieniach.')
           message = 'Pobieranie pakietu językowego Argos…'
           const installed = await productionJson<{ pairs: Array<{ installed: boolean }> }>('/engines/translation/argos/packs/install', postJson(packs, signal))
           signal.throwIfAborted()
@@ -398,11 +402,10 @@
       if (done && !error) { finishedDub = { id, language: lang }; await refresh(signal) }
     })
   }
-  async function importSubtitles(event: Event) {
-    const input = event.currentTarget as HTMLInputElement, uploaded = input.files?.[0]; input.value = ''
+  async function importSubtitles(uploaded?: File) {
     if (!uploaded) return
     if (uploaded.size > 8 * 1024 * 1024) { error = 'Wybierz plik napisów mniejszy niż 8 MB.'; return }
-    if (segments.length && !confirm('Zastąpić bieżące segmenty napisami z pliku?')) return
+    if (segments.length && !(await confirmDialog({ message: tr('Zastąpić bieżące segmenty napisami z pliku?'), confirmLabel: tr('Zastąp') }))) return
     await work(async signal => {
       const form = new FormData(); form.append('file', uploaded)
       const result = await productionJson<{ segments: DubSegment[]; skipped_cues?: number; dropped_overlaps?: number; clamped_cues?: number }>(`/dub/import-srt/${encodeURIComponent(jobId)}`, { method: 'POST', body: form, signal })
@@ -438,21 +441,21 @@
         {#if !filteredBooks.length}<p class="tool-workspace-empty">{libraryQuery ? tr("Brak nagrań pasujących do wyszukiwania.") : tr("Gotowe nagrania będą dostępne po zakończeniu generowania.")}</p>{/if}
       {:else if isBook}
         <div class="production-field"><label for={`${uid}-title`}>{tr("Tytuł audiobooka")}</label><input class="text-input book-title" id={`${uid}-title`} bind:value={title} placeholder={tr("Książka bez tytułu")} disabled={busy}/></div>
-        <div class="manuscript-header"><label for={`${uid}-text`}>{tr("Tekst książki")}</label>{#if textBeforeClean !== undefined}<Button variant="ghost" disabled={busy || cleaning} onclick={() => { const previous = textBeforeClean!; changedText(previous); textBeforeClean = undefined; message = tr('Przywrócono tekst sprzed porządkowania.') }}><Undo2 size={14}/>{tr("Cofnij porządkowanie")}</Button>{/if}<Button variant="ghost" disabled={busy || cleaning || !text.trim()} title={tr("Usuwa numery stron, nagłówki, przypisy i przeniesienia słów z PDF. AI może tylko usuwać — nie zmienia słów.")} onclick={cleanWithAI}>{#if cleaning}<LoaderCircle size={14} class="spin"/>{:else}<Sparkles size={14}/>{/if}{tr("Uporządkuj tekst AI")}</Button><Button variant="ghost" as="label" disabled={locked}><Upload size={14}/>{tr("Importuj plik")}<input aria-label={tr("Importuj książkę")} type="file" accept=".txt,.md,.epub,.pdf" onchange={importText} disabled={locked}/></Button></div>
+        <div class="manuscript-header"><label for={`${uid}-text`}>{tr("Tekst książki")}</label>{#if textBeforeClean !== undefined}<Button variant="ghost" disabled={busy || cleaning} onclick={() => { const previous = textBeforeClean!; changedText(previous); textBeforeClean = undefined; message = tr('Przywrócono tekst sprzed porządkowania.') }}><Undo2 size={14}/>{tr("Cofnij porządkowanie")}</Button>{/if}<Button variant="ghost" disabled={busy || cleaning || !text.trim()} title={tr("Usuwa numery stron, nagłówki, przypisy i przeniesienia słów z PDF. AI może tylko usuwać — nie zmienia słów.")} onclick={cleanWithAI}>{#if cleaning}<LoaderCircle size={14} class="spin"/>{:else}<Sparkles size={14}/>{/if}{tr("Uporządkuj tekst AI")}</Button><FilePicker variant="ghost" label={tr("Importuj plik")} ariaLabel={tr("Importuj książkę")} accept=".txt,.md,.epub,.pdf" showName={false} disabled={locked} onchange={files => void importText(files[0])}/></div>
         <textarea class="book-manuscript vs-document-editor" id={`${uid}-text`} value={text} oninput={e => { changedText(e.currentTarget.value); textBeforeClean = undefined }} placeholder={tr("# Rozdział 1\n\nWklej tekst swojej książki. Nagłówki # wyznaczają rozdziały.")} disabled={busy || cleaning}></textarea>
         {#if plan}<div class="production-section-heading"><h2>{tr("Rozdziały")}</h2><span>{plan.chapter_count} · {plan.char_count.toLocaleString(tr.locale)} {tr("znaków")}</span></div><ol class="chapter-list">{#each plan.chapters as chapter, index}<li><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{chapter.title}</strong><small>{chapter.char_count.toLocaleString(tr.locale)} {tr("znaków")}</small></div><Button variant="outline" disabled={locked || !voice} onclick={() => previewChapter(index)}>{tr("Próbka rozdziału")}</Button></li>{/each}</ol>{:else}<p class="tool-workspace-note">{tr("Sprawdź podział przed generowaniem. Nagłówki oznaczone # rozpoczną nowe rozdziały.")}</p>{/if}
       {:else}
         <ol class="dub-stages" aria-label={tr("Etapy dubbingu")}>{#each ['Materiał', 'Transkrypcja', 'Tłumaczenie', 'Nagranie'] as name, index}<li class:complete={stage > index} class:current={stage === index}><span>{index + 1}</span>{name}</li>{/each}</ol>
         <div class="filter-tabs"><button class:chosen={sourceMode === 'file'} disabled={busy} onclick={() => { sourceMode = 'file'; prepared = false }}>{tr("Plik z dysku")}</button><button class:chosen={sourceMode === 'url'} disabled={busy} onclick={() => { sourceMode = 'url'; prepared = false }}>{tr("Adres materiału")}</button></div>
         {#if sourceMode === 'url'}<label class="production-field">{tr("Adres filmu")}<input class="text-input" aria-label={tr("Adres materiału do dubbingu")} type="url" bind:value={ingestUrl} placeholder={tr("https://…")} disabled={busy}/></label><p class="tool-workspace-note">{tr("Pobranie przez lokalny yt-dlp nastąpi po kliknięciu „Przygotuj materiał”.")}</p>{:else}
-        <label class="production-drop" class:has-file={!!file} ondragover={e => e.preventDefault()} ondrop={e => { e.preventDefault(); selectFile(e.dataTransfer?.files[0]) }}><Upload size={26}/><strong>{file?.name || tr("Przeciągnij plik lub wybierz z dysku")}</strong><span>{file ? tr("{arg0} MB · kliknij, aby zmienić", { arg0: String((file.size / 1024 / 1024).toFixed(1)) }) : tr("Wideo lub audio · MP4, MKV, MOV, WAV, MP3 i inne")}</span><input aria-label={tr("Materiał do dubbingu")} type="file" accept="video/*,audio/*,.mp4,.mkv,.mov,.webm,.wav,.mp3,.m4a,.flac" disabled={busy} onchange={e => { selectFile(e.currentTarget.files?.[0]); e.currentTarget.value = '' }}/></label>
+        <button type="button" class="production-drop" class:has-file={!!file} disabled={busy} onclick={() => dubPicker?.open()} ondragover={e => e.preventDefault()} ondrop={e => { e.preventDefault(); selectFile(e.dataTransfer?.files[0]) }}><Upload size={26}/><strong>{file?.name || tr("Przeciągnij plik lub wybierz z dysku")}</strong><span>{file ? tr("{arg0} MB · kliknij, aby zmienić", { arg0: String((file.size / 1024 / 1024).toFixed(1)) }) : tr("Wideo lub audio · MP4, MKV, MOV, WAV, MP3 i inne")}</span></button><FilePicker bind:this={dubPicker} bare accept="video/*,audio/*,.mp4,.mkv,.mov,.webm,.wav,.mp3,.m4a,.flac" disabled={busy} onchange={files => selectFile(files[0])}/>
         {/if}
-        {#if sourceUrl}<div class="production-source">{#if sourceVideo}<video controls src={sourceUrl} preload="metadata"><track kind="captions"/></video>{:else}<AudioPreview src={sourceUrl} title={tr("Materiał źródłowy")}/>{/if}<p class="tool-workspace-note">{tr("Materiał źródłowy")}</p></div>{/if}
+        {#if sourceUrl}<div class="production-source">{#if sourceVideo}<VideoCard src={sourceUrl} title="Materiał źródłowy"/>{:else}<AudioPreview src={sourceUrl} title={tr("Materiał źródłowy")}/>{/if}<p class="tool-workspace-note">{tr("Materiał źródłowy")}</p></div>{/if}
         {#if segments.length}
           <div class="production-section-heading"><h2>{translated ? tr("Tekst dubbingu") : 'Rozpoznana mowa'}</h2><span>{segments.length} {tr("segmentów")}</span></div>
           <div class="dub-segments">{#each segments as segment, index}<article class="dub-segment">
             <header><span>{String(index + 1).padStart(2, '0')} · {segment.start.toFixed(1)}–{segment.end.toFixed(1)} {tr("s")}</span><Select ariaLabel={tr("Głos segmentu {arg0}", { arg0: String(index + 1) })} value={segment.profile_id || ''} options={[{ value: '', label: tr("Głos całego materiału") }, ...voices.map(row => ({ value: row.id, label: row.name }))]} disabled={locked} onchange={value => updateSegment(index, { profile_id: value })}/></header>
-            <div class="segment-timing"><label>{tr("Początek (s)")}<input class="text-input" aria-label={tr("Początek segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0" step="0.01" value={segment.start} disabled={busy} onchange={e => updateSegment(index, { start: e.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec (s)")}<input class="text-input" aria-label={tr(String(`Koniec segmentu ${index + 1}`))} type="number" min="0" step="0.01" value={segment.end} disabled={busy} onchange={e => updateSegment(index, { end: e.currentTarget.valueAsNumber })}/></label><label>{tr("Szybkość")}<input class="text-input" aria-label={tr("Szybkość segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0.5" max="2" step="0.05" value={segment.speed ?? speed} disabled={busy} onchange={e => updateSegment(index, { speed: e.currentTarget.valueAsNumber })}/></label></div>
+            <div class="segment-timing"><label>{tr("Początek (s)")}<Input aria-label={tr("Początek segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0" step="0.01" value={segment.start} disabled={busy} onchange={e => updateSegment(index, { start: e.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec (s)")}<Input aria-label={tr(String(`Koniec segmentu ${index + 1}`))} type="number" min="0" step="0.01" value={segment.end} disabled={busy} onchange={e => updateSegment(index, { end: e.currentTarget.valueAsNumber })}/></label><label>{tr("Szybkość")}<Input aria-label={tr("Szybkość segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0.5" max="2" step="0.05" value={segment.speed ?? speed} disabled={busy} onchange={e => updateSegment(index, { speed: e.currentTarget.valueAsNumber })}/></label></div>
             {#if segment.text_original !== undefined}<p class="segment-original">{segment.text_original}</p>{/if}<textarea class="text-input" aria-label={tr("Tekst segmentu {arg0}", { arg0: String(index + 1) })} value={segment.text} disabled={busy} oninput={e => updateSegment(index, { text: e.currentTarget.value })}></textarea>
             <input class="text-input" aria-label={tr(String(`Instrukcja segmentu ${index + 1}`))} placeholder={tr("Opcjonalna instrukcja interpretacji głosu")} value={segment.direction || ''} disabled={busy} onchange={e => updateSegment(index, { direction: e.currentTarget.value })}/>
           </article>{/each}</div>
@@ -462,7 +465,7 @@
       {#if isBook}<AudiobookPlayer bind:this={bookPlayer}/>{/if}
       {#if error}<p class="production-error" role="alert">{tr(String(error))}</p>{/if}
       {#if bookDrain}<div class="production-status" role="status">{#if drainChecking}<LoaderCircle size={16} class="spin"/>{/if}<span>{drainMessage}</span><Button variant="outline" disabled={!ready || drainChecking} onclick={waitForBookDrain}>{tr("Sprawdź zatrzymanie")}</Button></div>{:else if busy || message}<div class="production-status" role="status">{#if busy}<LoaderCircle size={16} class="spin"/>{/if}<span>{message ? tr(String(message)) : tr('Trwa przetwarzanie…')}</span>{#if busy}<Button variant="ghost" disabled={stopping} onclick={stopProduction}>{taskId || activeLongform ? tr('Zatrzymaj zadanie') : tr('Przestań czekać')}</Button>{/if}</div>{/if}
-      {#if mediaUrl}<div class="production-source">{#if mediaIsVideo}<video controls src={mediaUrl}><track kind="captions"/></video>{:else}<AudioPreview src={mediaUrl} title={tr("Odsłuch")}/>{/if}<Button variant="ghost" onclick={clearPreview}>{tr("Zamknij odsłuch")}</Button></div>{/if}
+      {#if mediaUrl}<div class="production-source">{#if mediaIsVideo}<VideoCard src={mediaUrl} title="Odsłuch"/>{:else}<AudioPreview src={mediaUrl} title={tr("Odsłuch")}/>{/if}<Button variant="ghost" onclick={clearPreview}>{tr("Zamknij odsłuch")}</Button></div>{/if}
       {#if total > 0}<progress max={total} value={progressValue} aria-label={tr("Postęp generowania")}></progress><p class="tool-workspace-note">{completed} / {total} {isBook ? tr('rozdziałów') : tr('segmentów')}{#if isBook && busy && startedAt} · {Math.round(progressValue / total * 100)}% · {tr('minęło')} {clock(elapsed)}{#if remaining !== undefined} · {tr('zostało ok.')} {clock(remaining)}{/if}{/if}</p>{/if}
       {#if output}<div class="production-result"><strong>{failedChapters ? tr('Audiobook jest niepełny') : tr('Audiobook gotowy')}</strong><div class="production-inline"><Button variant="outline" disabled={locked} onclick={() => previewOutput(`/audio/${encodeURIComponent(output)}`)}>{tr("Odsłuchaj")}</Button><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(output)}`, output)}><Download size={14}/>{tr("Pobierz audiobook")}</Button></div></div>{/if}
       {#if log.length}<details class="production-log"><summary>{tr("Dziennik etapów")}</summary>{#each log as line}<p>{line}</p>{/each}</details>{/if}
@@ -489,7 +492,7 @@
       <div class="production-switch"><span>{tr("Zachowaj tło materiału")}</span><Switch label={tr("Zachowaj tło materiału")} checked={preserveBackground} onchange={value => preserveBackground = value} disabled={locked}/></div>
       <div class="production-switch"><span>{tr("Wypal napisy w wideo")}</span><Switch label={tr("Wypal napisy w wideo")} checked={burnSubtitles} onchange={value => burnSubtitles = value} disabled={locked}/></div>
       {#if burnSubtitles}<div class="production-switch"><span>{tr("Napisy dwujęzyczne")}</span><Switch label={tr("Napisy dwujęzyczne")} checked={dualSubtitles} onchange={value => { dualSubtitles = value; if (value) karaokeSubtitles = false }} disabled={locked}/></div><div class="production-switch"><span>{tr("Podświetlanie słów")}</span><Switch label={tr("Podświetlanie słów")} checked={karaokeSubtitles} onchange={value => { karaokeSubtitles = value; if (value) dualSubtitles = false }} disabled={locked}/></div>{/if}
-      {#if prepared}<Button variant="outline" as="label" disabled={locked}><Upload size={14}/>{tr("Importuj SRT")}<input aria-label={tr("Importuj napisy do dubbingu")} type="file" accept=".srt" disabled={locked} onchange={importSubtitles}/></Button>{/if}
+      {#if prepared}<FilePicker label={tr("Importuj SRT")} ariaLabel={tr("Importuj napisy do dubbingu")} accept=".srt" showName={false} disabled={locked} onchange={files => void importSubtitles(files[0])}/>{/if}
       <div class="tool-workspace-section"><h2>{tr("Format wyjściowy")}</h2><p class="tool-workspace-note">{tr("Ścieżka głosu WAV. Eksport tekstu i napisów obejmuje aktualne segmenty.")}</p><div class="production-inline"><Button variant="outline" disabled={!segments.length || busy} onclick={() => saveTextFile(segments.map(row => row.text).join('\n'), 'dubbing.txt', 'text/plain;charset=utf-8')}>{tr("TXT")}</Button><Button variant="outline" disabled={!segments.length || busy} onclick={() => saveTextFile(subtitleText(segments, 'srt'), 'dubbing.srt', 'text/plain;charset=utf-8')}>{tr("SRT")}</Button></div></div>
     {/if}
     <Button variant="ghost" class=" production-reset" disabled={locked} onclick={resetSettings}><RotateCcw size={14}/>{tr("Resetuj ustawienia")}</Button>
