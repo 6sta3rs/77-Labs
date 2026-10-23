@@ -2,9 +2,15 @@
 
 User-visible changes per release, newest first. Each version has a heading `## <version> - <date>`; an optional line starting with `Update notes (Polish):` is the text the in-app updater shows (the interface is Polish), and when it is missing the whole section is used. Engineering detail, checks and limitations of every change are in [docs/progress.md](docs/progress.md).
 
-## Unreleased
+## 0.2.3 - 2026-10-23
 
-- Developer tooling and documentation only so far: Windows CI, release guards, a security and privacy description, English file names, `frontend/` and `desktop/` folders. Nothing here changes the installed application's behaviour except that product analytics are now guaranteed off (the consent switch is shown as unavailable).
+Update notes (Polish): Nowa ikona 77, liczby i odmiana zgodne z językiem interfejsu, analityka produktu zawsze wyłączona, poprawki tłumaczeń i dostępności.
+
+- New "77" application icon.
+- Numbers and plural forms follow the interface language.
+- Product analytics are guaranteed off (the consent switch is shown as unavailable).
+- Translation and accessibility fixes (sidebar search name, remaining Polish text in the English interface).
+- Developer tooling: Windows CI, release guards, a security and privacy description, English file names, `frontend/` and `desktop/` folders.
 
 ## 0.2.2 - 2026-10-23
 

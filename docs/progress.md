@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — release 0.2.3
+
+Version 0.2.3 in all five manifests and a `CHANGELOG.md` section (with Polish update notes) for the user-visible changes since 0.2.2: the "77" icon, number and plural formatting by interface language, analytics guaranteed off, translation and accessibility fixes. Checked before tagging: `npm run check` 0 errors, `npm run build`, `npm run test:ui` 76/76, `npm run test:structure` PASS, `cargo test --locked` 51 passed, 2 ignored. The installer is built and signed locally with `npm run desktop:release` because the GitHub `release` environment and its signing secrets are not set up yet (owner setup in `docs/publishing.md`); the tag push therefore also starts `release.yml`, whose build job cannot sign without those secrets.
+
 ## 23 October 2026 — CI: Playwright install no longer hangs (T-0103)
 
 The Ubuntu job's `npx playwright install --with-deps chromium` step ran for about 25 minutes without finishing: `--with-deps` calls `apt-get`, which waits on the runner's package mirrors. The step now installs only the browser (`npx playwright install chromium`; the `ubuntu-latest` image already carries Chromium's system libraries because it ships Chrome), has a 5-minute step timeout, and the job has a 30-minute timeout so a stall fails fast instead of running to the 6-hour default. Checked: YAML parses; `git diff --check` clean. Not yet confirmed: a green run on the runner; it takes a push.
