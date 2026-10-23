@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — CI: Playwright install no longer hangs (T-0103)
+
+The Ubuntu job's `npx playwright install --with-deps chromium` step ran for about 25 minutes without finishing: `--with-deps` calls `apt-get`, which waits on the runner's package mirrors. The step now installs only the browser (`npx playwright install chromium`; the `ubuntu-latest` image already carries Chromium's system libraries because it ships Chrome), has a 5-minute step timeout, and the job has a 30-minute timeout so a stall fails fast instead of running to the 6-hour default. Checked: YAML parses; `git diff --check` clean. Not yet confirmed: a green run on the runner; it takes a push.
+
 ## 23 October 2026 — what the Windows runner showed about the Python checks
 
 With readable output, the six failures of the first runner run have two causes. (1) Five checks (`test_acceptance_guards`, `test_bootstrap`, `test_engine_bundle`, `test_native_publication`, `test_runtime_backup`) compare paths that the checks build from the temp folder: on the runner the temp folder is `C:\Users\RUNNER~1\...` (an 8.3 short name) while resolving gives `runneradmin`, so identity checks reject or mismatch. The CI step now sets `TEMP` and `TMP` to a long folder, `C:\ci-tmp`, for the runner only. (2) `test_audiobook_streaming` needs a real ffmpeg for 2 of 5 tests and the runner has none; it moved from the `ci` group to `skipped` ("needs-ffmpeg"), so the CI group is 27 files. `numbers.md` and `tests/runtime/README.md` follow. Not yet confirmed: that the temp-folder change turns the other five green on the runner; it takes another push to see.
