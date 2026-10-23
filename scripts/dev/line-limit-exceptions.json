@@ -1,0 +1,17 @@
+{
+  "scripts/runtime/app/engine_catalogue_metadata.py": { "max": 2000, "reason": "Large legacy backend module; splitting needs its own change with behaviour tests." },
+  "src-tauri/src/runtime.rs": { "max": 1450, "reason": "Supervisor; split planned (see docs/architecture/struktura-projektu.md)." },
+  "src/lib/i18n/en-studio.ts": { "max": 1150, "reason": "Translation table (data), not logic." },
+  "src/lib/i18n/en-additions.ts": { "max": 1100, "reason": "Translation table (data), not logic." },
+  "src/lib/i18n/en-tools.ts": { "max": 1100, "reason": "Translation table (data), not logic." },
+  "src/lib/settings/pages/EnginePage.svelte": { "max": 1000, "reason": "Large settings page; split into sections later." },
+  "src/lib/themes/t3-palettes.ts": { "max": 950, "reason": "Colour palette table (data), not logic." },
+  "src-tauri/src/dictation_desktop.rs": { "max": 900, "reason": "Windows dictation integration; split needs a native test pass." },
+  "scripts/runtime/app/model_management.py": { "max": 850, "reason": "Large legacy backend module; split needs behaviour tests." },
+  "src/lib/settings/pages/AiPage.svelte": { "max": 800, "reason": "Large settings page; split into sections later." },
+  "scripts/runtime/install/engine_installation.py": { "max": 800, "reason": "Large legacy backend module; split needs behaviour tests." },
+  "tests/runtime/test_engine_catalogue_metadata.py": { "max": 800, "reason": "Test module mirroring the large catalogue module." },
+  "tests/acceptance/dictation_desktop_acceptance.py": { "max": 750, "reason": "Long end-to-end acceptance scenario." },
+  "src-tauri/src/installer.rs": { "max": 700, "reason": "Installer; split together with runtime.rs." },
+  "scripts/runtime/app/activity.py": { "max": 650, "reason": "Busy/idle evidence for the Rust supervisor; close to the limit." }
+}

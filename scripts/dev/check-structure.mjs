@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const read = path => readFileSync(resolve(root, path), 'utf8');
@@ -46,6 +47,20 @@ for (const file of [...files(resolve(root, 'docs')).filter(path => path.endsWith
     links++;
   }
 }
+// Limit długości plików kodu: nowe pliki ponad limit nie przechodzą, a istniejące wyjątki (z powodem) nie mogą rosnąć.
+const lineLimit = Number(process.env.LINE_LIMIT) || 600;
+const exceptions = JSON.parse(read('scripts/dev/line-limit-exceptions.json'));
+let oversized = 0;
+const sourceFiles = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => /\.(svelte|ts|mjs|js|py|rs|css)$/.test(file) && existsSync(resolve(root, file)));
+for (const file of sourceFiles) {
+  const lines = read(file).split('\n').length - 1;
+  const exception = exceptions[file];
+  if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w scripts/dev/line-limit-exceptions.json.`);
+  else if (exception && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
+  else if (exception && lines <= lineLimit) failures.push(`${file}: ${lines} linii mieści się w limicie ${lineLimit}; usuń wyjątek.`);
+  if (exception) oversized++;
+}
+for (const file of Object.keys(exceptions)) check(sourceFiles.includes(file), `line-limit-exceptions.json: brak śledzonego pliku ${file}`);
 for (const failure of failures) console.error(failure);
 assert.equal(failures.length, 0, `Struktura projektu: ${failures.length} błędów`);
-console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm i ${links} odnośników dokumentacji.`);
+console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji i limit ${lineLimit} linii (${oversized} wyjątków).`);

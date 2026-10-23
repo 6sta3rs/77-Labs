@@ -83,6 +83,10 @@ sources. It does not install libraries, download models, or run inference.
    runtime. Local path adapters are not an extra dependency of the installed app.
 6. Do not change Tauri identifiers, data keys, an existing VoiceStudio
    installation, or shared weights and libraries while tidying code.
+7. Keep source files under 600 lines. `npm run test:structure` enforces it;
+   a file that legitimately needs more (a translation or colour table) is
+   listed with a reason in `scripts/dev/line-limit-exceptions.json`, and a
+   listed file may not grow past its `max`.
 
 ## Scope of this reorganization
 

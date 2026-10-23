@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — 600-line limit for source files
+
+User request: stop source files from growing unnoticed; 600 lines as the limit, with exceptions for files that legitimately hold a lot (translation and colour tables).
+
+Change: `scripts/dev/check-structure.mjs` (`npm run test:structure`) now counts lines in every tracked `.svelte`, `.ts`, `.mjs`, `.js`, `.py`, `.rs` and `.css` file. A file over 600 lines fails unless it is listed in `scripts/dev/line-limit-exceptions.json` (each entry has a `max` and a `reason`); a listed file fails when it grows past its `max`, and an entry fails when the file fits the limit again, so the list cannot go stale. 15 files are listed today (3 translation tables, 1 colour table, the rest legacy modules and long scenarios). `LINE_LIMIT=<n>` overrides the limit for experiments.
+
+Checks: `npm run test:structure` PASS (limit 600, 15 exceptions); `LINE_LIMIT=300` fails with 33 oversized files that are not listed; `LINE_LIMIT=700` flags two exceptions (`installer.rs`, `activity.py`) as no longer needed. Not verified: CI (`test:structure` is not part of `test:ui` or the workflow, so the limit is enforced only when someone runs it).
+
+Limitations: counts physical lines, not complexity; only git-tracked files are checked, so a new untracked file is seen after `git add`. `max` values were set from the working tree on 23 October 2026, and a few listed files (`EnginePage.svelte`, `runtime.rs`) had uncommitted edits at the time.
+
 ## 23 October 2026 — filemap: file-tree scanner
 
 User request: the repository is hard to explore (local work piles up in ignored `.tmp/`, naming is mixed, nobody knows which tool does what), so a fast way to see the whole tree, including what git does not track, was needed.
