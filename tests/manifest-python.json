@@ -12,6 +12,7 @@
     "runtime/test_engine_catalogue_metadata.py",
     "runtime/test_engine_installation.py",
     "runtime/test_integration_settings.py",
+    "runtime/test_launcher_contract.py",
     "runtime/test_license_onboarding_fixture.py",
     "runtime/test_model_onboarding.py",
     "runtime/test_native_publication.py",

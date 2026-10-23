@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — launcher contract test without torch (T-0048)
+
+`launcher.py`'s ownership wrapper was a class buried inside `main()`; it is now the module function `owned_backend(app, token)` (same behaviour, called by `main()`), so it can be tested. New `tests/runtime/test_launcher_contract.py` (6 tests, Starlette `TestClient`, a stub app, `Activity` middleware from `activity.py`, nothing from the engine and no torch): every response, including a 404 and a POST, carries `x-voicestudio-next`; `/next/activity` answers 403 without or with a wrong marker and 200 with it; an empty token never authorises; a request is counted as active while it runs and released afterwards; an empty synthesis text gets a 422 from the middleware before reaching the engine; a missing model folder gets a readable 503. The test is in the CI manifest (28 of 28 pass in the `.venv` + `requirements-ci.txt` setup).
+
+Checks: the new test 6/6, the manifest runner 28/28, `test_engine_bundle.py` OK, `cargo check` (the launcher is embedded), `ruff check .`, `npm run check`/`build`/`test:ui`/`test:structure` exit 0. Not verified: the real engine app behind the wrapper (stub only), and the CI job on GitHub. Board: T-0029 done (5485461).
+
 ## 23 October 2026 — Python checks in CI: table, requirements, runner, ruff (T-0029)
 
 Measured first (CPython 3.12 on this Windows machine, a fresh virtual environment, logs in the ignored `.tmp/qa/T-0029/`): of the 27 `tests/runtime/test_*.py` modules, 22 pass with only `fastapi`, `httpx`, `cryptography`, `uvicorn`, `starlette`, `websockets`, `python-multipart`, `psutil`, `tqdm`, `numpy` and `soundfile` installed (the roadmap guessed 15; and unlike its assumption `numpy` and `soundfile` are needed by `test_tts_extensions`), `test_analytics_switch` adds one, and three of the five non-test `*_check.py` files in `tests/runtime/` plus `tests/frontend/test_audit_upstream.py` pass too. Not runnable without the engine or private runtime: `test_general_settings`, `test_system_settings` (also needs `--engine` and PyYAML), `test_tts_registry` (torch), `test_model_management` (13 of 14 tests pass; one needs the real runtime layout), `test_windows_runtime_paths` (private `.venv` with `mcp`); manual: `bootstrap_docopt_regression`, `license_onboarding_ui_check`, `speech_settings_backend_check`.

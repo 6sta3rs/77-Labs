@@ -2,7 +2,7 @@
 
 `tests/manifest-python.json` lists every Python file under `tests/runtime/` and `tests/frontend/` and says whether CI runs it. `python tools/dev/run_runtime_tests.py` runs the `ci` group (one process per file) and fails when a file is missing from the manifest, so a new test is never skipped by accident. CI installs `requirements-ci.txt` (no torch, no engine) in a virtual environment and runs the group on Windows, then `ruff check .` with the small rule set in `ruff.toml`.
 
-Measured on 23 October 2026 on Windows with CPython 3.12 (27 pass, one command, about 90 s). The CI image uses CPython 3.11 and was not run there yet. `tools/dev/test_runtime.py` runs every `tests/runtime/test_*.py` with the real private runtime and the extracted engine; use it before changing the engine adapters.
+Measured on 23 October 2026 on Windows with CPython 3.12 (28 pass, one command, about 90 s). The CI image uses CPython 3.11 and was not run there yet. `tools/dev/test_runtime.py` runs every `tests/runtime/test_*.py` with the real private runtime and the extracted engine; use it before changing the engine adapters.
 
 | File | Group | Why |
 | --- | --- | --- |
@@ -17,6 +17,7 @@ Measured on 23 October 2026 on Windows with CPython 3.12 (27 pass, one command, 
 | `tests/runtime/test_engine_catalogue_metadata.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
 | `tests/runtime/test_engine_installation.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
 | `tests/runtime/test_integration_settings.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
+| `tests/runtime/test_launcher_contract.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
 | `tests/runtime/test_license_onboarding_fixture.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
 | `tests/runtime/test_model_onboarding.py` | CI | passes on a Windows runner with `requirements-ci.txt` |
 | `tests/runtime/test_native_publication.py` | CI | passes on a Windows runner with `requirements-ci.txt` |

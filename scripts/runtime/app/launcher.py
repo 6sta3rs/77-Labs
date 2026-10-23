@@ -292,6 +292,18 @@ def import_profiles():
     print(f"Imported {count} voice profiles into private Next data directory", flush=True)
 
 
+def owned_backend(app, token):
+    """ASGI wrapper that stamps every HTTP response with the per-run ownership marker (a marker, not an access control)."""
+    class OwnedBackend:
+        async def __call__(self, scope, receive, send):
+            async def marked(message):
+                if message["type"] == "http.response.start":
+                    message.setdefault("headers", []).append((b"x-voicestudio-next", token.encode("ascii")))
+                await send(message)
+            await app(scope, receive, marked)
+    return OwnedBackend()
+
+
 def main():
     global DATA
     from storage_settings import apply_pending_data_relocation
@@ -354,15 +366,7 @@ def main():
     from remote_backend import ConnectionModeGuard
     connection_guard = ConnectionModeGuard(activity)
 
-    class OwnedBackend:
-        async def __call__(self, scope, receive, send):
-            async def marked(message):
-                if message["type"] == "http.response.start":
-                    message.setdefault("headers", []).append((b"x-voicestudio-next", token.encode("ascii")))
-                await send(message)
-            await connection_guard(scope, receive, marked)
-
-    uvicorn.run(OwnedBackend(), host="127.0.0.1", port=PORT, log_level="warning")
+    uvicorn.run(owned_backend(connection_guard, token), host="127.0.0.1", port=PORT, log_level="warning")
 
 
 if __name__ == "__main__":
