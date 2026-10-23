@@ -23,7 +23,7 @@
   <div class="examples-layout"><div>
     <ModelTrigger name={active.name} modelId={active.id} brand={active.brand} expanded={panel} active={panel} onclick={()=>panel=!panel}/>
     <p class="selection-copy">{tr("Wybrany:")} <strong>{active.name}</strong></p>
-    <ModelTrigger label={tr("Przeglądarka modeli")} name="Otwórz pełne okno" popup="dialog" expanded={dialog} onclick={()=>dialog=true}/>
+    <ModelTrigger label={tr("Przeglądarka modeli")} name={tr("Otwórz pełne okno")} popup="dialog" expanded={dialog} onclick={()=>dialog=true}/>
     <p class="hint">{tr("Sprawdź wyszukiwanie, filtry dostępności i języka, listę/karty oraz pozycje wyłączone.")}</p>
     <p role="status">{tr(notice)}</p>
   </div><div class="picker-example">{#if panel}<ModelPicker {models} selectedId={selected} onselect={choose} onclose={()=>panel=false}/>{:else}<div class="picker-placeholder">{tr("Kliknij nazwę modelu, aby otworzyć panel wyboru.")}</div>{/if}</div></div>

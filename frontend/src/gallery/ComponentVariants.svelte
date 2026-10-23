@@ -25,7 +25,13 @@
   let dialog = $state<{ kind: 'create' | 'edit' | 'duplicate' | 'import'; seed: ThemeDefinition }>()
   let formName = $state('Przykładowy projekt'), formLanguage = $state('pl'), formConsent = $state(true)
   let formResult = $state('Formularz nie został jeszcze wysłany.')
-  const languages = engineLanguageOptions()
+  // The labels are Polish names; in another interface language the CLDR names of that language replace them.
+  const languageNames = $derived(new Intl.DisplayNames(tr.locale, { type: 'language', fallback: 'none' }))
+  const languages = $derived(engineLanguageOptions().map(option => ({
+    ...option,
+    label: tr.language === 'pl' ? option.label : languageNames.of(option.value) ?? option.label,
+    group: tr.language === 'pl' ? option.group : option.group.replace(/^(\D+?)( \(\d+\))?$/, (_, name, count = '') => tr(name) + count),
+  })))
   const variants = ['default','secondary','outline','ghost','destructive'] as const
   const sizes = ['xs','compact','sm','default'] as const
   const inventory = [

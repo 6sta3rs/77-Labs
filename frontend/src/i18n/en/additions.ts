@@ -1067,4 +1067,10 @@ export const enAdditions: Record<string, string> = {
   "Upload / wyszukiwarka / modal / komunikat": "Upload / search / modal / message",
   "Wybrano w podglądzie: {name}.": "Selected in preview: {name}.",
   "Nie udało się zapisać wyglądu. Zmiana działa do zamknięcia aplikacji.": "Could not save the appearance. The change lasts until the app is closed.",
+  "Nie odczytano wybranego połączenia silnika. Operacja nie została przełączona na inny serwer.": "The selected engine connection could not be read. The operation was not switched to another server.",
+  "Nie odczytano wybranego połączenia silnika. Odśwież stan w ustawieniach zdalnego silnika.": "The selected engine connection could not be read. Refresh the state in the remote engine settings.",
+  "Róż": "Rose",
+  "Błękit": "Blue",
+  "Ogień": "Fire",
+  "Popularne": "Popular",
 }

@@ -16,7 +16,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0014 | Clean `.tmp` | blocked | Owner confirms the delete list first (about 28k files, mostly repo copies, `*-dist`, a 2 GB cargo target). Keep `qa/`, `release/` and the pinned checkouts. | filemap map |
 | T-0019 | Remove the local `refs/t3` | blocked | Owner: 273 local refs today (growing; the T3 tool recreates them), not four. Delete them (`git update-ref -d`), acceptance is zero refs matching `refs/t3/`. CI clones are already green. | `publication_check.py:236` |
 | T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audits/audit-2026-10-22.md`. | audit list |
-| T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audits/audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/progress.md` |
+| T-0022 | Check in the running app what was only checked in code | doing | Browser checks added in tests/e2e/english-and-ai.spec.mjs (A-09 migration, A-21, A-23, A-25, A-28 mechanism, A-06 button present). Still only code-checked: A-07, A-11 (needs a cold engine), A-13, A-18, A-22, the RAM switch of A-28. Evidence: .tmp/qa/T-0022/. | verification notes in `docs/progress.md` |
 | T-0023 | Pixel comparison of the "Wydajność i limity" report with the prototype (A-31) | open | Screenshots at 1280 and 900 px next to `.tmp/settings-redesign/real/ustawienia-prototyp.html` (needs T-0013 first, the prototype lives in the ignored `.tmp`). | known limitation of 0.2.2 |
 | T-0024 | Test the update from 0.2.1 to 0.2.2 | blocked | Partly verified against the real feed (reachable, asset identical to the local build, signature valid for the embedded key). The install step is blocked: this machine has a real installation of the same identifier; owner question and steps in `specs/T-0024-update-test.md`. Gate for T-0033. | `.tmp/qa/T-0024/` |
 | T-0026 | Right-to-left layout | blocked | Only when the first RTL language is added: the stylesheets use physical left/right properties; `dir: 'rtl'` is already set on the document. | `docs/features/i18n.md` |
@@ -67,7 +67,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0047 | Cold-start baseline and busy port | (next) |
 | T-0049 | Weekly EXE start check | (next) |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | (next) |
-| T-0025 | Locale-aware formatting and plurals for new languages | (next) |
+| T-0025 | Locale-aware formatting and plurals for new languages | 017107a |
 
 ## Rejected (do not propose again without new evidence)
 

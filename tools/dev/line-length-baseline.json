@@ -75,7 +75,7 @@
   "frontend/src/settings/pages/UpdatesPage.svelte": { "over200": 10, "over400": 2, "longest": 431 },
   "frontend/src/settings/settings-catalog.ts": { "over200": 1, "over400": 0, "longest": 203 },
   "frontend/src/settings/settings-page.css": { "over200": 3, "over400": 1, "longest": 625 },
-  "frontend/src/settings/SettingsShell.svelte": { "over200": 6, "over400": 3, "longest": 1599 },
+  "frontend/src/settings/SettingsShell.svelte": { "over200": 6, "over400": 3, "longest": 1598 },
   "frontend/src/settings/system-settings.ts": { "over200": 14, "over400": 3, "longest": 513 },
   "frontend/src/settings/ThemeDialog.svelte": { "over200": 9, "over400": 2, "longest": 3614 },
   "frontend/src/shell/Dashboard.svelte": { "over200": 7, "over400": 5, "longest": 3845 },

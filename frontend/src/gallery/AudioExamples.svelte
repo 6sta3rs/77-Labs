@@ -80,8 +80,8 @@
   onMount(() => {
     preparation = (async () => {
       try {
-        const speech = await makeRecording(await demoBlob(), 'example-speech', 'Sygnał demonstracyjny', 'sygnal-demo.wav', 'Sygnał testowy')
-        const tone = await makeRecording(testTone(), 'example-tone', tr('Ton testowy 440 Hz i cisza'), 'ton-testowy.wav', 'Sygnał testowy')
+        const speech = await makeRecording(await demoBlob(), 'example-speech', tr('Sygnał demonstracyjny'), 'sygnal-demo.wav', tr('Sygnał testowy'))
+        const tone = await makeRecording(testTone(), 'example-tone', tr('Ton testowy 440 Hz i cisza'), 'ton-testowy.wav', tr('Sygnał testowy'))
         if (!disposed) recordings = [speech, tone]
       } catch (cause) { if (!disposed) error = cause instanceof Error ? cause.message : 'Nie można przygotować przykładów audio.' }
       finally { if (!disposed) loading = false }

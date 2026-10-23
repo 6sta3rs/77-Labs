@@ -186,7 +186,7 @@
     const abort = new AbortController(); readinessController = abort
     void productionJson<{ ready: boolean; missing?: { message?: string } }>('/dictation/readiness?purpose=dictation', { signal: abort.signal }).then(result => {
       if (!disposed && !abort.signal.aborted) { fastReady = result.ready; readinessNotice = result.ready ? '' : 'Tryb szybki wymaga instalacji modelu dyktowania. Tryby dokładny i referencyjny korzystają z wybranego ASR.' }
-    }).catch(cause => { if (!disposed && !abort.signal.aborted) readinessNotice = `Nie sprawdzono modelu trybu szybkiego. ${cause instanceof Error ? cause.message : ''}` })
+    }).catch(cause => { if (!disposed && !abort.signal.aborted) readinessNotice = tr('Nie sprawdzono modelu trybu szybkiego. {arg0}', { arg0: tr(cause instanceof Error ? cause.message : '') }) })
     return () => abort.abort()
   })
   onDestroy(() => { flushSave(); disposed = true; micRevision++; controller?.abort(); readinessController?.abort(); if (recorder) { recorder.onstop = null; recorder.ondataavailable = null; recorder.onerror = null; if (recorder.state !== 'inactive') recorder.stop() }; stopTracks(); releaseSource() })
