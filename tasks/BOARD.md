@@ -19,7 +19,6 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audits/audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/progress.md` |
 | T-0023 | Pixel comparison of the "Wydajność i limity" report with the prototype (A-31) | open | Screenshots at 1280 and 900 px next to `.tmp/settings-redesign/real/ustawienia-prototyp.html` (needs T-0013 first, the prototype lives in the ignored `.tmp`). | known limitation of 0.2.2 |
 | T-0024 | Test the update from 0.2.1 to 0.2.2 | blocked | Partly verified against the real feed (reachable, asset identical to the local build, signature valid for the embedded key). The install step is blocked: this machine has a real installation of the same identifier; owner question and steps in `specs/T-0024-update-test.md`. Gate for T-0033. | `.tmp/qa/T-0024/` |
-| T-0025 | Locale-aware formatting and plurals for new languages | open | 32 fixed Polish locale uses outside `i18n/` (display formatting, `Intl.DisplayNames('pl')`, `'pl-PL'` defaults, `toLocaleLowerCase('pl')`); a test with an allow-list for `languages.ts` and `i18n/index.ts`; `Intl.PluralRules` plurals. Size M-L. See `docs/features/i18n.md`. | i18n audit |
 | T-0026 | Right-to-left layout | blocked | Only when the first RTL language is added: the stylesheets use physical left/right properties; `dir: 'rtl'` is already set on the document. | `docs/features/i18n.md` |
 | T-0027 | Load language catalogs on demand | blocked | Only when more than about five languages exist (about 0.4 MB of text each, imported statically in `languages.ts`). | `docs/features/i18n.md` |
 | T-0028 | Windows CI job (includes T-0010) | doing | Local gates pass (cargo check/test/clippy, test:ui, test:structure); the first green GitHub run is only possible after a push. Then T-0051 (owner) can make the jobs required. | council 23 Oct |
@@ -68,6 +67,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0047 | Cold-start baseline and busy port | (next) |
 | T-0049 | Weekly EXE start check | (next) |
 | T-0042 | Generated numbers, CHANGELOG, CONTRIBUTING | (next) |
+| T-0025 | Locale-aware formatting and plurals for new languages | (next) |
 
 ## Rejected (do not propose again without new evidence)
 

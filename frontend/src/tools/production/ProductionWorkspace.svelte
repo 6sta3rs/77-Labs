@@ -260,7 +260,7 @@
       }
       if (text !== original) throw new Error('Tekst zmienił się w trakcie porządkowania. Wynik AI odrzucono.')
       changedText(cleaned.map(part => part.trim()).filter(Boolean).join('\n\n')); textBeforeClean = original
-      message = `Uporządkowano tekst · usunięto ${(original.length - text.length).toLocaleString('pl-PL')} znaków. Sprawdź wynik przed generowaniem.`
+      message = `Uporządkowano tekst · usunięto ${(original.length - text.length).toLocaleString(tr.locale)} znaków. Sprawdź wynik przed generowaniem.`
     } catch (cause) { error = cause instanceof Error ? cause.message : 'Nie udało się uporządkować tekstu.'; message = '' }
     finally { cleaning = false }
   }

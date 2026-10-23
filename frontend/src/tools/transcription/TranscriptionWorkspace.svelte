@@ -201,7 +201,7 @@
         ondrop={event => { event.preventDefault(); dragging = false; choose(event.dataTransfer?.files[0]) }}>
         <span class="source-icon">{#if file}<FileAudio size={23}/>{:else}<Upload size={23}/>{/if}</span>
         <strong>{file?.name || tr("Kliknij, aby wybrać nagranie, lub przeciągnij je tutaj")}</strong>
-        <span>{file ? `${(file.size / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : tr("WAV, MP3, M4A, OGG lub FLAC · do 64 MB")}</span>
+        <span>{file ? `${(file.size / 1024 / 1024).toLocaleString(tr.locale, { maximumFractionDigits: 1 })} MB` : tr("WAV, MP3, M4A, OGG lub FLAC · do 64 MB")}</span>
       </button>
       <FilePicker bind:this={input} bare accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.opus,.webm" disabled={busy || capturing} onchange={files => choose(files[0])}/>
       <div class="microphone-row">

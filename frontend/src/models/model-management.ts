@@ -1,3 +1,4 @@
+import { currentLocale } from '../i18n'
 import { postJson, productionJson } from '../tools/production/production';
 import type { Model } from '../tools/studio-tools';
 
@@ -10,7 +11,7 @@ export const modelFamily = (role: string) => ({ tts: 'tts', asr: 'asr', llm: 'll
 export function byteLabel(bytes: number) {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
   const unit = Math.min(3, Math.floor(Math.log(bytes) / Math.log(1024)));
-  return `${(bytes / 1024 ** unit).toLocaleString('pl', { maximumFractionDigits: unit ? 1 : 0 })} ${['B', 'KB', 'MB', 'GB'][unit]}`;
+  return `${(bytes / 1024 ** unit).toLocaleString(currentLocale(), { maximumFractionDigits: unit ? 1 : 0 })} ${['B', 'KB', 'MB', 'GB'][unit]}`;
 }
 export function downloadPercent(job: ModelDownload) {
   return job.total_bytes && job.total_bytes > 0 ? Math.min(99, Math.max(0, Math.floor(job.downloaded_bytes / job.total_bytes * 100))) : undefined;

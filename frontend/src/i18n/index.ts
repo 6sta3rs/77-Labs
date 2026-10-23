@@ -104,6 +104,8 @@ export function createUiTranslator(value: UiLanguage): UiTranslator {
   return Object.assign(translate, { language: selected, locale: languageDef(selected)?.locale ?? 'pl-PL' })
 }
 export const getUiLanguage = () => language
+/** Locale (`Intl`) of the selected interface language, for formatting outside a component that has `tr.locale`. */
+export const currentLocale = () => languageDef(language)?.locale ?? 'pl-PL'
 export function translateUi(source: string, args?: UiArguments) { return createUiTranslator(language)(source, args) }
 export function getUiLanguageError() { return lastError ? translateUi(lastError) : '' }
 function updateDocument() {

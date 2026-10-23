@@ -1,4 +1,4 @@
-import { translateUi } from '../i18n';
+import { translateUi, currentLocale } from '../i18n';
 import { postJson, productionJson } from '../tools/production/production';
 
 export type RuntimeInstallState = 'starting' | 'installing' | 'verifying' | 'cancelling' | 'cancelled' | 'interrupted' | 'complete' | 'failed';
@@ -41,7 +41,7 @@ export function runtimeSize(bytes?: number | null) {
   if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return translateUi("nie podano");
   if (!bytes) return '0 B';
   const index = Math.min(3, Math.floor(Math.log(bytes) / Math.log(1024)));
-  return `${(bytes / 1024 ** index).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} ${['B', 'KiB', 'MiB', 'GiB'][index]}`;
+  return `${(bytes / 1024 ** index).toLocaleString(currentLocale(), { maximumFractionDigits: 1 })} ${['B', 'KiB', 'MiB', 'GiB'][index]}`;
 }
 /** Byte counts are independent of the number of phases; never fabricate %. */
 export function runtimeTransfer(job: EngineRuntimeJob) {
