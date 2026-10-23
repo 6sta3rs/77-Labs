@@ -32,7 +32,7 @@ Sources are split by application feature. When changing voices, start in
 | Environment installation | `scripts/runtime/install/` | `bootstrap.py`, `prepare.py` |
 | Pinned sources and provenance | `scripts/runtime/vendor/` | `engine.zip`, `engine-provenance.json` |
 | Engine archive rebuild | `scripts/build/` | `bundle.py` |
-| Developer tools | `scripts/dev/` | `check-structure.mjs`, `publication_check.py`, `test-runtime.py` |
+| Developer tools | `scripts/dev/` | `check-structure.mjs`, `publication_check.py`, `test-runtime.py`, `filemap/` (Rust file-tree scanner) |
 | Standalone previews | `scripts/preview/` | `inline-preview.mjs`, `capture_screenshots.py` |
 | CI | `.github/workflows/ci.yml` | Checks run on push and pull requests |
 

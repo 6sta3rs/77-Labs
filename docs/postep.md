@@ -1,5 +1,15 @@
 # Public project progress
 
+## 23 October 2026 — filemap: file-tree scanner
+
+User request: the repository is hard to explore (local work piles up in ignored `.tmp/`, naming is mixed, nobody knows which tool does what), so a fast way to see the whole tree, including what git does not track, was needed.
+
+Change: `scripts/dev/filemap/` is a std-only Rust tool (`cargo build --release --manifest-path scripts/dev/filemap/Cargo.toml`, then run the binary with the repo root). It walks the tree (skipping `node_modules`, `.git`, `target`, `dist`, caches), marks every file as tracked or local using `git ls-files`, and writes `.tmp/qa/filemap.tsv` (for agents), `.tmp/qa/filemap.html` (one coloured table per folder) and `.tmp/qa/filemap-tree.html` (collapsible tree, folders above files, `.tmp/<name>` summarised). `FILEMAP_SKIP=.tmp` leaves `.tmp` out of the HTML.
+
+Checks: built with `cargo build --release` (no dependencies); scanned about 35,200 files (35 thousand of them under `.tmp/`) in a few seconds; the tree and table were opened in a browser. Not verified: the tracked/local split against `git status`. Not run in CI and not covered by a test.
+
+Limitations: reads `git ls-files`, so renamed-but-uncommitted files show as local; output text is Polish.
+
 ## 23 October 2026 — version 0.2.1 build
 
 Bumped the version to 0.2.1 (package, lockfiles, `tauri.conf.json`, `Cargo.toml`, README) so installed copies see the UI batch above as an update. `npm run desktop:release` produced a signed `Seventy-Seven-Labs_0.2.1_x64-setup.exe` (24 MB), its `.sig` and `latest.json` in `.tmp/release/v0.2.1/`; `latest.json` reports 0.2.1.
