@@ -48,6 +48,10 @@ def environment_python(engine_id, root=ROOT):
     folder = environment_dir(engine_id, root)
     return folder / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
+def uses_legacy_kitten(engine_id, root=ROOT):
+    """KittenTTS without a private environment runs on the pinned engine's built-in backend."""
+    return engine_id == "kittentts" and not environment_python(engine_id, root).is_file()
+
 def validate_fish_configuration(data):
     url = urlsplit(str(data.get("url", "")))
     # Accept only an explicit loopback service; no arbitrary reference upload.
@@ -142,7 +146,7 @@ def register(root=ROOT):
             _DEFAULT_SAMPLE_RATE = spec["sample_rate"]
             @classmethod
             def configured_identity(cls):
-                if engine_id == "kittentts" and not environment_python(engine_id, root).is_file():
+                if uses_legacy_kitten(engine_id, root):
                     # Exact checkpoint expression of pinned 0.5.7's legacy
                     # KittenTTSBackend._ensure_loaded, including its env pin.
                     return os.environ.get("OMNIVOICE_KITTENTTS_MODEL", "KittenML/kitten-tts-mini-0.8")
@@ -156,7 +160,7 @@ def register(root=ROOT):
                 return self._configured_repo
             @classmethod
             def is_available(cls):
-                if engine_id == "kittentts" and not environment_python(engine_id, root).is_file():
+                if uses_legacy_kitten(engine_id, root):
                     return legacy_kitten.is_available()
                 state = engine_state(engine_id, root)
                 return state["available"], state["reason"]
@@ -184,7 +188,7 @@ def register(root=ROOT):
             def generate(self, text, **kw):
                 language = self._check_language(kw.get("language"))
                 kw["language"] = language
-                if engine_id == "kittentts" and not environment_python(engine_id, root).is_file():
+                if uses_legacy_kitten(engine_id, root):
                     if not hasattr(self, "_legacy"):
                         self._legacy = legacy_kitten()
                     return self._legacy.generate(text, **kw)
@@ -224,7 +228,7 @@ def register(root=ROOT):
             engine_id = row.get("id")
             if engine_id not in ENGINES:
                 continue
-            if engine_id == "kittentts" and not environment_python(engine_id, root).is_file():
+            if uses_legacy_kitten(engine_id, root):
                 row.update(description=ENGINES[engine_id]["description"], supported_language_names=["English"])
                 continue
             spec = ENGINES[engine_id]

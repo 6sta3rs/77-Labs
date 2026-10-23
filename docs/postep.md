@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — one helper for the legacy KittenTTS check (T-0006)
+
+The condition `engine_id == "kittentts" and not environment_python(...).is_file()` was repeated four times in `scripts/runtime/app/tts_extensions.py`; it is now `uses_legacy_kitten(engine_id, root)`.
+
+Checks: `tests/runtime/test_tts_extensions.py` 13 OK, `test:structure` PASS, `cargo check` PASS (embedded file). Not verified: KittenTTS synthesis (the pinned engine's legacy backend was not started).
+
 ## 23 October 2026 — one `no_links` implementation (T-0016)
 
 `watch_folder.rs` and `installer.rs` each had their own loop that rejects symlinks and Windows reparse points. Both now use `installer::no_links_with(path, reparse_message, symlink_message)`; `installer::no_links` and the watch-folder wrapper only supply their Polish messages. Behaviour decision: a missing entry is skipped (a path that does not exist yet cannot be a link; the installer and the log/pointer callers rely on that), any other read failure is an error (this is the stricter variant for the installer, which used to ignore every error; the watch folder used to fail on a missing ancestor and now fails later in `is_dir`).
