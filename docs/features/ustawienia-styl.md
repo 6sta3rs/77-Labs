@@ -13,6 +13,7 @@ Settings has 12 pages in 4 groups (`src/lib/settings/settings-catalog.ts`); each
 - Sections inside one `p-card` are separated by hairlines (`p-section`); header with a right-side action: `<header class="split">`.
 - Never `<details>`/collapsible sections. Hide things only when the state makes them irrelevant (e.g. engine stopped).
 - Tabs only when the page has 3+ independent areas that would not fit one screen: real markup `<div class="filter-tabs p-tabs" role="tablist"><button role="tab" aria-selected class:chosen>`; render only the active tab's content. Otherwise plain sections.
+- The Engine page has five tabs: Stan, Uruchamianie i pamięć, Obliczenia, Środowiska, Dzienniki i diagnostyka. App-side launch choices (autostart, model preload, idle time) live in „Uruchamianie i pamięć” and are usable while the engine is stopped; rows that need the engine are disabled or hidden there. A value that could not be read is named in a `p-notice warn` ("Nie odczytano: …") with a „Spróbuj ponownie” button instead of silently dropping its row.
 
 ## Setting row (`p-rows` > `p-row`)
 `<div class="p-row"><div class="t"><b>Tytuł</b><span>Jedna krótka linia opisu.</span></div> control </div>`
@@ -29,7 +30,7 @@ Control on the right: Select, Switch, ButtonGroup, Input, Button. Several contro
 - Stop / delete / reset: outline `Button` first; red `variant="destructive"` only for the confirming step, never `confirm()`: either a `p-confirm` block, or the button turns into "Potwierdź …" (destructive) for 4 s (see `arm()` in EnginePage).
 - Buttons that belong together sit directly next to each other (normal 8px gap) in `p-actions`. Status or feedback ("Zapisano", a result) is rendered AFTER the last button, only while visible (`{#if}`, never `visibility:hidden` / opacity 0, so it reserves no width), left-aligned after the group. In a setting row the right-aligned control keeps its edge and feedback goes to its left.
 - A disabled primary button is neutral outline-disabled (transparent, muted text; `settings-page.css`), never a dimmed blue fill.
-- Saved feedback: short green "Zapisano" next to the control, or a toast. Pending restart: `wait` badge.
+- Saved feedback: a short green "Zapisano" (`<span class="saved on">`, shown for ~2 s) next to the control that was clicked; a switch says only "Zapisano" (restart or side-effect info belongs in the row description, not in the message). Whole-form results ("Zapisano. Nowe połączenia użyją serwera proxy.") are toasts. Pending restart: `wait` badge.
 - Tokens only: `--surface --border --muted --foreground --accent --success --danger --ui-text-N`; amber is `--settings-warn` . No raw colours.
 
 ## Notifications
@@ -58,5 +59,7 @@ Use the real ones from `src/lib/ui`: Button (`variant` default|outline|ghost|sec
 
 ## Copy and data
 - UI text in Polish, sentence case ("Zapisz zmiany", not "Zapisz Zmiany"). One short line per setting description; say what it does or when to change it.
+- Description measure: `settings-page.css` limits section header text, row descriptions (`.p-row .t > span`) and `.p-sub` to `max-width:64ch`; `.p-notice` boxes keep the full width. Do not set widths on descriptions in page CSS.
+- A section header carries one line at most. Information about a single row (what a button does, a limit, a restart) goes into that row's description, not into a standalone `<p>` under the section header.
 - Real data only: every value comes from the engine, Tauri, or local settings. When the engine is stopped, show one notice for the page and hide what the state makes irrelevant; never show invented numbers.
 - Empty states: no box-in-box. One lead line in the card header, then the actions row (and starter tiles) straight in the card; no dashed inner container, no second heading.

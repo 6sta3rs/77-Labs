@@ -10,11 +10,13 @@ export type FinishedDub = { id: string; filename: string; tracks: string; langua
 export type ResumableBook = { job_id: string; type: string; title: string; status: string; total_chapters: number; chapters_done: number }
 export type BookRenderSettings = { bookFormat: string; bitrate: string; loudness: string; author: string; narrator: string; lineGap: number; paragraphGap: number; trimEdges: boolean; customSteps: boolean; steps: number; guidance: number }
 export type ProductionProject = { id: string; name: string; state?: { kind?: string; text?: string; voice?: string; language?: string; plan?: BookPlan; render?: BookRenderSettings } }
-export async function productionJson<T>(path: string, options?: RequestInit): Promise<T> {
+/** `timeoutMs` overrides the 15 s limit of status reads (slow engine probes such as the GPU report). */
+export async function productionJson<T>(path: string, init?: RequestInit & { timeoutMs?: number }): Promise<T> {
+  const { timeoutMs, ...options } = init ?? {}
   await prepareRequest(path, options?.signal ?? undefined, options?.method || 'GET')
   // Library/status reads must release the UI when the engine stops responding.
   // Rendering and other mutations retain their explicit cancellation lifetime.
-  const timeout = !options?.method || options.method.toUpperCase() === 'GET' ? AbortSignal.timeout(15_000) : undefined
+  const timeout = !options?.method || options.method.toUpperCase() === 'GET' ? AbortSignal.timeout(timeoutMs ?? 15_000) : undefined
   const signal = timeout ? options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout : options?.signal
   signal?.throwIfAborted()
   const response = await request(path, { ...options, signal })

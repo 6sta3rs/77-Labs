@@ -171,7 +171,7 @@
         onchange={value => layout = value === 'list' ? 'list' : 'cards'}/></div>
     </div>
   {/if}
-  {#if loadError || selectionError}<p class="model-picker-error" role="alert">{selectionError || loadError}</p>{/if}
+  {#if loadError || selectionError}<p class="model-picker-error" role="alert">{tr(selectionError || loadError)}</p>{/if}
   {#if loading || refreshing}<p class="model-picker-empty" role="status"><LoaderCircle size={18} class="spin"/>{tr("Wczytywanie katalogu modeli…")}</p>
   {:else}
     {#if full}<p class="model-picker-count" role="status">{tr("Wyniki:")} {visible.length} {tr("z")} {models.length}</p>{/if}
@@ -201,7 +201,7 @@
               {/if}
             </div>
             {#if openLanguages.includes(model.id)}<p id={`${reasonId(model,full)}-languages`} class="model-picker-language-expanded">{model.languages.join(' · ')}</p>{/if}
-            {#if !model.available || !model.installed}<p id={reasonId(model, full)} class="model-picker-reason">{model.reason || (model.installationKnown === false ? tr("Backend nie potwierdził gotowości tego silnika.") : model.installed ? tr("Silnik nie jest obecnie gotowy do użycia.") : 'Ten silnik nie jest zainstalowany.')}</p>{/if}
+            {#if !model.available || !model.installed}<p id={reasonId(model, full)} class="model-picker-reason">{model.reason ? tr(model.reason) : (model.installationKnown === false ? tr("Backend nie potwierdził gotowości tego silnika.") : model.installed ? tr("Silnik nie jest obecnie gotowy do użycia.") : tr('Ten silnik nie jest zainstalowany.'))}</p>{/if}
           </div>
           <footer class="model-picker-card-footer">
             <span class="model-picker-status">{modelStatus(model)}</span>

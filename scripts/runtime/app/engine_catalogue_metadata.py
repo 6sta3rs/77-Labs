@@ -1,6 +1,6 @@
 """Dependency-only engine inventory for the pinned VoiceStudio 0.5.7.
 
-The four ordinary catalogue GETs never run a backend availability method.
+The four ordinary catalogue GETs (and the GPU report, which lists the same engines) never run a backend availability method.
 Explicit selection, health and inference retain the original stock functions.
 Declarations below are generated from pinned AST, not executable imports.
 """
@@ -31,6 +31,9 @@ from types import ModuleType
 PINNED_ARCHIVE_SHA256 = "2b511d70698a79ff015e8b566f1879b00b55219089cd433d1d9220f56691aac6"
 PINNED_ADAPTER3_MAIN_SHA256 = "23a25f0311eb97c4d17826c684e6a5b873828203e60bbace6810d15d34c61aea"
 CATALOGUE_PATHS = frozenset({"/engines", "/engines/tts", "/engines/asr", "/engines/llm"})
+# The GPU report lists the same engines; its stock route imports every adapter cold to probe them.
+GPU_REPORT_PATH = "/api/settings/gpu-report"
+METADATA_PATHS = CATALOGUE_PATHS | {GPU_REPORT_PATH}
 _metadata_request = ContextVar("next_engine_catalogue_metadata_request", default=False)
 
 
@@ -114,7 +117,7 @@ class EngineCatalogueMetadataScope:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        enabled = scope.get("type") == "http" and scope.get("method") == "GET" and scope.get("path") in CATALOGUE_PATHS
+        enabled = scope.get("type") == "http" and scope.get("method") == "GET" and scope.get("path") in METADATA_PATHS
         token = _metadata_request.set(enabled)
         try:
             await self.app(scope, receive, send)
@@ -318,6 +321,18 @@ class MetadataCatalogue:
         if isinstance(label, str): selected["label"] = label
         return selected
 
+    def gpu_rows(self, family):
+        """Rows for the GPU report from declarations: routing is pure host arithmetic, availability stays unverified.
+
+        `available` means only "dependencies detected"; running the engine is still proven by an explicit selection.
+        """
+        from core.device_caps import detect_host_caps
+        from services.engine_routing import routing_fields
+        caps = detect_host_caps()
+        return [{**row, "available": row["availability_check"] == "dependencies_detected",
+                 **routing_fields(tuple(row.get("gpu_compat") or ("cpu",)), caps, float(row.get("min_vram_gb") or 0.0))}
+                for row in self.family_payload(family)["backends"]]
+
     def family_payload(self, family):
         if family not in self.rows:
             raise EngineMetadataContractError("Nieznana rodzina szybkiego katalogu.")
@@ -362,6 +377,14 @@ class MetadataCatalogue:
             key = os.environ.get("OMNIVOICE_MLX_AUDIO_MODEL") or prefs.get("mlx_audio_model_id") or declaration.get("DEFAULT_MODEL_KEY", "kokoro")
             model = declaration.get("CURATED_MODELS", {}).get(key, key)
             model_check = "configured_not_loaded"
+        if family == "asr":
+            # Only the model the ACTIVE backend would load: Faster-Whisper's CTranslate2 pick (ASR_MODEL_FASTER pin, else the
+            # prefs value) or WhisperX's own pin; None means the engine default (or a backend that takes no model).
+            if active in {"faster-whisper", "faster-whisper-isolated"}:
+                picked = os.environ.get("ASR_MODEL_FASTER") or prefs.get("asr_model_faster")
+            else:
+                picked = os.environ.get("ASR_MODEL_WHISPERX") if active == "whisperx" else None
+            if isinstance(picked, str) and picked.strip(): model, model_check = picked.strip(), "configured_not_loaded"
         return {"active": active, "configured_active": configured, "selection_check": "configured" if active else "not_resolved",
                 "active_model": model, "model_check": model_check, "env_override": bool(env), "backends": backends, "availability_mode": "metadata_only"}
 
@@ -407,6 +430,50 @@ def _router_binding(catalogue, router):
     return family_payload
 
 
+def _bind_gpu_listing(catalogue, router):
+    """Answer list_backends() from declarations inside the GPU-report scope only; every other caller keeps the original."""
+    for family, entry in vars(router).get("_FAMILIES", {}).items():
+        module, original = entry[0], vars(entry[0]).get("list_backends")
+        if family not in {"tts", "asr"} or not callable(original) or getattr(original, "_next_engine_catalogue_metadata", None) is not None:
+            continue
+        def listing(*args, _family=family, _original=original, **kwargs):
+            if _metadata_request.get():
+                return catalogue.gpu_rows(_family)
+            return _original(*args, **kwargs)
+        listing._next_engine_catalogue_metadata = catalogue
+        listing.__wrapped__ = original
+        module.list_backends = listing
+
+
+_FASTER_WHISPER_DEFAULT = "Systran/faster-whisper-large-v3"
+_FASTER_WHISPER_TURBO = "deepdml/faster-whisper-large-v3-turbo-ct2"
+
+
+def _repo_installed(repo):
+    """The engine's own complete-snapshot check; a failed lookup counts as not installed."""
+    try:
+        from api.routers.setup.models import installed_snapshot_path
+        return bool(installed_snapshot_path(repo))
+    except Exception:
+        return False
+
+
+def apply_asr_model_defaults(data_dir):
+    """Run after the engine restored env.* prefs, so nothing here counts as an external override.
+
+    The stock default (large-v3, 2.9 GB) would otherwise be requested by dubbing, queue, conversion and speech-to-text
+    for users who only installed the turbo weight. Neither prefs.json nor asr_backend is changed.
+    """
+    picked = _json(Path(data_dir) / "prefs.json").get("asr_model_faster")
+    if isinstance(picked, str) and picked.strip():
+        # The isolated sidecar reads only os.environ; the prefs value is not an env.* key, so restore_env skips it.
+        os.environ.setdefault("ASR_MODEL_FASTER", picked.strip())
+    elif not (os.environ.get("ASR_MODEL_FASTER") or os.environ.get("ASR_MODEL_WHISPERX")):
+        if not _repo_installed(_FASTER_WHISPER_DEFAULT) and _repo_installed(_FASTER_WHISPER_TURBO):
+            os.environ.setdefault("ASR_MODEL_FASTER", _FASTER_WHISPER_TURBO)
+            os.environ.setdefault("ASR_MODEL_WHISPERX", _FASTER_WHISPER_TURBO)
+
+
 def _startup_finalizer(app, catalogue, startup_module):
     """Bind after stock build/ENV restore, immediately before router include."""
     if not isinstance(startup_module, ModuleType):
@@ -432,7 +499,9 @@ def _startup_finalizer(app, catalogue, startup_module):
         if bound_router is None:
             payload = _router_binding(catalogue, router)
             router._family_payload = payload
+            _bind_gpu_listing(catalogue, router)
             bound_router = router
+            apply_asr_model_defaults(catalogue.data)
         elif router is not bound_router:
             raise EngineMetadataContractError("Router silników zmienił się po powiązaniu finalizacji.")
         return original(*args, **kwargs)
@@ -461,7 +530,10 @@ def configure_engine_catalogue(app, *, engine_path, runtime_root, data_dir, star
     # Starlette forbids adding middleware after startup. Do it now, before
     # committing either global wrapper, so a late caller fails without patches.
     app.add_middleware(EngineCatalogueMetadataScope)
-    if router is not None: router._family_payload = payload
+    if router is not None:
+        router._family_payload = payload
+        _bind_gpu_listing(catalogue, router)
+        apply_asr_model_defaults(catalogue.data)
     else: startup_module._phase_a_finalize = finalizer
     app._next_engine_catalogue_metadata = catalogue
     return catalogue
@@ -1217,6 +1289,8 @@ _DATA = json.loads(r'''
     "backend/services/subprocess_asr.py": "73aa7d15cb2f27c0a261d15d15170386b950d8637bee7414a43eb38c6844995c",
     "backend/services/llm_backend.py": "780939d800f9f87f6961b989f7490584fa18c506462011a4ccd42191f4716af3",
     "backend/api/routers/engines.py": "e4bc2e87f497b421fd5f5db485505bb3a13b639cf775732b1b7526da75663b6e",
+    "backend/core/gpu_report.py": "e21ee89d6287b9faa7044f2504f23b54f75d855c88670c086269592e690d7c39",
+    "backend/services/engine_routing.py": "f5bad389bda7391fc57a75165e6eab66528e832ea2bc1276dd7b3b4b4030b7c3",
     "backend/services/settings_store.py": "47560b06b2ba153fa1b6ddf056aa6b1ee1457f66f63541482434d206f59d5348",
     "backend/core/engine_licenses.py": "0fe344535c6e4590a221fa34a8854bc8ee0e8000a67fd99bda4d36c44ab01b76",
     "backend/services/sidecar_install.py": "4c5ba4c5b10b18da2fbe4d00380fa4e7df71d8470b76674c4c560576fd68eb6f",

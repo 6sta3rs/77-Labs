@@ -2,8 +2,12 @@
 // (endpoint and public key in src-tauri/tauri.conf.json; release steps in docs/features/aktualizacje-aplikacji.md).
 import { check, type Update } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
+import { invoke } from '@tauri-apps/api/core'
 
 export type { Update }
+
+/** False only when the app itself says this build has no update feed (source/dev builds); a failed command counts as supported. */
+export const updatesSupported = () => invoke<boolean>('app_updates_supported').catch(() => true)
 
 /** Newer signed release, or null when this build is the latest. */
 export const findAppUpdate = () => check({ timeout: 30_000 })

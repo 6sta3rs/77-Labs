@@ -2,7 +2,9 @@
   import Input from '../../ui/Input.svelte'
   import { uiLanguage, createUiTranslator } from "../../i18n"
   import { confirmDialog } from "../../ui/confirm"
+  import { polishPlural } from '../../i18n/plural'
   const tr = $derived(createUiTranslator($uiLanguage))
+  const chapterWord = (n: number) => tr(polishPlural(n, 'rozdział', 'rozdziały', 'rozdziałów'))
 
   import '../../ui/document-editor.css'
   import Button from '../../ui/Button.svelte'
@@ -17,6 +19,7 @@
   import Switch from '../../ui/Switch.svelte'
   import ToolWorkspace from '../ToolWorkspace.svelte'
   import ToolModelSettings from '../../models/ToolModelSettings.svelte'
+  import LlmNotice from '../../models/LlmNotice.svelte'
   import ToolVoiceSettings from '../../voices/ToolVoiceSettings.svelte'
   import AudiobookPlayer from '../../playback/AudiobookPlayer.svelte'
   import type { BookAudioChunk } from '../../playback/audiobook-playback'
@@ -26,7 +29,7 @@
   import { bookTextChunks, cleanBookText } from '../../tts/ai'
   import './production-workspace.css'
   import { productionJson, productionStream, downloadProduction, postJson, productionLanguages, type BookPlan, type DubSegment, type FinishedBook, type FinishedDub, type ProductionEvent, type ProductionProject, type ResumableBook } from './production'
-  let { kind, ready, onnotify }: { kind: 'dubbing' | 'audiobooks'; ready: boolean; onnotify: (message: string) => void } = $props()
+  let { kind, ready, onnotify, onopenai }: { kind: 'dubbing' | 'audiobooks'; ready: boolean; onnotify: (message: string) => void; onopenai?: () => void } = $props()
   let title = $state(''), text = $state(''), voice = $state(''), language = $state('pl')
   let voices = $state<Profile[]>([]), busy = $state(false), message = $state(''), error = $state('')
   let file = $state<File>(), plan = $state<BookPlan>(), segments = $state<DubSegment[]>([])
@@ -235,7 +238,7 @@
     await work(async signal => {
       const jobs = await readBookJobs(signal)
       const job = jobs.find(row => row.job_id === id)
-      if (!bookCanResume(job)) { message = `Nie można wznowić tego zadania: ${job ? bookJobStatus(job.status) : 'nie ma go już na liście do wznowienia'}. Lista została odświeżona.`; return }
+      if (!bookCanResume(job)) { message = `Nie można wznowić tego zadania: ${job ? tr(bookJobStatus(job.status)) : tr('nie ma go już na liście do wznowienia')}. Lista została odświeżona.`; return }
       if (bookJobsBusy(jobs)) { message = 'Na liście jest jeszcze zadanie w trakcie pracy lub zatrzymywania. Zaczekaj na jego zakończenie i odśwież listę.'; return }
       const activity = await readLongformActivity(request, signal)
       if (activity && bookDrainState(jobs, activity, id) !== 'confirmed') { message = 'Silnik nadal pracuje. Zaczekaj na zakończenie poprzedniego zadania i ponów wznowienie.'; return }
@@ -269,7 +272,7 @@
     await work(async signal => { const result = await productionJson<{ text: string; chapters: number }>('/audiobook/import', { method: 'POST', body: form, signal: signal }); changedText(result.text); if (!title) title = imported.name.replace(/\.[^.]+$/, ''); message = `Zaimportowano ${result.chapters} rozdziałów.` })
   }
   async function previewBook() { await work(async signal => { plan = await productionJson<BookPlan>('/audiobook/plan', postJson({ text, default_voice: voice || null }, signal)); message = `Plan: ${plan.chapter_count} rozdziałów · ${plan.char_count.toLocaleString(tr.locale)} znaków` }) }
-  async function saveBook() { await work(async signal => { const result = await productionJson<{ id: string }>(projectId ? `/projects/${encodeURIComponent(projectId)}` : '/projects', { ...postJson({ name: title.trim() || 'Nowy audiobook', state: { kind: 'audiobooks', text, voice, language, plan, render: { bookFormat, bitrate, loudness, author, narrator, lineGap, paragraphGap, trimEdges, customSteps, steps, guidance } } }, signal), method: projectId ? 'PUT' : 'POST' }); projectId = result.id; onnotify('Projekt audiobooka zapisany.'); await refresh(signal) }) }
+  async function saveBook() { await work(async signal => { const result = await productionJson<{ id: string }>(projectId ? `/projects/${encodeURIComponent(projectId)}` : '/projects', { ...postJson({ name: title.trim() || tr('Nowy audiobook'), state: { kind: 'audiobooks', text, voice, language, plan, render: { bookFormat, bitrate, loudness, author, narrator, lineGap, paragraphGap, trimEdges, customSteps, steps, guidance } } }, signal), method: projectId ? 'PUT' : 'POST' }); projectId = result.id; onnotify(tr('Projekt audiobooka zapisany.')); await refresh(signal) }) }
   function resetSettings() {
     bookFormat = 'm4b'; bitrate = '128k'; loudness = 'off'; author = ''; narrator = ''
     lineGap = 0; paragraphGap = 0; trimEdges = false; customSteps = false; steps = 32; guidance = 2
@@ -304,7 +307,7 @@
       await bookStream('/audiobook', postJson({ text, default_voice: voice || null, language: productionLanguages.find(item => item.value === language)?.tts,
         format: bookFormat, bitrate, loudness, line_gap_ms: lineGap, paragraph_gap_ms: paragraphGap, trim_edges: trimEdges,
         ...(customSteps ? { num_step: steps, guidance_scale: guidance } : {}),
-        metadata: { title: title.trim() || 'Nowy audiobook', author, narrator } }, signal), signal)
+        metadata: { title: title.trim() || tr('Nowy audiobook'), author, narrator } }, signal), signal)
       if (!done && !cancelled && !error) throw new Error('Strumień zakończył się bez gotowego pliku.')
       if (!cancelled) await refresh(signal)
     })
@@ -361,10 +364,13 @@
     })
   }
   async function translateDubRequest(signal: AbortSignal) {
-      translated = false; done = false; finishedDub = undefined; message = 'Tłumaczenie segmentów…'
+      translated = false; done = false; finishedDub = undefined
+      // The first /engines/translation call imports the translation library cold (~18 s), so say so instead of "translating".
+      message = 'Przygotowanie silnika tłumaczenia…'
       // Without an explicit provider the engine falls back to Google, ignoring the engine selected in settings.
       const { active } = await productionJson<{ active?: string }>('/engines/translation', { signal })
       signal.throwIfAborted()
+      message = 'Tłumaczenie segmentów…'
       if (active === 'argos') {
         // Argos needs one offline pack per language pair; the engine never downloads it implicitly.
         const packs = { job_id: jobId, target_langs: [language] }
@@ -421,9 +427,9 @@
   async function download(path: string, name: string) { await work(async signal => { message = 'Pobieranie pliku…'; await downloadProduction(path, name, signal); message = 'Przekazano plik do pobrania.' }) }
 </script>
 
-<ToolWorkspace title={tr(String(isBook ? 'Audiobooki' : 'Dubbing'))} description={isBook ? tr("Twoje książki, rozdziały i nagrania w jednym miejscu.") : tr("Od oryginalnego materiału do nowej ścieżki głosu.")} bind:tab historyLabel={isBook ? 'Biblioteka' : tr("Historia")} historyCount={isBook ? books.length : dubs.length}>
+<ToolWorkspace title={tr(String(isBook ? 'Audiobooki' : 'Dubbing'))} description={isBook ? tr("Twoje książki, rozdziały i nagrania w jednym miejscu.") : tr("Od oryginalnego materiału do nowej ścieżki głosu.")} bind:tab historyLabel={isBook ? tr('Biblioteka') : tr("Historia")} historyCount={isBook ? books.length : dubs.length}>
   {#snippet headerActions()}
-    {#if isBook}<div class="production-inline"><Button variant="outline" disabled={busy} onclick={() => bookView = bookView === 'editor' ? 'library' : 'editor'}><Library size={14}/>{bookView === 'editor' ? 'Biblioteka' : 'Edytor'}</Button><Button variant="default" disabled={busy || bookDrain} onclick={newBook}><Plus size={14}/>{tr("Nowy projekt")}</Button></div>{/if}
+    {#if isBook}<div class="production-inline"><Button variant="outline" disabled={busy} onclick={() => bookView = bookView === 'editor' ? 'library' : 'editor'}><Library size={14}/>{bookView === 'editor' ? tr('Biblioteka') : tr('Edytor')}</Button><Button variant="default" disabled={busy || bookDrain} onclick={newBook}><Plus size={14}/>{tr("Nowy projekt")}</Button></div>{/if}
   {/snippet}
   {#snippet content()}
     <div class="production-content">
@@ -432,12 +438,12 @@
       {#if isBook && bookView === 'library'}
         <button class="book-create" disabled={busy || bookDrain} onclick={newBook}><BookOpen size={25}/><span><strong>{tr("Utwórz audiobook")}</strong><small>{tr("Wklej tekst lub importuj książkę. Wybierz lektora i przygotuj rozdziały.")}</small></span><Plus size={19}/></button>
         <div class="production-library-toolbar"><input class="text-input" aria-label={tr("Szukaj audiobooka")} placeholder={tr("Szukaj książki lub projektu…")} bind:value={libraryQuery}/><Button variant="ghost" size="icon" aria-label={tr("Odśwież bibliotekę")} disabled={locked} onclick={() => work(refresh)}><RefreshCw size={16}/></Button></div>
-        {#if resumable.length}<h2 class="production-section-title">{tr("Zadania i wznowienie")} <span>{resumable.length}</span></h2><div class="book-grid">{#each resumable as job}<article class="book-card"><strong>{job.title || 'Przerwany audiobook'}</strong><small>{job.chapters_done} / {job.total_chapters} {tr("rozdziałów ·")} {bookJobStatus(job.status)}</small><Button variant="outline" disabled={locked || !bookCanResume(job)} onclick={() => resumeBook(job.job_id)}><RotateCcw size={14}/>{bookCanResume(job) ? tr("Wznów render") : job.status === 'done' ? tr("Ukończone") : tr("Zaczekaj na zakończenie")}</Button></article>{/each}</div>{/if}
+        {#if resumable.length}<h2 class="production-section-title">{tr("Zadania i wznowienie")} <span>{resumable.length}</span></h2><div class="book-grid">{#each resumable as job}<article class="book-card"><strong>{job.title || tr('Przerwany audiobook')}</strong><small>{job.chapters_done} / {job.total_chapters} {tr("rozdziałów ·")} {tr(bookJobStatus(job.status))}</small><Button variant="outline" disabled={locked || !bookCanResume(job)} onclick={() => resumeBook(job.job_id)}><RotateCcw size={14}/>{bookCanResume(job) ? tr("Wznów render") : job.status === 'done' ? tr("Ukończone") : tr("Zaczekaj na zakończenie")}</Button></article>{/each}</div>{/if}
         <h2 class="production-section-title">{tr("Projekty")} <span>{filteredProjects.length}</span></h2>
-        <div class="book-grid">{#each filteredProjects as project}<button class="book-card" disabled={locked} onclick={() => openProject(project.id)}><div class="book-cover"><BookOpen size={30}/><span>{tr("Projekt")}</span></div><strong>{project.name}</strong><small>{project.state?.plan ? project.state.plan.chapter_count + ' rozdziałów' : tr("Bez planu rozdziałów")} · {project.state?.language?.toUpperCase() || 'PL'}</small></button>{/each}</div>
+        <div class="book-grid">{#each filteredProjects as project}<button class="book-card" disabled={locked} onclick={() => openProject(project.id)}><div class="book-cover"><BookOpen size={30}/><span>{tr("Projekt")}</span></div><strong>{project.name}</strong><small>{project.state?.plan ? project.state.plan.chapter_count + ' ' + chapterWord(project.state.plan.chapter_count) : tr("Bez planu rozdziałów")} · {project.state?.language?.toUpperCase() || 'PL'}</small></button>{/each}</div>
         {#if !filteredProjects.length}<p class="tool-workspace-empty">{libraryQuery ? tr("Brak projektów pasujących do wyszukiwania.") : tr("Zapisane projekty pojawią się tutaj. Utwórz pierwszy audiobook.")}</p>{/if}
         <h2 class="production-section-title">{tr("Gotowe audiobooki")} <span>{filteredBooks.length}</span></h2>
-        <div class="book-grid">{#each filteredBooks as book}<article class="book-card"><div class="book-cover ready"><BookOpen size={30}/><span>{tr("Gotowe")}</span></div><strong>{book.title || book.output}</strong><small>{book.chapters} {tr("rozdziałów ·")} {Math.round(book.duration_s / 60)} {tr("min")}</small><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(book.output)}`, book.output)}><Download size={14}/>{tr("Pobierz")}</Button></article>{/each}</div>
+        <div class="book-grid">{#each filteredBooks as book}<article class="book-card"><div class="book-cover ready"><BookOpen size={30}/><span>{tr("Gotowe")}</span></div><strong>{book.title || book.output}</strong><small>{book.chapters} {chapterWord(book.chapters)} · {Math.round(book.duration_s / 60)} {tr("min")}</small><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(book.output)}`, book.output)}><Download size={14}/>{tr("Pobierz")}</Button></article>{/each}</div>
         {#if !filteredBooks.length}<p class="tool-workspace-empty">{libraryQuery ? tr("Brak nagrań pasujących do wyszukiwania.") : tr("Gotowe nagrania będą dostępne po zakończeniu generowania.")}</p>{/if}
       {:else if isBook}
         <div class="production-field"><label for={`${uid}-title`}>{tr("Tytuł audiobooka")}</label><input class="text-input book-title" id={`${uid}-title`} bind:value={title} placeholder={tr("Książka bez tytułu")} disabled={busy}/></div>
@@ -445,14 +451,14 @@
         <textarea class="book-manuscript vs-document-editor" id={`${uid}-text`} value={text} oninput={e => { changedText(e.currentTarget.value); textBeforeClean = undefined }} placeholder={tr("# Rozdział 1\n\nWklej tekst swojej książki. Nagłówki # wyznaczają rozdziały.")} disabled={busy || cleaning}></textarea>
         {#if plan}<div class="production-section-heading"><h2>{tr("Rozdziały")}</h2><span>{plan.chapter_count} · {plan.char_count.toLocaleString(tr.locale)} {tr("znaków")}</span></div><ol class="chapter-list">{#each plan.chapters as chapter, index}<li><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{chapter.title}</strong><small>{chapter.char_count.toLocaleString(tr.locale)} {tr("znaków")}</small></div><Button variant="outline" disabled={locked || !voice} onclick={() => previewChapter(index)}>{tr("Próbka rozdziału")}</Button></li>{/each}</ol>{:else}<p class="tool-workspace-note">{tr("Sprawdź podział przed generowaniem. Nagłówki oznaczone # rozpoczną nowe rozdziały.")}</p>{/if}
       {:else}
-        <ol class="dub-stages" aria-label={tr("Etapy dubbingu")}>{#each ['Materiał', 'Transkrypcja', 'Tłumaczenie', 'Nagranie'] as name, index}<li class:complete={stage > index} class:current={stage === index}><span>{index + 1}</span>{name}</li>{/each}</ol>
+        <ol class="dub-stages" aria-label={tr("Etapy dubbingu")}>{#each ['Materiał', 'Transkrypcja', 'Tłumaczenie', 'Nagranie'] as name, index}<li class:complete={stage > index} class:current={stage === index}><span>{index + 1}</span>{tr(name)}</li>{/each}</ol>
         <div class="filter-tabs"><button class:chosen={sourceMode === 'file'} disabled={busy} onclick={() => { sourceMode = 'file'; prepared = false }}>{tr("Plik z dysku")}</button><button class:chosen={sourceMode === 'url'} disabled={busy} onclick={() => { sourceMode = 'url'; prepared = false }}>{tr("Adres materiału")}</button></div>
         {#if sourceMode === 'url'}<label class="production-field">{tr("Adres filmu")}<input class="text-input" aria-label={tr("Adres materiału do dubbingu")} type="url" bind:value={ingestUrl} placeholder={tr("https://…")} disabled={busy}/></label><p class="tool-workspace-note">{tr("Pobranie przez lokalny yt-dlp nastąpi po kliknięciu „Przygotuj materiał”.")}</p>{:else}
         <button type="button" class="production-drop" class:has-file={!!file} disabled={busy} onclick={() => dubPicker?.open()} ondragover={e => e.preventDefault()} ondrop={e => { e.preventDefault(); selectFile(e.dataTransfer?.files[0]) }}><Upload size={26}/><strong>{file?.name || tr("Przeciągnij plik lub wybierz z dysku")}</strong><span>{file ? tr("{arg0} MB · kliknij, aby zmienić", { arg0: String((file.size / 1024 / 1024).toFixed(1)) }) : tr("Wideo lub audio · MP4, MKV, MOV, WAV, MP3 i inne")}</span></button><FilePicker bind:this={dubPicker} bare accept="video/*,audio/*,.mp4,.mkv,.mov,.webm,.wav,.mp3,.m4a,.flac" disabled={busy} onchange={files => selectFile(files[0])}/>
         {/if}
-        {#if sourceUrl}<div class="production-source">{#if sourceVideo}<VideoCard src={sourceUrl} title="Materiał źródłowy"/>{:else}<AudioPreview src={sourceUrl} title={tr("Materiał źródłowy")}/>{/if}<p class="tool-workspace-note">{tr("Materiał źródłowy")}</p></div>{/if}
+        {#if sourceUrl}<div class="production-source">{#if sourceVideo}<VideoCard src={sourceUrl} title={tr("Materiał źródłowy")}/>{:else}<AudioPreview src={sourceUrl} title={tr("Materiał źródłowy")}/>{/if}<p class="tool-workspace-note">{tr("Materiał źródłowy")}</p></div>{/if}
         {#if segments.length}
-          <div class="production-section-heading"><h2>{translated ? tr("Tekst dubbingu") : 'Rozpoznana mowa'}</h2><span>{segments.length} {tr("segmentów")}</span></div>
+          <div class="production-section-heading"><h2>{translated ? tr("Tekst dubbingu") : tr('Rozpoznana mowa')}</h2><span>{segments.length} {tr("segmentów")}</span></div>
           <div class="dub-segments">{#each segments as segment, index}<article class="dub-segment">
             <header><span>{String(index + 1).padStart(2, '0')} · {segment.start.toFixed(1)}–{segment.end.toFixed(1)} {tr("s")}</span><Select ariaLabel={tr("Głos segmentu {arg0}", { arg0: String(index + 1) })} value={segment.profile_id || ''} options={[{ value: '', label: tr("Głos całego materiału") }, ...voices.map(row => ({ value: row.id, label: row.name }))]} disabled={locked} onchange={value => updateSegment(index, { profile_id: value })}/></header>
             <div class="segment-timing"><label>{tr("Początek (s)")}<Input aria-label={tr("Początek segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0" step="0.01" value={segment.start} disabled={busy} onchange={e => updateSegment(index, { start: e.currentTarget.valueAsNumber })}/></label><label>{tr("Koniec (s)")}<Input aria-label={tr(String(`Koniec segmentu ${index + 1}`))} type="number" min="0" step="0.01" value={segment.end} disabled={busy} onchange={e => updateSegment(index, { end: e.currentTarget.valueAsNumber })}/></label><label>{tr("Szybkość")}<Input aria-label={tr("Szybkość segmentu {arg0}", { arg0: String(index + 1) })} type="number" min="0.5" max="2" step="0.05" value={segment.speed ?? speed} disabled={busy} onchange={e => updateSegment(index, { speed: e.currentTarget.valueAsNumber })}/></label></div>
@@ -464,11 +470,11 @@
       {/if}
       {#if isBook}<AudiobookPlayer bind:this={bookPlayer}/>{/if}
       {#if error}<p class="production-error" role="alert">{tr(String(error))}</p>{/if}
-      {#if bookDrain}<div class="production-status" role="status">{#if drainChecking}<LoaderCircle size={16} class="spin"/>{/if}<span>{drainMessage}</span><Button variant="outline" disabled={!ready || drainChecking} onclick={waitForBookDrain}>{tr("Sprawdź zatrzymanie")}</Button></div>{:else if busy || message}<div class="production-status" role="status">{#if busy}<LoaderCircle size={16} class="spin"/>{/if}<span>{message ? tr(String(message)) : tr('Trwa przetwarzanie…')}</span>{#if busy}<Button variant="ghost" disabled={stopping} onclick={stopProduction}>{taskId || activeLongform ? tr('Zatrzymaj zadanie') : tr('Przestań czekać')}</Button>{/if}</div>{/if}
-      {#if mediaUrl}<div class="production-source">{#if mediaIsVideo}<VideoCard src={mediaUrl} title="Odsłuch"/>{:else}<AudioPreview src={mediaUrl} title={tr("Odsłuch")}/>{/if}<Button variant="ghost" onclick={clearPreview}>{tr("Zamknij odsłuch")}</Button></div>{/if}
+      {#if bookDrain}<div class="production-status" role="status">{#if drainChecking}<LoaderCircle size={16} class="spin"/>{/if}<span>{tr(drainMessage)}</span><Button variant="outline" disabled={!ready || drainChecking} onclick={waitForBookDrain}>{tr("Sprawdź zatrzymanie")}</Button></div>{:else if busy || message}<div class="production-status" role="status">{#if busy}<LoaderCircle size={16} class="spin"/>{/if}<span>{message ? tr(String(message)) : tr('Trwa przetwarzanie…')}</span>{#if busy}<Button variant="ghost" disabled={stopping} onclick={stopProduction}>{taskId || activeLongform ? tr('Zatrzymaj zadanie') : tr('Przestań czekać')}</Button>{/if}</div>{/if}
+      {#if mediaUrl}<div class="production-source">{#if mediaIsVideo}<VideoCard src={mediaUrl} title={tr("Odsłuch")}/>{:else}<AudioPreview src={mediaUrl} title={tr("Odsłuch")}/>{/if}<Button variant="ghost" onclick={clearPreview}>{tr("Zamknij odsłuch")}</Button></div>{/if}
       {#if total > 0}<progress max={total} value={progressValue} aria-label={tr("Postęp generowania")}></progress><p class="tool-workspace-note">{completed} / {total} {isBook ? tr('rozdziałów') : tr('segmentów')}{#if isBook && busy && startedAt} · {Math.round(progressValue / total * 100)}% · {tr('minęło')} {clock(elapsed)}{#if remaining !== undefined} · {tr('zostało ok.')} {clock(remaining)}{/if}{/if}</p>{/if}
       {#if output}<div class="production-result"><strong>{failedChapters ? tr('Audiobook jest niepełny') : tr('Audiobook gotowy')}</strong><div class="production-inline"><Button variant="outline" disabled={locked} onclick={() => previewOutput(`/audio/${encodeURIComponent(output)}`)}>{tr("Odsłuchaj")}</Button><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(output)}`, output)}><Download size={14}/>{tr("Pobierz audiobook")}</Button></div></div>{/if}
-      {#if log.length}<details class="production-log"><summary>{tr("Dziennik etapów")}</summary>{#each log as line}<p>{line}</p>{/each}</details>{/if}
+      {#if log.length}<details class="production-log"><summary>{tr("Dziennik etapów")}</summary>{#each log as line}<p>{tr(line)}</p>{/each}</details>{/if}
     </div>
   {/snippet}
   {#snippet settings()}
@@ -477,18 +483,19 @@
     <ToolModelSettings {ready} disabled={busy || loading || bookDrain} bind:busy={modelBusy}/>
     <Select label={isBook ? tr("Język narracji") : tr("Język docelowy")} value={language} onchange={next => { language = next; translated = false; done = false }} options={productionLanguages.map(option=>({...option,label:tr(option.label)}))} disabled={locked}/>
     {#if isBook}
-      <Select label={tr("Format wyjściowy")} value={bookFormat} onchange={next => bookFormat = next} options={[{ value: 'm4b', label: tr("M4B · rozdziały w jednym pliku") }, { value: 'mp3', label: 'MP3 · uniwersalne audio' }]} disabled={locked}/>
+      <Select label={tr("Format wyjściowy")} value={bookFormat} onchange={next => bookFormat = next} options={[{ value: 'm4b', label: tr("M4B · rozdziały w jednym pliku") }, { value: 'mp3', label: tr('MP3 · uniwersalne audio') }]} disabled={locked}/>
       <Select label={tr("Jakość audio")} value={bitrate} onchange={next => bitrate = next} options={['64k', '128k', '192k', '256k'].map(value => ({ value, label: value.replace('k', ' kb/s') }))} disabled={locked}/>
-      <Select label={tr("Wyrównanie głośności")} value={loudness} onchange={next => loudness = next} options={[{ value: 'off', label: tr("Bez wyrównania") }, { value: 'acx', label: 'Audiobook (ACX)' }, { value: 'podcast', label: 'Podcast' }]} disabled={locked}/>
+      <Select label={tr("Wyrównanie głośności")} value={loudness} onchange={next => loudness = next} options={[{ value: 'off', label: tr("Bez wyrównania") }, { value: 'acx', label: tr('Audiobook (ACX)') }, { value: 'podcast', label: tr('Podcast') }]} disabled={locked}/>
       <details class="production-options"><summary>{tr("Metadane książki")}</summary><label>{tr("Autor")}<input class="text-input" aria-label={tr("Autor książki")} bind:value={author} disabled={busy}/></label><label>{tr("Narrator")}<input class="text-input" aria-label={tr("Narrator książki")} bind:value={narrator} disabled={busy}/></label></details>
       <details class="production-options"><summary>{tr("Pauzy i generowanie")}</summary><Slider label={tr("Pauza między liniami")} value={lineGap} min={0} max={5000} step={50} valueLabel={lineGap + ' ms'} onchange={value => lineGap = value} disabled={locked}/><Slider label={tr("Pauza między akapitami")} value={paragraphGap} min={0} max={5000} step={50} valueLabel={paragraphGap + ' ms'} onchange={value => paragraphGap = value} disabled={locked}/><div class="production-switch"><span>{tr("Przytnij ciszę na krawędziach")}</span><Switch label={tr("Przytnij ciszę na krawędziach")} checked={trimEdges} onchange={value => trimEdges = value} disabled={locked}/></div><div class="production-switch"><span>{tr("Własne parametry syntezy")}</span><Switch label={tr("Własne parametry syntezy")} checked={customSteps} onchange={value => customSteps = value} disabled={locked}/></div>{#if customSteps}<Slider label={tr("Kroki syntezy")} value={steps} min={1} max={128} step={1} onchange={value => steps = value} disabled={locked}/><Slider label={tr("Siła prowadzenia")} value={guidance} min={0} max={20} step={0.1} valueLabel={guidance.toFixed(1)} onchange={value => guidance = value} disabled={locked}/>{/if}<p class="tool-workspace-note">{tr("Bez własnych parametrów używane są wartości domyślne silnika audiobooków.")}</p></details>
       <p class="tool-workspace-note">{tr("M4B zachowuje oznaczenia rozdziałów. Projekt zapisuje tekst, lektora i ustawienia renderu.")}</p>
     {:else}
-      <Select label={tr("Język źródłowy")} value={sourceLanguage} onchange={value => { sourceLanguage = value; prepared = false; translated = false; segments = []; done = false }} options={[{ value: 'auto', label: 'Rozpoznaj automatycznie' }, ...productionLanguages]} disabled={locked}/>
-      <Select label={tr("Tryb tłumaczenia")} value={quality} onchange={value => { quality = value as typeof quality; translated = false; done = false }} options={[{ value: 'fast', label: 'Podstawowy' }, { value: 'autofit', label: tr("Dopasuj tekst do czasu · LLM") }, { value: 'cinematic', label: 'Z ulepszaniem tekstu' }]} disabled={locked}/>
+      <Select label={tr("Język źródłowy")} value={sourceLanguage} onchange={value => { sourceLanguage = value; prepared = false; translated = false; segments = []; done = false }} options={[{ value: 'auto', label: tr('Rozpoznaj automatycznie') }, ...productionLanguages.map(option => ({ ...option, label: tr(option.label) }))]} disabled={locked}/>
+      <Select label={tr("Tryb tłumaczenia")} value={quality} onchange={value => { quality = value as typeof quality; translated = false; done = false }} options={[{ value: 'fast', label: tr('Podstawowy') }, { value: 'autofit', label: tr("Dopasuj tekst do czasu · LLM") }, { value: 'cinematic', label: tr('Z ulepszaniem tekstu') }]} disabled={locked}/>
       <p class="tool-workspace-note">{tr("Tłumaczenie korzysta z dostawcy skonfigurowanego w silniku. Zależnie od konfiguracji może wymagać internetu.")}</p>
+      {#if quality !== 'fast'}<LlmNotice {ready} {onopenai}/>{/if}
       <Select label={tr("Dopasowanie do oryginału")} value={timing} onchange={value => timing = value} options={[{ value: 'strict_slot', label: tr("Zachowaj czas segmentów") }, { value: 'concise', label: tr("Naturalne tempo · tekst musi się zmieścić") }, { value: 'smart_fit', label: tr("Inteligentne dopasowanie dźwięku i wideo") }, { value: 'stretch_video', label: tr("Dopasuj długość wideo do mowy") }]} disabled={locked}/>
-      <Slider label={tr("Szybkość mowy")} value={speed} min={0.5} max={2} step={0.05} valueLabel={speed.toFixed(2) + '×'} startLabel="Wolniej" endLabel="Szybciej" onchange={value => speed = value} disabled={locked}/>
+      <Slider label={tr("Szybkość mowy")} value={speed} min={0.5} max={2} step={0.05} valueLabel={speed.toFixed(2) + '×'} startLabel={tr('Wolniej')} endLabel={tr('Szybciej')} onchange={value => speed = value} disabled={locked}/>
       <div class="production-switch"><span>{tr("Zachowaj tło materiału")}</span><Switch label={tr("Zachowaj tło materiału")} checked={preserveBackground} onchange={value => preserveBackground = value} disabled={locked}/></div>
       <div class="production-switch"><span>{tr("Wypal napisy w wideo")}</span><Switch label={tr("Wypal napisy w wideo")} checked={burnSubtitles} onchange={value => burnSubtitles = value} disabled={locked}/></div>
       {#if burnSubtitles}<div class="production-switch"><span>{tr("Napisy dwujęzyczne")}</span><Switch label={tr("Napisy dwujęzyczne")} checked={dualSubtitles} onchange={value => { dualSubtitles = value; if (value) karaokeSubtitles = false }} disabled={locked}/></div><div class="production-switch"><span>{tr("Podświetlanie słów")}</span><Switch label={tr("Podświetlanie słów")} checked={karaokeSubtitles} onchange={value => { karaokeSubtitles = value; if (value) dualSubtitles = false }} disabled={locked}/></div>{/if}
@@ -498,10 +505,10 @@
     <Button variant="ghost" class=" production-reset" disabled={locked} onclick={resetSettings}><RotateCcw size={14}/>{tr("Resetuj ustawienia")}</Button>
   {/snippet}
   {#snippet history()}
-    <div class="production-section-heading"><h2>{isBook ? 'Projekty i nagrania' : tr("Gotowe ścieżki")}</h2><Button variant="ghost" size="icon" aria-label={tr("Odśwież historię produkcji")} disabled={locked} onclick={() => work(refresh)}><RefreshCw size={15}/></Button></div>
+    <div class="production-section-heading"><h2>{isBook ? tr('Projekty i nagrania') : tr("Gotowe ścieżki")}</h2><Button variant="ghost" size="icon" aria-label={tr("Odśwież historię produkcji")} disabled={locked} onclick={() => work(refresh)}><RefreshCw size={15}/></Button></div>
     {#if isBook}
       {#each projectOptions as project}<button class="tool-workspace-history-item production-project" disabled={locked} onclick={() => openProject(project.id)}><FileText size={17}/><strong>{project.name}</strong><small>{tr("Otwórz projekt")}</small></button>{/each}
-      {#each books as book}<article class="tool-workspace-history-item"><strong>{book.title || book.output}</strong><small>{book.chapters} {tr("rozdziałów ·")} {Math.round(book.duration_s / 60)} {tr("min")}</small><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(book.output)}`, book.output)}><Download size={14}/>{tr("Pobierz")}</Button></article>{/each}
+      {#each books as book}<article class="tool-workspace-history-item"><strong>{book.title || book.output}</strong><small>{book.chapters} {chapterWord(book.chapters)} · {Math.round(book.duration_s / 60)} {tr("min")}</small><Button variant="outline" disabled={locked} onclick={() => download(`/audio/${encodeURIComponent(book.output)}`, book.output)}><Download size={14}/>{tr("Pobierz")}</Button></article>{/each}
       {#if !books.length && !projectOptions.length}<p class="tool-workspace-empty">{tr("Twoje projekty i ukończone audiobooki pojawią się tutaj.")}</p>{/if}
     {:else}
       {#each dubs as dub}{#each dub.languages as lang}<article class="tool-workspace-history-item"><strong>{dub.filename}</strong><small>{lang.toUpperCase()} · {Math.round(dub.duration)} {tr("s")}</small><Button variant="outline" disabled={locked} onclick={() => download(`/dub/download-audio/${encodeURIComponent(dub.id)}?lang=${encodeURIComponent(lang)}&preserve_bg=false`, `${dub.filename.replace(/\.[^.]+$/, '')}-${lang}.wav`)}><Download size={14}/>{tr("Pobierz WAV")}</Button></article>{/each}{/each}
@@ -509,7 +516,7 @@
     {/if}
   {/snippet}
   {#snippet actions()}
-    <span class="production-action-note">{isBook ? tr("{arg0} znaków{arg1}", { arg0: String(text.length.toLocaleString(tr.locale)), arg1: String(plan ? ' · ' + plan.chapter_count + ' rozdziałów' : '') }) : !file ? tr("Wybierz materiał źródłowy") : !prepared ? tr("Przygotuj materiał") : !segments.length ? tr("Rozpoznaj mowę w materiale") : !translated ? tr("Przetłumacz i sprawdź tekst") : tr("Tekst gotowy do nagrania")}</span>
+    <span class="production-action-note">{isBook ? tr("{arg0} znaków{arg1}", { arg0: String(text.length.toLocaleString(tr.locale)), arg1: String(plan ? ' · ' + plan.chapter_count + ' ' + chapterWord(plan.chapter_count) : '') }) : !file ? tr("Wybierz materiał źródłowy") : !prepared ? tr("Przygotuj materiał") : !segments.length ? tr("Rozpoznaj mowę w materiale") : !translated ? tr("Przetłumacz i sprawdź tekst") : tr("Tekst gotowy do nagrania")}</span>
     <div class="production-inline">
       {#if isBook && bookView === 'editor'}<Button variant="outline" disabled={locked || !text.trim()} onclick={previewBook}><FileText size={14}/>{tr("Podgląd rozdziałów")}</Button><Button variant="outline" disabled={locked || !text.trim()} onclick={saveBook}><Save size={14}/>{tr("Zapisz")}</Button><Button variant="default" disabled={locked || !text.trim() || !plan || !voice} title={!voice ? tr('Wybierz lektora w ustawieniach') : !plan ? tr('Najpierw sprawdź podział na rozdziały') : undefined} onclick={renderBook}>{tr("Generuj audiobook")}</Button>
       {:else if isBook}<Button variant="default" disabled={busy || bookDrain} onclick={newBook}><Plus size={14}/>{tr("Utwórz audiobook")}</Button>

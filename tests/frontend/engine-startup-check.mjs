@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 const source = (await readFile(new URL('../../src/lib/platform/engine-startup.ts', import.meta.url), 'utf8')).replace(/^import .*$/gm, '');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { startupSteps, readModelWarmup, startupRows, startupFraction } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
+const { startupSteps, readModelWarmup, startupRows, startupFraction, warmupNote } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 
 const rust = await readFile(new URL('../../src-tauri/src/runtime.rs', import.meta.url), 'utf8');
 const stages = rust.match(/const STAGES: \[&str; \d+\] = \[([^\]]+)\]/)[1].match(/"([^"]+)"/g).map(id => id.slice(1, -1));
@@ -26,4 +26,15 @@ assert.equal(startupFraction(startupRows({ state: 'ready' }, { status: 'ready' }
 assert.equal(readModelWarmup({ status: 'idle', loaded: false }).status, 'idle');
 assert.equal(readModelWarmup({ status: 'idle', error: 'boom', sub_stage: 'error' }).status, 'error');
 assert.equal(readModelWarmup({ status: 'loading', progress: 500 }).progress, undefined, 'out-of-range progress is ignored');
+// Why the model is not warming up (the engine only logs it): derived from the idle state and the catalogues.
+const tts = (extra = {}) => ({ active: 'kitten', backends: [{ id: 'kitten', ...extra }] });
+const weights = installed => [{ role: 'TTS', installed, engines: ['kitten'] }, { role: 'ASR', installed: true, engines: ['kitten'] }];
+const idle = { status: 'idle' };
+assert.equal(warmupNote(idle, tts({ license_required: true, license_accepted: false }), weights(true)).text, 'Pominięto: brak akceptacji warunków modelu', 'licence beats a missing download');
+assert.equal(warmupNote(idle, tts(), weights(false)).text, 'Pominięto: model nie jest pobrany');
+assert.equal(warmupNote(idle, tts(), weights(true)), undefined, 'installed and accepted: no invented reason');
+assert.equal(warmupNote(idle, tts(), []), undefined, 'unknown weights: no invented reason');
+assert.equal(warmupNote(idle, { active: 'gone', backends: [] }, weights(false)), undefined);
+assert.equal(warmupNote({ status: 'loading' }, tts(), weights(false)), undefined, 'a loading model needs no note');
+assert.deepEqual(warmupNote({ status: 'error', error: 'boom' }), { text: 'Nie udało się załadować modelu głosowego', detail: 'boom' });
 console.log('PASS engine startup checklist');

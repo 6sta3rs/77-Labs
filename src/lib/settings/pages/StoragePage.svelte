@@ -4,6 +4,7 @@
   import { onDestroy, tick, untrack } from 'svelte'
   import { FolderOpen, RotateCcw, RefreshCw, Database, Trash2, LoaderCircle } from '@lucide/svelte'
   import { uiLanguage, createUiTranslator } from '../../i18n'
+  import { polishPlural } from '../../i18n/plural'
   import type { SettingsSection } from '../settings-catalog'
   import { toast } from '../../ui/toast'
   import Button from '../../ui/Button.svelte'
@@ -116,7 +117,7 @@
   let selected = $state<string[]>([]), progress = $state<{ pct: number; text: string } | null>(null), stopRequested = $state(false)
   let confirm = $state<{ audit: CacheAudit; temporary: boolean } | null>(null), cleaned = $state('')
   const sampleLocked = $derived(locked || !!progress || !!cache?.generating)
-  const files = (n: number) => `${n} ${tr(n === 1 ? 'plik' : 'plików')}`
+  const files = (n: number) => `${n} ${tr(polishPlural(n, 'plik', 'pliki', 'plików'))}`
   const setGallery = (enabled: boolean) => work('gallery', async signal => { cache = await previewCache.gallery(enabled, signal) }).then(() => { if (cache) gallery = cache.gallery.enabled })
   let gallery = $state(false)
   $effect(() => { gallery = cache?.gallery.enabled ?? false })
@@ -173,7 +174,7 @@
       {#if storageState}
       <div class="sp-folder">
         <div class="p-row flat">
-          <div class="t"><b>{tr('Głosy, projekty i nagrania')}</b><span>{tr('Baza, głosy i pliki audio silnika.')}</span></div>
+          <div class="t"><b>{tr('Głosy, projekty i nagrania')}</b><span>{tr('Baza, głosy i pliki audio.')}</span></div>
           <div class="p-actions">
             {#if storageState.pending}<StatusBadge kind="wait" text={tr('Czeka na restart')}/>
             {:else}{#if desktop}<Button variant="outline" disabled={locked || transferring} onclick={() => choose('data')}><FolderOpen size={15}/>{tr('Wybierz folder…')}</Button>{/if}
@@ -241,9 +242,9 @@
     <!-- Kopie bezpieczeństwa -->
     {#if backups}
     <div class="p-section">
-      <header><h3>{tr('Kopie bezpieczeństwa bazy')}</h3><p>{tr('Przed aktualizacją powstaje kopia automatyczna. Ręczna kopia nie zawiera plików nagrań.')}</p></header>
+      <header><h3>{tr('Kopie bezpieczeństwa bazy')}</h3></header>
       <div class="p-row flat">
-        <div class="t"><b>{tr('Ostatnia kopia')}</b><span title={lastBackup?.path}>{lastBackup ? `${tr(lastBackup.kind)} · ${when(lastBackup.created_at)} · ${byteLabel(lastBackup.bytes)}` : tr('Brak kopii. Pierwsza automatyczna powstanie przed kolejną aktualizacją bazy.')}</span></div>
+        <div class="t"><b>{tr('Ostatnia kopia')}</b><span title={lastBackup?.path}>{lastBackup ? `${tr(lastBackup.kind)} · ${when(lastBackup.created_at)} · ${byteLabel(lastBackup.bytes)}. ${tr('Kopia robi się sama przed aktualizacją. Ręczna nie zawiera plików nagrań.')}` : tr('Brak kopii. Pierwsza automatyczna powstanie przed kolejną aktualizacją bazy. Ręczna nie zawiera plików nagrań.')}</span></div>
         <div class="p-actions"><Button disabled={locked || transferring} onclick={backup}><Database size={15}/>{tr('Utwórz kopię bazy teraz')}</Button></div>
       </div>
       {#if busy === 'backup'}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Zapisywanie i sprawdzanie kopii')}></progress><span>{tr('Zapisywanie i sprawdzanie kopii…')}</span></div>{/if}
@@ -253,9 +254,9 @@
     <!-- Historia -->
     {#if savedCap !== undefined}
     <div class="p-section">
-      <header><h3>{tr('Historia generowania')}</h3><p>{tr('Starsze nagrania ponad limit są usuwane razem z plikami audio. Ulubione zostają zawsze. 0 = bez limitu.')}</p></header>
+      <header><h3>{tr('Historia generowania')}</h3></header>
       <div class="p-row flat">
-        <div class="t"><b>{tr('Liczba zachowywanych nagrań')}</b><span>{tr('Limit zadziała po kolejnych generacjach.')}</span></div>
+        <div class="t"><b>{tr('Liczba zachowywanych nagrań')}</b><span>{tr('Starsze nagrania ponad limit są usuwane, ulubione zostają. 0 = bez limitu.')}</span></div>
         <div class="p-actions">
           {#if capOk}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}
           <Input class="num" type="number" min="0" max="100000" step="1" aria-label={tr('Liczba zachowywanych nagrań')} bind:value={cap} disabled={locked}/>
@@ -268,9 +269,9 @@
     <!-- Próbki i pliki tymczasowe -->
     {#if cache}
     <div class="p-section">
-      <header><h3>{tr('Próbki głosów i pliki tymczasowe')}</h3><p>{tr('Podglądy głosów w galerii i prywatne pliki robocze silnika.')}</p></header>
+      <header><h3>{tr('Próbki głosów i pliki tymczasowe')}</h3></header>
       <div class="p-rows">
-        <div class="p-row"><div class="t"><b>{tr('Pobieraj gotowe próbki z galerii online')}</b><span>{tr('Opcjonalne. Włączenie pobierze podpisany zestaw wyróżnionych próbek.')}</span></div>
+        <div class="p-row"><div class="t"><b>{tr('Pobieraj gotowe próbki z galerii online')}</b><span>{tr('Opcjonalne. Pobierze zestaw wyróżnionych próbek głosów.')}</span></div>
           <Switch label={tr('Pobieraj gotowe próbki z galerii online')} bind:checked={gallery} disabled={sampleLocked} onchange={setGallery}/></div>
         <div class="p-row"><div class="t"><b>{tr('Galeria')}</b><span>{tr('Wyróżnione próbki: {cached} / {total} · ostatnie sprawdzenie {when}.', { cached: cache.gallery.featured_cached, total: cache.gallery.featured_total, when: cache.gallery.checked_seconds_ago == null ? tr('jeszcze nie wykonano') : tr('{min} min temu', { min: Math.floor(cache.gallery.checked_seconds_ago / 60) }) })}</span></div>
           <div class="p-actions"><Button variant="outline" disabled={!cache.gallery.enabled || sampleLocked} onclick={checkGallery}>{#if busy === 'check'}<LoaderCircle size={15} class="spin"/>{tr('Sprawdzam…')}{:else}{tr('Sprawdź galerię teraz')}{/if}</Button></div></div>
@@ -290,7 +291,7 @@
       <div class="p-rows">
         <div class="p-row"><div class="t"><b>{tr('Pamięć podręczna próbek')}</b><span>{tr('{files} · {size}. Głosy i nagrania zostają.', { files: files(cache.cache.count), size: byteLabel(cache.cache.bytes) })}</span></div>
           <Button variant="outline" disabled={!cache.cache.count || sampleLocked} onclick={() => confirm = { audit: cache!.cache, temporary: false }}><Trash2 size={14}/>{tr('Wyczyść próbki…')}</Button></div>
-        <div class="p-row"><div class="t"><b>{tr('Prywatne pliki tymczasowe')}</b><span>{tr('{files} · {size} w folderach roboczych silnika.', { files: files(cache.temporary.count), size: byteLabel(cache.temporary.bytes) })}</span></div>
+        <div class="p-row"><div class="t"><b>{tr('Prywatne pliki tymczasowe')}</b><span>{tr('{files} · {size}. To pliki robocze silnika.', { files: files(cache.temporary.count), size: byteLabel(cache.temporary.bytes) })}</span></div>
           <Button variant="outline" disabled={!cache.temporary.count || sampleLocked} onclick={() => confirm = { audit: cache!.temporary, temporary: true }}>{tr('Wyczyść pliki tymczasowe…')}</Button></div>
       </div>
       {#if confirm}

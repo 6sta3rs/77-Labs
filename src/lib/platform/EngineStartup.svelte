@@ -2,14 +2,20 @@
   import { uiLanguage, createUiTranslator } from "../i18n"
   const tr = $derived(createUiTranslator($uiLanguage))
 
-  import { Check, Circle, LoaderCircle, ChevronDown } from '@lucide/svelte';
+  import { get } from 'svelte/store';
+  import { Check, Circle, Info, LoaderCircle, ChevronDown, TriangleAlert, X } from '@lucide/svelte';
+  import Button from '../ui/Button.svelte';
   import { modelStatus } from './api';
   import type { RuntimeStatus } from './runtime';
-  import { readModelWarmup, startupFraction, startupRows, type ModelWarmup } from './engine-startup';
+  import { engineCatalog, modelsCatalog } from '../tools/studio-tools';
+  import { engineCatalogSnapshot } from '../models/engine-catalog-state';
+  import { readModelWarmup, startupFraction, startupRows, warmupNote, type ModelWarmup, type WarmupNote } from './engine-startup';
 
   // Bottom-right card shown only while the engine starts or the TTS model warms up; nothing here starts the engine.
-  let { runtime }: { runtime: { state: string; message: string; startup?: RuntimeStatus['startup'] } } = $props();
+  // `onmodels` opens Ustawienia → Modele from the "model skipped" note.
+  let { runtime, onmodels }: { runtime: { state: string; message: string; startup?: RuntimeStatus['startup'] }; onmodels?: () => void } = $props();
   let model = $state<ModelWarmup | null>(null), seen = $state(false), finished = $state(false), expanded = $state(true);
+  let note = $state<WarmupNote>(), dismissed = $state(false);
   let elapsed = $state(0);
 
   const engineState = $derived(runtime.state); // by value: App replaces `runtime` on every poll
@@ -33,16 +39,29 @@
   // Once the engine answers, follow the model warm-up. A model that never starts loading (no licence or no
   // weights installed) stays "idle" and polling stops after a minute and a half.
   $effect(() => {
-    if (engineState !== 'ready') { model = null; return; }
+    if (engineState !== 'ready') { model = null; note = undefined; return; }
     const began = Date.now();
-    let stop = false, timer: ReturnType<typeof setTimeout> | undefined, hide: ReturnType<typeof setTimeout> | undefined;
+    let stop = false, explained = false, timer: ReturnType<typeof setTimeout> | undefined, hide: ReturnType<typeof setTimeout> | undefined;
+    // The engine does not report why it skipped the preload, so after a quiet 15 s derive it from the catalogue.
+    const explain = async () => {
+      try {
+        const family = get(engineCatalogSnapshot)?.catalog.tts ?? (await engineCatalog()).tts;
+        const weights = (await modelsCatalog()).models;
+        if (!stop && model?.status === 'idle') { note = warmupNote(model, family, weights); dismissed = false; }
+      } catch { /* no catalogue: leave the card without a note */ }
+    };
     const poll = async () => {
       try { if (!stop) model = readModelWarmup(await modelStatus()); } catch { /* the engine may be stopping */ }
       if (stop) return;
       if (model?.status === 'ready') {
+        note = undefined;
         if (seen) { finished = true; hide = setTimeout(() => { finished = false; seen = false; }, 3000); }
-      } else if (model?.status === 'error') seen = false;
-      else if (model?.status === 'loading' || Date.now() - began < 90_000) timer = setTimeout(poll, 1000);
+      } else if (model?.status === 'error') { seen = false; note = warmupNote(model); dismissed = false; }
+      else if (model?.status === 'loading') { note = undefined; timer = setTimeout(poll, 1000); }
+      else {
+        if (!explained && Date.now() - began > 15_000) { explained = true; void explain(); }
+        if (Date.now() - began < 90_000) timer = setTimeout(poll, 1000);
+      }
     };
     void poll();
     return () => { stop = true; clearTimeout(timer); clearTimeout(hide); };
@@ -74,6 +93,16 @@
       </ul>
     {/if}
   </section>
+{:else if note && !dismissed}
+  <section class="engine-startup" role="status" aria-live="polite" aria-label={tr("Stan modelu głosowego")}>
+    <header>
+      {#if model?.status === 'error'}<TriangleAlert size={15}/>{:else}<Info size={15}/>{/if}
+      <strong>{tr(note.text)}</strong>
+      <button type="button" class="fold" aria-label={tr("Zamknij")} onclick={() => dismissed = true}><X size={15}/></button>
+    </header>
+    {#if note.detail}<p class="note">{note.detail}</p>{/if}
+    {#if onmodels}<div class="act"><Button variant="outline" onclick={() => { dismissed = true; onmodels(); }}>{tr("Otwórz Modele")}</Button></div>{/if}
+  </section>
 {/if}
 
 <style>
@@ -84,7 +113,8 @@
   .fold :global(.flip){transform:rotate(-90deg)}
   progress{display:block;width:100%;height:4px;margin:10px 0 8px;appearance:none;border:0;border-radius:2px;background:var(--surface-hover);overflow:hidden}
   progress::-webkit-progress-bar{background:var(--surface-hover)}progress::-webkit-progress-value{background:var(--accent);transition:width .25s ease}
-  .now,.note{margin:0 0 6px;line-height:1.5}.note{color:var(--muted)}
+  .now,.note{margin:0 0 6px;line-height:1.5}.note{color:var(--muted);overflow-wrap:anywhere}
+  header+.note,.act{margin-top:8px}
   ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:5px}
   li{display:flex;align-items:center;gap:8px;color:var(--muted)}li.done{color:var(--foreground)}li.done :global(svg){color:var(--success)}li.active{color:var(--foreground);font-weight:600}
   @media (prefers-reduced-motion:reduce){progress::-webkit-progress-value{transition:none}}

@@ -209,7 +209,7 @@
   <div class="p-card panel">
   {#if tab === 'api'}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Lokalne API zgodne z OpenAI')}</h3><p>{tr('Aplikacje z obsługą formatu OpenAI połączą się z tym silnikiem. Z tego komputera klucz API nie jest wymagany.')}</p></div>{#if capabilities}<StatusBadge kind="ok" text={tr('Działa')}/>{:else}<StatusBadge kind="neutral" text={tr('Stan nieodczytany')}/>{/if}</header>
+      <header class="split"><div><h3>{tr('Lokalne API zgodne z OpenAI')}</h3><p>{tr('Programy obsługujące API OpenAI mogą korzystać z tego silnika. Z tego komputera nie trzeba klucza.')}</p></div>{#if capabilities}<StatusBadge kind="ok" text={tr('Działa')}/>{:else}<StatusBadge kind="neutral" text={tr('Stan nieodczytany')}/>{/if}</header>
       {@render addr('api', LOCAL_API_BASE, 'Kopiuj adres lokalnego API')}
       <div class="p-actions">
         <Button disabled={!!busy} onclick={testApi}>{#if busy === 'api'}<LoaderCircle size={15} class="spin"/>{tr('Testuję…')}{:else}<Plug size={15}/>{tr('Testuj lokalne API')}{/if}</Button>
@@ -217,24 +217,24 @@
       </div>
     </div>
     <div class="p-section">
-      <header><h3>{tr('Endpointy')}</h3><p>{tr('Adresy względem {base}.', { base: LOCAL_API_BASE.replace('/v1', '') })}</p></header>
+      <header><h3>{tr('Endpointy')}</h3><p>{tr('Pełny adres = {base} + ścieżka z listy.', { base: LOCAL_API_BASE.replace('/v1', '') })}</p></header>
       <div class="list">{#each ENDPOINTS as [m, path, d]}<div class="li"><span class="m"><StatusBadge kind="neutral" text={m}/></span><div class="nm"><code>{path}</code><span>{tr(d)}</span></div></div>{/each}</div>
     </div>
     <div class="p-section">
-      <header><h3>{tr('Modele')}</h3><p>{tr('Identyfikatory takie jak tts-1 to aliasy silnika. Lista nie potwierdza pobrania wag.')}</p></header>
+      <header><h3>{tr('Modele')}</h3><p>{tr('Nazwy typu tts-1 to aliasy silnika. Lista nie oznacza, że model jest pobrany.')}</p></header>
       <div class="chips">{#each models as model (model.id)}<span class="chip">{model.id}{#if model.voicestudio?.alias_for_active_engine}<em>alias</em>{/if}</span>{:else}<span class="p-sub">{tr('Silnik nie zwrócił listy modeli.')}</span>{/each}</div>
     </div>
 
   {:else if tab === 'mcp'}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Serwer MCP')}</h3><p>{tr('Pozwala klientowi pracować z głosami i nagraniami. Adres działa tylko na tym komputerze.')}</p></div>
+      <header class="split"><div><h3>{tr('Serwer MCP')}</h3><p>{tr('Pozwala programowi AI pracować z głosami i nagraniami. Działa tylko na tym komputerze.')}</p></div>
         {#if mcpTest}<StatusBadge kind="ok" text={tr('Połączenie potwierdzone')}/>{:else if mcpApplied}<StatusBadge kind="neutral" text={tr('Wykonaj test')}/>{:else if integrationState?.effective.mcp_enabled}<StatusBadge kind="bad" text={tr('Nie zamontowano')}/>{:else}<StatusBadge kind="neutral" text={tr('Wyłączone')}/>{/if}</header>
       {#if integrationState?.configuration_error}<p class="p-notice bad" role="alert">{tr(integrationState.configuration_error)}</p>{/if}
       {@render addr('mcp', LOCAL_MCP_URL, 'Kopiuj adres lokalnego MCP')}
       <div class="p-rows">
-        <div class="p-row"><div class="t"><b>{tr('Włącz MCP')}</b><span>{tr('Zmiana jest trwała i działa po ponownym uruchomieniu silnika.')}</span></div>
+        <div class="p-row"><div class="t"><b>{tr('Włącz MCP')}</b><span>{tr('Zmiana zostaje na stałe i działa po ponownym uruchomieniu silnika.')}</span></div>
           <div class="inline">{#if mcpRestart}<StatusBadge kind="wait" text={tr('Wymaga ponownego uruchomienia')}/>{/if}<Switch label={tr('Włącz lokalne MCP')} checked={config.mcp_enabled} disabled={!integrationState || !!busy} onchange={v => { config = { ...config, mcp_enabled: v }; mcpTest = undefined }}/></div></div>
-        <div class="p-row"><div class="t"><b>{tr('Audio zwracane klientowi MCP')}</b><span>{tr('Adres pliku zużywa mniej kontekstu klienta niż base64.')}</span></div>
+        <div class="p-row"><div class="t"><b>{tr('Audio zwracane klientowi MCP')}</b><span>{tr('Adres pliku jest lżejszy dla klienta niż osadzone audio (base64).')}</span></div>
           <Select class="w" ariaLabel={tr('Audio zwracane klientowi MCP')} value={config.mcp_output_mode} disabled={!integrationState || !!busy} options={OUTPUTS.map(o => ({ value: o.value, label: tr(o.label) }))} onchange={v => { config = { ...config, mcp_output_mode: v as IntegrationConfig['mcp_output_mode'] }; mcpTest = undefined }}/></div>
       </div>
       <div class="p-actions">
@@ -252,12 +252,12 @@
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Głos dla klienta MCP')}</h3><p>{tr('Klient przekazuje nagłówek X-OmniVoice-Client-Id. Profil podany w wywołaniu ma pierwszeństwo.')}</p></header>
+      <header><h3>{tr('Głos dla klienta MCP')}</h3><p>{tr('Klient przesyła nagłówek X-OmniVoice-Client-Id. Głos podany w zapytaniu ma pierwszeństwo.')}</p></header>
       <div class="p-rows">
-        <div class="p-row"><div class="t"><b>{tr('Id klienta')}</b><span>{tr('Identyfikator wybierający głos, nie hasło.')}</span></div><Input class="w" aria-label={tr('Id klienta')} placeholder={tr('moj-klient')} maxlength={128} bind:value={clientId}/></div>
+        <div class="p-row"><div class="t"><b>{tr('Id klienta')}</b><span>{tr('Identyfikator, po którym rozpoznajemy klienta. To nie hasło.')}</span></div><Input class="w" aria-label={tr('Id klienta')} placeholder={tr('moj-klient')} maxlength={128} bind:value={clientId}/></div>
         <div class="p-row"><div class="t"><b>{tr('Nazwa w tej aplikacji')}</b><span>{tr('Jak klient ma się nazywać na liście.')}</span></div><Input class="w" aria-label={tr('Nazwa w tej aplikacji')} maxlength={160} bind:value={label}/></div>
         <div class="p-row"><div class="t"><b>{tr('Profil głosu')}</b><span>{tr('Głos używany, gdy klient nie poda własnego.')}</span></div><Select class="w" ariaLabel={tr('Domyślny profil klienta')} value={voice} options={voiceOptions} onchange={v => voice = v}/></div>
-        <div class="p-row"><div class="t"><b>{tr('Silnik klienta')}</b><span>{tr('Pusty wybór oznacza silnik aktywny w studiu.')}</span></div><Select class="w" ariaLabel={tr('Silnik klienta')} value={engine} options={engineOptions} onchange={v => engine = v}/></div>
+        <div class="p-row"><div class="t"><b>{tr('Silnik klienta')}</b><span>{tr('Puste = silnik aktywny w studiu.')}</span></div><Select class="w" ariaLabel={tr('Silnik klienta')} value={engine} options={engineOptions} onchange={v => engine = v}/></div>
       </div>
       <div class="p-actions">
         <Button disabled={!clientId.trim() || !!busy} onclick={saveBinding}>{tr('Zapisz przypisanie')}</Button>
@@ -278,7 +278,7 @@
 
   {:else}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Referencja API silnika')}</h3><p>{#if spec}{tr('Dokument OpenAPI z działającego silnika · wersja {version} · OpenAPI {openapi} · {count} operacji.', { version: spec.info?.version || '?', openapi: spec.openapi || '?', count: OPS.length })}{:else if specBusy}{tr('Wczytywanie dokumentu OpenAPI…')}{:else}{tr('Nie odczytano dokumentu OpenAPI.')}{/if}</p></div>
+      <header class="split"><div><h3>{tr('Referencja API silnika')}</h3><p>{#if spec}{tr('Opis tras działającego silnika (OpenAPI) · wersja {version} · OpenAPI {openapi} · {count} operacji.', { version: spec.info?.version || '?', openapi: spec.openapi || '?', count: OPS.length })}{:else if specBusy}{tr('Wczytywanie dokumentu OpenAPI…')}{:else}{tr('Nie odczytano dokumentu OpenAPI.')}{/if}</p></div>
         {#if spec}<Button variant="outline" onclick={exportSpec}><Download size={15}/>{tr('Eksportuj OpenAPI JSON')}</Button>{:else if !specBusy}<Button variant="outline" onclick={loadSpec}>{tr('Spróbuj ponownie')}</Button>{/if}</header>
       {#if spec}
       <div class="filters">

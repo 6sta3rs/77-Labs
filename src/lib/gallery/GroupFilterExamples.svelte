@@ -40,18 +40,18 @@
     <div><span class="sample-label">{tr("Wyrównanie tekstu — ikony")}</span><ButtonGroup label={tr("Wyrównanie przykładowego tekstu")} mode="single" iconOnly bind:value={alignment} items={uiOptions([{value:'left',label:'Do lewej',icon:AlignLeft},{value:'center',label:'Wyśrodkuj',icon:AlignCenter},{value:'right',label:'Do prawej',icon:AlignRight}])}/></div>
     <div><span class="sample-label">{tr("Dodatkowy wybór statusów — wiele opcji")}</span><ButtonGroup label={tr("Statusy wyników")} mode="multiple" bind:value={statuses} items={uiOptions(statusOptions)}/></div>
   </div>
-  <p class="action-feedback" role="status">{action}</p>
+  <p class="action-feedback" role="status">{tr(action)}</p>
   <div class="filter-bar" aria-label={tr("Filtry przykładowych projektów")}>
-    <FilterChip label={tr("Utworzone przez")} options={authors} bind:value={author}/>
+    <FilterChip label={tr("Utworzone przez")} options={uiOptions(authors)} bind:value={author}/>
     <FilterChip label={tr("Status")} options={uiOptions(statusOptions)} bind:value={status}/>
-    <FilterChip label={tr("Model")} options={models} bind:value={model}/>
+    <FilterChip label={tr("Model")} options={uiOptions(models)} bind:value={model}/>
     <FilterChip label={tr("Źródło")} options={uiOptions(sources)} bind:value={source}/>
     <FilterChip label={tr("Język")} options={uiOptions(languages)} bind:value={language}/>
     <Button variant="ghost" size="compact" onclick={reset}><RotateCcw/>{tr("Wyczyść filtry")}</Button>
   </div>
   <p class="results-count" role="status">{tr("Wyniki:")} {filtered.length} {tr("z")} {rows.length}{tr(". Filtry działają na jawnej lokalnej liście przykładowej.")}</p>
   <div class="results" class:grid={view==='grid'} style={`text-align:${textAlign}`}>
-    {#each filtered as row}<article><strong>{row.name}</strong><span>{authors.find(item=>item.value===row.author)?.label} · {statusOptions.find(item=>item.value===row.status)?.label}</span><small>{models.find(item=>item.value===row.model)?.label} · {sources.find(item=>item.value===row.source)?.label} · {languages.find(item=>item.value===row.language)?.label}</small></article>{:else}<div class="empty">{tr("Brak projektów pasujących do wybranych filtrów.")}</div>{/each}
+    {#each filtered as row}<article><strong>{tr(row.name)}</strong><span>{tr(authors.find(item=>item.value===row.author)?.label ?? "")} · {tr(statusOptions.find(item=>item.value===row.status)?.label ?? "")}</span><small>{tr(models.find(item=>item.value===row.model)?.label ?? "")} · {tr(sources.find(item=>item.value===row.source)?.label ?? "")} · {tr(languages.find(item=>item.value===row.language)?.label ?? "")}</small></article>{:else}<div class="empty">{tr("Brak projektów pasujących do wybranych filtrów.")}</div>{/each}
   </div>
 </section>
 

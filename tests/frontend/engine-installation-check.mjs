@@ -60,7 +60,7 @@ try{
     postJson:body=>({body}),computeChoices:()=>[],diagnosticCheckLabels:{},recentRuntimeErrors:async()=>({errors:[]}),redactDiagnosticText:String,redactDiagnosticValue:value=>value,
     runOfflineDiagnostics:async()=>({checks:[]}),runtimeSnapshot:async()=>({memory:{data:{ram:1,total_ram:16,vram:0,total_vram:0}},models:{},compute:{},performance:{},compile:{},media:{}}),saveCompileDisabled:async()=>({}),saveComputeDevice:async()=>({}),
     savePerformance:async()=>({}),unloadRuntimeModel:async()=>{},gpuEngineLabels:{},gpuOptionLabels:{},gpuStateLabels:{},preflightCheckLabels:{},putSettings:async()=>({}),
-    settingsError:String,settingsTimeout:Number,readEngineIdleMinutes:()=>15,saveEngineIdleMinutes:async()=>{},engineIdleOptions:[5,15,30,60],
+    settingsError:String,settingsTimeout:Number,readEngineIdleMinutes:()=>15,saveEngineIdleMinutes:async()=>{},engineIdleOptions:[5,15,30,60,0],readEngineAutostart:()=>true,saveEngineAutostart(){},readEnginePreload:()=>true,saveEnginePreload:async()=>{},readModelWarmup:()=>({status:'idle'}),
     runtimeInstaller:{status:async()=>({state:'idle'})},installingRuntime:()=>false,
     engineInstallation:{catalog:async()=>{catalogReads++;return{root:'',engines:[]};},jobs:async()=>{jobReads++;return{jobs:[running]};}},
     runtimeInstallActive:exports.runtimeInstallActive,runtimeInstallLabels:{},runtimePhaseLabels:{},runtimeSize:exports.runtimeSize,runtimeTransfer:exports.runtimeTransfer,

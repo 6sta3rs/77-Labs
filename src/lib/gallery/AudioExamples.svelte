@@ -81,7 +81,7 @@
     preparation = (async () => {
       try {
         const speech = await makeRecording(await demoBlob(), 'example-speech', 'Sygnał demonstracyjny', 'sygnal-demo.wav', 'Sygnał testowy')
-        const tone = await makeRecording(testTone(), 'example-tone', 'Ton testowy 440 Hz i cisza', 'ton-testowy.wav', 'Sygnał testowy')
+        const tone = await makeRecording(testTone(), 'example-tone', tr('Ton testowy 440 Hz i cisza'), 'ton-testowy.wav', 'Sygnał testowy')
         if (!disposed) recordings = [speech, tone]
       } catch (cause) { if (!disposed) error = cause instanceof Error ? cause.message : 'Nie można przygotować przykładów audio.' }
       finally { if (!disposed) loading = false }
@@ -149,7 +149,7 @@
     <div class="audio-samples">
       {#each recordings as row, index (row.url)}
         <div class="audio-sample" class:chosen={selectedId === row.id}>
-          <div class="audio-sample-heading"><Button variant={selectedId === row.id ? 'secondary' : 'ghost'} size="sm" aria-pressed={selectedId === row.id} onclick={() => choose(row)}>{row.title}</Button>{#if selectedId === row.id}<span class="audio-active">{playbackStatusLabel(playback.status)}</span>{/if}</div>
+          <div class="audio-sample-heading"><Button variant={selectedId === row.id ? 'secondary' : 'ghost'} size="sm" aria-pressed={selectedId === row.id} onclick={() => choose(row)}>{tr(row.title)}</Button>{#if selectedId === row.id}<span class="audio-active">{tr(playbackStatusLabel(playback.status))}</span>{/if}</div>
           <GenerationCard recording={row} index={index + 1} state={selectedId === row.id ? playback : undefined} onplay={() => toggleRecording(row)} onseek={seconds => { void choose(row).then(() => player?.seek(seconds)) }} />
           <p class="audio-source">{row.id === 'example-speech' ? tr("Syntetyczny sygnał demonstracyjny z repozytorium.") : row.id === 'example-tone' ? tr("Lokalny ton 440 Hz z przerwami ciszy · 5 s. To sygnał testowy.") : tr("Plik wybrany na tym urządzeniu. Nie jest wysyłany do serwera.")}</p>
         </div>
@@ -168,10 +168,10 @@
     <div class="audio-orb-panel">
       <div class="audio-orb-stage" class:landing={variant === 'landing'}>
         <VoiceOrb voiceId={selected?.id ?? 'example-speech'} size={variant === 'landing' ? 256 : 190} ring={variant !== 'landing'} {variant} features={activity.features} orbAudio={activity.orbAudio} level={activity.level} bands={activity.bands} playing={activity.playing} />
-        <Button class="audio-orb-play" variant="secondary" size="icon" disabled={!selected} aria-label={`${playback.status === 'loading' ? 'Anuluj wczytywanie' : playback.status === 'playing' ? tr("Wstrzymaj") : tr("Odtwórz")}: ${selected?.title ?? tr("próbkę")}`} onclick={() => player?.toggle()}>{#if playback.status === 'loading'}<LoaderCircle size={18} />{:else if playback.status === 'playing'}<Pause size={18} fill="currentColor" />{:else}<Play size={18} fill="currentColor" />{/if}</Button>
+        <Button class="audio-orb-play" variant="secondary" size="icon" disabled={!selected} aria-label={`${playback.status === 'loading' ? tr('Anuluj wczytywanie') : playback.status === 'playing' ? tr("Wstrzymaj") : tr("Odtwórz")}: ${selected?.title ?? tr("próbkę")}`} onclick={() => player?.toggle()}>{#if playback.status === 'loading'}<LoaderCircle size={18} />{:else if playback.status === 'playing'}<Pause size={18} fill="currentColor" />{:else}<Play size={18} fill="currentColor" />{/if}</Button>
       </div>
-      <strong>{selected?.voice ?? 'Próbka audio'}</strong>
-      <span class="audio-orb-state" aria-live="polite">{playbackStatusLabel(playback.status)}</span>
+      <strong>{selected?.voice ?? tr('Próbka audio')}</strong>
+      <span class="audio-orb-state" aria-live="polite">{tr(playbackStatusLabel(playback.status))}</span>
       <div class="audio-signal"><AudioLines size={14} /><span>{activity.available ? tr("Poziom sygnału: {value0}%", {value0: (Math.round(activity.level * 100))}) : tr("Pomiar sygnału po uruchomieniu audio")}</span></div>
       <p class="audio-source">{variant === 'landing' ? tr("Płynąca powierzchnia z ziarnem w kolorach wybranej palety. Reaguje na wybraną próbkę powyżej.") : tr("Po pauzie pomiar wraca do zera, a ruch łagodnie wraca do spokojnego dryfu. Ograniczenie animacji zachowuje działanie audio.")}</p>
     </div>
@@ -180,7 +180,7 @@
     <h3>{tr("Warianty kuli głosu")}</h3>
     <ButtonGroup label={tr("Wariant kuli głosu")} mode="single" value={variant} items={uiOptions(orbVariants.map(value => ({value,label:variantNames[value]})))} onchange={value => variant = value as OrbVariant}/>
     <div class="orb-comparison">{#each orbVariants as item}<button class:selected={variant === item} aria-pressed={variant === item} onclick={() => variant = item}>
-      <VoiceOrb voiceId={selected?.id ?? 'example-speech'} size={110} variant={item} features={activity.features} orbAudio={activity.orbAudio} level={activity.level} bands={activity.bands} playing={activity.playing}/><strong>{variantNames[item]}</strong>
+      <VoiceOrb voiceId={selected?.id ?? 'example-speech'} size={110} variant={item} features={activity.features} orbAudio={activity.orbAudio} level={activity.level} bands={activity.bands} playing={activity.playing}/><strong>{tr(variantNames[item])}</strong>
     </button>{/each}</div>
     <h3>{tr("Kolor kuli")}</h3>
     <ButtonGroup label={tr("Kolor kuli głosu")} mode="single" value={palette} items={uiOptions([{ value: 'voice', label: 'Z głosu' }, ...orbPalettes.map(item => ({ value: item.id, label: item.label }))])} onchange={value => { palette = String(value); setOrbPalette(palette) }}/>
@@ -191,7 +191,7 @@
   <div class="audio-player" bind:this={playerHost}><Player bind:this={player} recording={selected} orbVariant={variant} onstate={value => playback = value} onimport={chooseFile} onactivity={value => activity = value} /></div>
   {#if importing}<p class="audio-message" role="status">{tr("Odczytywanie nagrania…")}</p>{/if}
   {#if error}<p class="audio-error" role="alert">{tr(error)}</p>{/if}
-  {#if notice}<p class="audio-message" role="status">{notice}</p>{/if}
+  {#if notice}<p class="audio-message" role="status">{tr(notice)}</p>{/if}
   <p class="audio-source audio-footer">{tr("Przykłady działają lokalnie i bez automatycznego odtwarzania. Nie uruchamiają syntezy, mikrofonu ani usług zewnętrznych.")}</p>
 </section>
 

@@ -94,7 +94,7 @@
     <Select language label={tr("Język formularza")} name="language" required bind:value={formLanguage} options={uiOptions(languages)}/>
     <div class="form-switch"><span>{tr("Zapisz ustawienie")}</span><Switch name="enabled" label={tr("Ustawienie formularza")} bind:checked={formConsent}/></div>
     <div class="button-samples"><Button type="submit">{tr("Sprawdź dane")}</Button><Button variant="outline" type="reset" onclick={()=>formResult=tr("Przywrócono wartości początkowe formularza.")}>{tr("Resetuj formularz")}</Button></div>
-    <output class="form-output">{formResult}</output>
+    <output class="form-output">{tr(formResult)}</output>
   </form>
 </section>
 
@@ -108,7 +108,7 @@
 <section class="variant-card wide" id="control-13">
   <div class="variant-heading"><span>13</span><h2>{tr("Wszystkie komponenty projektu")}</h2><code>{tr("inwentarz")}</code></div>
   <p>{tr("Kontrolki bazowe mają warianty powyżej. Komponenty ekranów łączą je z funkcjami Seventy Seven Labs.")}</p>
-  <div class="inventory">{#each inventory as [name,description]}<div><strong>{name}</strong><span>{description}</span></div>{/each}</div>
+  <div class="inventory">{#each inventory as [name,description]}<div><strong>{name}</strong><span>{tr(description)}</span></div>{/each}</div>
 </section>
 
 {#if dialog}<ThemeDialog kind={dialog.kind} seed={dialog.seed} onsubmit={save} onclose={()=>dialog=undefined}/>{/if}

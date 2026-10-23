@@ -23,7 +23,11 @@
     gpuEngineLabels, gpuOptionLabels, gpuStateLabels, preflightCheckLabels, putSettings, settingsError, settingsTimeout,
     type CudaState, type GpuReport, type MediaState, type PreflightReport, type SystemInfo,
   } from '../system-settings';
-  import { readEngineIdleMinutes, saveEngineIdleMinutes, engineIdleOptions, type EngineIdleMinutes } from '../../platform/runtime';
+  import { readEngineIdleMinutes, saveEngineIdleMinutes, engineIdleOptions, readEngineAutostart, saveEngineAutostart, readEnginePreload, saveEnginePreload, type EngineIdleMinutes } from '../../platform/runtime';
+  import { readModelWarmup, warmupNote, type ModelWarmup, type WarmupNote } from '../../platform/engine-startup';
+  import { get } from 'svelte/store';
+  import { engineCatalog, modelsCatalog } from '../../tools/studio-tools';
+  import { engineCatalogSnapshot } from '../../models/engine-catalog-state';
   import { runtimeInstaller, installingRuntime, type RuntimeInstallStatus } from '../../platform/runtime-installer';
   import { engineInstallation, runtimeInstallActive, runtimeInstallLabels, runtimePhaseLabels, runtimeSize, runtimeTransfer,
     type EngineRuntimeCatalog, type EngineRuntimeJob, type EngineRuntimeRecipe } from '../../models/engine-installation';
@@ -121,18 +125,30 @@
     const next = await productionJson<{ models: LoadedModel[] }>('/model/loaded', { signal });
     models = redactDiagnosticValue(next.models || []);
   }
+  // Rows are hidden until their value is read, so a failed read must be named instead of silently leaving the row out.
+  type Unread = { label: string; tab: Tab };
+  let unread = $state<Unread[]>([]);
   async function load(signal: AbortSignal) {
-    const read = async <T,>(path: string, apply: (value: T) => void) => { const value = await productionJson<T>(path, { signal }); signal.throwIfAborted(); if (!disposed) apply(value); };
+    const fails: Unread[] = [];
+    const read = async <T,>(label: string, failTab: Tab, path: string, apply: (value: T) => void) => {
+      try { const value = await productionJson<T>(path, { signal }); signal.throwIfAborted(); if (!disposed) apply(value); }
+      catch (cause) { signal.throwIfAborted(); fails.push({ label, tab: failTab }); }
+    };
     const [snap] = await Promise.allSettled([
       runtimeSnapshot(signal),
-      read<CudaState>('/api/settings/cuda-device', v => { cuda = v; cardDraft = v.value; }),
-      read<typeof offload>('/api/settings/perf/offload-after-generation', v => offload = v),
-      read<SystemInfo>('/system/info', v => { info = v; limGpu = String(v.generate_timeout_s); limCpu = String(v.cpu_generate_timeout_s); }),
+      read<CudaState>('wybór karty CUDA', 'obliczenia', '/api/settings/cuda-device', v => { cuda = v; cardDraft = v.value; }),
+      read<typeof offload>('przenoszenie modelu do RAM', 'uruchamianie', '/api/settings/perf/offload-after-generation', v => offload = v),
+      read<SystemInfo>('limity czasu generowania', 'obliczenia', '/system/info', v => { info = v; limGpu = String(v.generate_timeout_s); limCpu = String(v.cpu_generate_timeout_s); }),
       readHistory(signal), readLogs(signal),
     ]);
     signal.throwIfAborted();
     if (snap.status === 'fulfilled' && !disposed) {
       const s = snap.value;
+      if (s.compute.error) fails.push({ label: 'urządzenie obliczeń', tab: 'obliczenia' });
+      if (s.performance.error) fails.push({ label: 'presety szybkości i jakości', tab: 'obliczenia' });
+      if (s.compile.error) fails.push({ label: 'torch.compile', tab: 'obliczenia' });
+      if (s.memory.error) fails.push({ label: 'zużycie pamięci i karty', tab: 'stan' });
+      if (s.models.error) fails.push({ label: 'załadowane modele', tab: 'uruchamianie' });
       if (s.memory.data) memory = s.memory.data;
       models = s.models.data ? s.models.data.models : null;
       if (s.compute.data) { compute = s.compute.data; devDraft = s.compute.data.value; }
@@ -140,6 +156,7 @@
       if (s.compile.data) compileOff = s.compile.data.enabled;
       if (s.media.data) media = s.media.data as MediaState;
     }
+    if (!disposed) unread = fails;
   }
   function reload() {
     const controller = new AbortController(); controllers.add(controller);
@@ -253,22 +270,70 @@
   }
 
   /* ---------- tabs ---------- */
-  type Tab = 'stan' | 'obliczenia' | 'srodowiska' | 'dzienniki';
-  const tabs: [Tab, string][] = [['stan', 'Stan'], ['obliczenia', 'Obliczenia'], ['srodowiska', 'Środowiska'], ['dzienniki', 'Dzienniki i diagnostyka']];
-  const INTENTS: Record<string, Tab> = { stan: 'stan', state: 'stan', obliczenia: 'obliczenia', compute: 'obliczenia', srodowiska: 'srodowiska', environments: 'srodowiska', 'audio-tools': 'srodowiska', dzienniki: 'dzienniki', logs: 'dzienniki', preflight: 'dzienniki' };
+  type Tab = 'stan' | 'uruchamianie' | 'obliczenia' | 'srodowiska' | 'dzienniki';
+  const tabs: [Tab, string][] = [['stan', 'Stan'], ['uruchamianie', 'Uruchamianie i pamięć'], ['obliczenia', 'Obliczenia'], ['srodowiska', 'Środowiska'], ['dzienniki', 'Dzienniki i diagnostyka']];
+  const INTENTS: Record<string, Tab> = { stan: 'stan', state: 'stan', uruchamianie: 'uruchamianie', startup: 'uruchamianie', memory: 'uruchamianie', obliczenia: 'obliczenia', compute: 'obliczenia', srodowiska: 'srodowiska', environments: 'srodowiska', 'audio-tools': 'srodowiska', dzienniki: 'dzienniki', logs: 'dzienniki', preflight: 'dzienniki' };
   let tab = $state<Tab>('stan');
   $effect(() => { const target = INTENTS[intent]; if (target) untrack(() => goTab(target)); });
   let tabsEl = $state<HTMLDivElement>();
   const goTab = (t: Tab) => { tab = t; tick().then(() => tabsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
 
-  /* ---------- Stan ---------- */
+  /* ---------- Uruchamianie i pamięć (app-side choices live in localStorage; Rust and the engine apply them) ---------- */
   let idle = $state<EngineIdleMinutes>(readEngineIdleMinutes());
   async function changeIdle(value: string) {
     const minutes = Number(value) as EngineIdleMinutes, previous = idle; idle = minutes;
     try { await saveEngineIdleMinutes(minutes); flash('idle'); }
     catch (cause) { idle = previous; toast.bad(tr('Nie udało się zmienić czasu utrzymania silnika: {reason}', { reason: settingsError(cause) })); }
   }
-  const idleItems = $derived(engineIdleOptions.map(m => ({ value: String(m), label: m === 60 ? tr('1 godz.') : `${m} min` })));
+  const idleItems = $derived(engineIdleOptions.map(m => ({ value: String(m), label: m === 0 ? tr('Zawsze') : m === 60 ? tr('1 godz.') : `${m} min` })));
+  let autostart = $state(readEngineAutostart()), preload = $state(readEnginePreload());
+  function changeAutostart(on: boolean) {
+    const previous = autostart; autostart = on;
+    try { saveEngineAutostart(on); flash('auto'); }
+    catch (cause) { autostart = previous; toast.bad(tr('Nie udało się zapisać ustawienia: {reason}', { reason: settingsError(cause) })); }
+  }
+  async function changePreload(on: boolean) {
+    const previous = preload; preload = on;
+    try { await saveEnginePreload(on); flash('pre'); }
+    catch (cause) { preload = previous; toast.bad(tr('Nie udało się zapisać ustawienia: {reason}', { reason: settingsError(cause) })); }
+  }
+  // Voice model state: /model/status is a monitor read (it does not keep the engine awake).
+  let warm = $state<ModelWarmup | null>(null), preloading = $state(false), warmHint = $state<WarmupNote>();
+  // An idle model on a running engine means the preload was skipped; the engine only logs why, so derive the reason like the start-up card does.
+  async function explainIdle(signal: AbortSignal) {
+    try {
+      const family = get(engineCatalogSnapshot)?.catalog.tts ?? (await engineCatalog(signal)).tts;
+      const weights = (await modelsCatalog(signal)).models;
+      if (!signal.aborted) warmHint = warmupNote({ status: 'idle' }, family, weights);
+    } catch { /* no catalogue: the row keeps its plain "Nie załadowany" */ }
+  }
+  const ttsModel = $derived(models?.find(m => m.id === 'tts'));
+  $effect(() => {
+    if (!on || tab !== 'uruchamianie') { warm = null; warmHint = undefined; if (!on) preloading = false; return; }
+    const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined, quiet = 0;
+    const poll = async () => {
+      try {
+        const next = readModelWarmup(await productionJson<Record<string, unknown>>('/model/status', { signal: controller.signal }));
+        if (controller.signal.aborted) return;
+        const wasReady = warm?.status === 'ready', wasIdle = warm?.status === 'idle'; warm = next;
+        if (next.status !== 'idle') warmHint = undefined; else if (!wasIdle) void explainIdle(controller.signal);
+        if (next.status === 'ready' && !wasReady) void readModels().catch(() => {});
+        if (preloading) {
+          // The engine starts the load right after answering; "idle" twice in a row means it skipped (no licence or no weights).
+          quiet = next.status === 'idle' ? quiet + 1 : 0;
+          if (next.status === 'ready') { preloading = false; toast.ok(tr('Model głosowy jest w pamięci')); }
+          else if (next.status === 'error') { preloading = false; toast.bad(tr('Nie udało się załadować modelu: {reason}', { reason: redactDiagnosticText(next.error ?? '') })); }
+          else if (quiet >= 2) { preloading = false; toast.warn(tr('Model nie został załadowany. Sprawdź w sekcji Modele, czy jest pobrany i czy warunki licencji są zaakceptowane.')); }
+        }
+      } catch { /* The next tick retries; the engine may be stopping. */ }
+      if (!controller.signal.aborted) timer = setTimeout(poll, preloading || warm?.status === 'loading' ? 1000 : 4000);
+    };
+    void poll();
+    return () => { controller.abort(); clearTimeout(timer); };
+  });
+  function loadModelNow() {
+    void act('preload', async signal => { await productionJson('/next/settings/model-preload', { method: 'POST', signal }); preloading = true; });
+  }
 
   /* ---------- Obliczenia ---------- */
   let devDraft = $state('auto'), cardDraft = $state('auto');
@@ -294,7 +359,7 @@
   const famTier = $derived(performance ? performance.effective[fam] || performance.global : '');
   const famNote = $derived(performance && fam ? `${famName(fam)}: ${tierName(famTier)}${performance.overrides?.[fam] ? '' : ' ' + tr('(jak globalny)')}${performance.selections?.[fam]?.engine ? ` · ${performance.selections[fam].engine}${performance.selections[fam].model ? ' / ' + performance.selections[fam].model : ''}` : ''}` : '');
   function saveFamTier(tier: string) {
-    void act('famTier', async signal => { performance = await savePerformance(tier, fam, performance!, signal); toast.ok(tr('Zapisano preset dla: {name}', { name: famName(fam) })); });
+    void act('famTier', async signal => { performance = await savePerformance(tier, fam, performance!, signal); flash('famTier'); });
   }
   function flush(unload: boolean) {
     void act(unload ? 'flushAll' : 'flush', async signal => {
@@ -306,10 +371,10 @@
     });
   }
   function saveOffload(enabled: boolean) {
-    void act('offload', async signal => { offload = await putSettings<typeof offload>('/api/settings/perf/offload-after-generation', { enabled }, signal); toast.ok(tr('Zapisano')); });
+    void act('offload', async signal => { offload = await putSettings<typeof offload>('/api/settings/perf/offload-after-generation', { enabled }, signal); flash('offload'); });
   }
   function saveCompile(enabled: boolean) {
-    void act('compile', async signal => { const next = await saveCompileDisabled(enabled, signal); compileOff = next.enabled; toast.ok(tr('Zapisano. Zadziała przy kolejnym załadowaniu modelu.')); });
+    void act('compile', async signal => { const next = await saveCompileDisabled(enabled, signal); compileOff = next.enabled; flash('compile'); });
   }
   let limGpu = $state(''), limCpu = $state(''), limErr = $state('');
   function saveLimits() {
@@ -325,7 +390,7 @@
   }
   let gpuReport = $state<GpuReport>();
   const ENGINE_BADGE: Record<string, [BadgeKind, string]> = { gpu: ['ok', 'Karta graficzna'], gpu_caveat: ['warn', 'Z ograniczeniami'], cpu_by_design: ['neutral', 'Procesor'], pinned_cpu: ['neutral', 'Procesor'], not_installed: ['warn', 'Niezainstalowany'] };
-  function gpuCheck() { void act('gpu', async signal => { gpuReport = await productionJson<GpuReport>('/api/settings/gpu-report', { signal }); }); }
+  function gpuCheck() { void act('gpu', async signal => { gpuReport = await productionJson<GpuReport>('/api/settings/gpu-report', { signal, timeoutMs: 120_000 }); }); }
 
   /* ---------- Środowiska: standalone Python environment (desktop; works without the engine) ---------- */
   let em = $state<RuntimeInstallStatus>(), emOpen = $state(false), emVar = $state<'cpu' | 'cuda'>('cuda');
@@ -516,6 +581,8 @@
   <!-- dashboard -->
   {#if stopped}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc nie ma danych o obciążeniu.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>{/if}
 
+  {@render unreadNote('stan')}
+
   <div class="tiles t4">
     {#each tiles as t (t.k)}
       <div class="tile" class:off={t.off} role="group" aria-label={tr(t.label)}>
@@ -577,18 +644,19 @@
     {#each tabs as [id, label]}<button role="tab" aria-selected={tab === id} class:chosen={tab === id} onclick={() => tab = id}>{tr(label)}{#if id === 'obliczenia' && pending && on}<StatusBadge kind="wait" text={tr('Restart')} compact/>{:else if id === 'dzienniki' && issues && on}<StatusBadge kind={counts.err ? 'bad' : 'warn'} text={String(issues)} compact/>{/if}</button>{/each}
   </div>
 
+  {#snippet unreadNote(which: Tab)}
+    {@const missing = unread.filter(u => u.tab === which)}
+    {#if on && missing.length}<p class="p-notice warn">{tr('Nie odczytano: {what}.', { what: missing.map(u => tr(u.label)).join(', ') })} <Button variant="ghost" disabled={working.reload} onclick={() => act('reload', async () => { await reload(); })}>{tr('Spróbuj ponownie')}</Button></p>{/if}
+  {/snippet}
+
   <div class="p-card panel">
   {#if tab === 'stan'}
-    <div class="p-section">
-      <header><h3>{tr('Utrzymuj silnik po bezczynności')}</h3><p>{tr('Po tym czasie bez generowania silnik zwalnia pamięć.')}</p></header>
-      <div class="inline"><ButtonGroup label={tr('Czas bezczynności')} mode="single" value={String(idle)} onchange={v => void changeIdle(String(v))} items={idleItems}/>{#if savedFlag.idle}<span class="saved on">{tr('Zapisano')}</span>{/if}</div>
-    </div>
     {#if runtime.dataDir}<div class="p-section">
-      <header><h3>{tr('Dane aplikacji')}</h3><p>{tr('Tu silnik trzyma głosy, projekty i nagrania.')}</p></header>
+      <header><h3>{tr('Dane aplikacji')}</h3><p>{tr('Tu zapisane są Twoje głosy, projekty i nagrania.')}</p></header>
       <div class="address"><code>{runtime.dataDir}</code><Button variant="outline" onclick={() => copy('dir', runtime.dataDir!)}>{#if copied === 'dir'}<Check size={15}/>{tr('Skopiowano')}{:else}<Copy size={15}/>{tr('Kopiuj ścieżkę')}{/if}</Button></div>
     </div>{/if}
     <div class="p-section">
-      <header><h3>{tr('Szybki podgląd')}</h3><p>{tr('Gdzie szukać, gdy coś nie działa.')}</p></header>
+      <header><h3>{tr('Szybki podgląd')}</h3><p>{tr('Skróty do miejsc, w których sprawdzisz problemy.')}</p></header>
       <div class="jumps">
         <Button variant="ghost" class="jump" onclick={() => goTab('obliczenia')}><span class="k">{tr('Sprzęt')}</span><span class="v">{[...shownHw, ...(compute ? [devName(compute.value)] : [])].join(' · ') || tr('Brak odczytu — uruchom silnik')}</span><span class="go">{tr('Obliczenia')} <ChevronRight size={14}/></span></Button>
         <Button variant="ghost" class="jump" onclick={() => goTab('srodowiska')}><span class="k">{tr('Środowisko')}</span><span class="v">{emName}{missingEngines ? ` · ${missingEngines} ${tr(pl(missingEngines, 'dodatkowy silnik do zainstalowania', 'dodatkowe silniki do zainstalowania', 'dodatkowych silników do zainstalowania'))}` : ''}</span><span class="go">{tr('Środowiska')} <ChevronRight size={14}/></span></Button>
@@ -596,52 +664,82 @@
       </div>
     </div>
 
+  {:else if tab === 'uruchamianie'}
+    <div class="p-section">
+      <header><h3>{tr('Uruchamianie')}</h3></header>
+      <div class="p-rows">
+        <div class="p-row"><div class="t"><b>{tr('Uruchamiaj silnik przy starcie aplikacji')}</b><span>{tr('Silnik włącza się sam po otwarciu programu. Wyłączony ruszy dopiero przy pierwszym zadaniu. Zmiana działa od następnego uruchomienia.')}</span></div>
+          <div class="inline">{#if savedFlag.auto}<span class="saved on">{tr('Zapisano')}</span>{/if}<Switch label={tr('Uruchamiaj silnik przy starcie aplikacji')} checked={autostart} onchange={changeAutostart}/></div></div>
+        <div class="p-row"><div class="t"><b>{tr('Ładuj model głosowy do pamięci po uruchomieniu')}</b><span>{autostart ? tr('Model głosowy ładuje się razem ze startem silnika, więc pierwsze generowanie nie czeka. Zmiana działa od następnego uruchomienia silnika.') : tr('Niedostępne, gdy silnik nie startuje z aplikacją.')}</span></div>
+          <div class="inline">{#if savedFlag.pre}<span class="saved on">{tr('Zapisano')}</span>{/if}<Switch label={tr('Ładuj model głosowy do pamięci po uruchomieniu')} checked={preload && autostart} disabled={!autostart} onchange={changePreload}/></div></div>
+      </div>
+    </div>
+
+    <div class="p-section">
+      <header class="split"><div><h3>{tr('Utrzymuj silnik i model po bezczynności')}</h3><p>{tr('Gdy silnik nie jest używany, wyłączy się sam po wybranym czasie. „Zawsze” – nigdy się nie wyłączy (zajmuje ok. 1,9 GB pamięci karty).')}</p></div>
+        <div class="inline">{#if savedFlag.idle}<span class="saved on">{tr('Zapisano')}</span>{/if}<ButtonGroup label={tr('Czas bezczynności')} mode="single" value={String(idle)} onchange={v => void changeIdle(String(v))} items={idleItems}/></div></header>
+    </div>
+
+    <div class="p-section">
+      <header><h3>{tr('Model w pamięci')}</h3></header>
+      {@render unreadNote('uruchamianie')}
+      <div class="p-rows">
+        <div class="p-row"><div class="t"><b>{tr('Stan modelu głosowego')}</b><span>{!on ? tr('Silnik jest zatrzymany.') : warm?.status === 'loading' || preloading ? tr('Ładowanie modelu…') + (warm?.progress !== undefined ? ` ${Math.round(warm.progress)}%` : '') : warm?.status === 'ready' ? tr('Załadowany') + (ttsModel?.vram_mb ? ` · ${mb(ttsModel.vram_mb)}` : '') : warm?.status === 'error' ? tr('Nie udało się załadować modelu.') : warm ? tr('Nie załadowany') : tr('Odczytywanie…')}{#if on && warm?.status === 'idle' && !preloading && warmHint} · {tr(warmHint.text)}{/if}</span></div>
+          <div class="inline wrap">{#if on && warm?.status === 'idle' && !preloading && warmHint}<Button variant="ghost" onclick={() => onnavigate?.('models')}>{tr('Otwórz Modele')}</Button>{/if}<Button disabled={!on || !warm || warm.status === 'ready' || warm.status === 'loading' || preloading || working.preload} onclick={loadModelNow}>{#if preloading || warm?.status === 'loading'}<LoaderCircle size={15} class="spin"/>{tr('Ładuję…')}{:else}{tr('Załaduj model teraz')}{/if}</Button></div></div>
+        <div class="p-row"><div class="t"><b>{tr('Pamięć modeli')}</b><span>{tr('Zwalnia modele z pamięci. Załadują się ponownie przy następnym użyciu.')}</span></div>
+          <div class="inline wrap"><Button variant="outline" disabled={!on || working.flush} onclick={() => flush(false)}>{tr('Wyczyść pamięć podręczną')}</Button>
+            <Button variant={armed.flushAll ? 'destructive' : 'outline'} disabled={!on || working.flushAll} onclick={() => arm('flushAll', () => flush(true))}>{armed.flushAll ? tr('Potwierdź zwolnienie') : tr('Zwolnij modele i wyczyść cache')}</Button></div></div>
+        {#if offload}<div class="p-row"><div class="t"><b>{tr('Przenieś model do RAM po generowaniu')}</b><span>{offload.env_pinned ? tr('Ustawienie przypięto w konfiguracji uruchomienia.') : offload.device === 'cpu' ? tr('Na procesorze model już jest w RAM.') : tr('Po generowaniu model przechodzi z karty do zwykłej pamięci. Karta jest wolna, ale następne generowanie startuje kilka sekund dłużej. Domyślnie wyłączone.')}</span></div>
+          <div class="inline">{#if savedFlag.offload}<span class="saved on">{tr('Zapisano')}</span>{/if}<Switch label={tr('Przenieś model do RAM po generowaniu')} checked={offload.enabled} disabled={offload.env_pinned || working.offload} onchange={saveOffload}/></div></div>{/if}
+      </div>
+      {#if idle === 0 && offload?.enabled}<p class="p-notice warn">{tr('Wybrano „Zawsze”, więc model ma zostać w pamięci karty. Przenoszenie go do RAM po generowaniu temu przeczy — wyłącz je albo wybierz skończony czas.')}</p>{/if}
+    </div>
+
   {:else if tab === 'obliczenia'}
     {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc ustawienia obliczeń nie są dostępne.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>
     {:else}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Urządzenie i jakość')}</h3><p>{tr('Najczęściej zmieniane ustawienia.')}</p></div>{#if devPending}<StatusBadge kind="wait" text={tr('Czeka na restart')}/>{/if}</header>
+      <header class="split"><div><h3>{tr('Urządzenie i jakość')}</h3></div>{#if devPending}<StatusBadge kind="wait" text={tr('Czeka na restart')}/>{/if}</header>
+      {@render unreadNote('obliczenia')}
       <div class="p-rows">
       {#if compute}<div class="p-row">
-        <div class="t"><b>{tr('Urządzenie obliczeń')}</b><span>{compute.env_pinned ? tr('Urządzenie przypięto w konfiguracji uruchomienia.') : compute.override_ignored ? tr('Wybrane urządzenie jest niedostępne; silnik używa wyboru automatycznego.') : tr('Czym silnik liczy mowę. Zmiana działa po restarcie silnika.')}</span></div>
+        <div class="t"><b>{tr('Urządzenie obliczeń')}</b><span>{compute.env_pinned ? tr('Urządzenie przypięto w konfiguracji uruchomienia.') : compute.override_ignored ? tr('Wybrane urządzenie jest niedostępne; silnik używa wyboru automatycznego.') : tr('Czym silnik liczy mowę: kartą graficzną czy procesorem. Zmiana działa po restarcie silnika.')}</span></div>
         <div class="inline"><Select ariaLabel={tr('Urządzenie obliczeń')} value={devDraft} options={devOptions} disabled={compute.env_pinned || working.device} onchange={v => devDraft = v}/>{#if devChanged || cardChanged}<Button disabled={working.device} onclick={saveDevice}>{tr('Zapisz')}</Button>{/if}</div>
       </div>{/if}
-      {#if showCards && cuda}<div class="p-row"><div class="t"><b>{tr('Fizyczna karta CUDA')}</b><span>{cuda.env_pinned ? tr('Karta jest przypięta przez konfigurację uruchomienia.') : tr('Którą kartę ma używać silnik.')}</span></div>
+      {#if showCards && cuda}<div class="p-row"><div class="t"><b>{tr('Fizyczna karta CUDA')}</b><span>{cuda.env_pinned ? tr('Karta jest przypięta przez konfigurację uruchomienia.') : tr('Którą kartę NVIDIA ma używać silnik, gdy masz ich kilka.')}</span></div>
         <Select ariaLabel={tr('Fizyczna karta CUDA')} value={cardDraft} disabled={cuda.env_pinned || working.device} options={[{ value: 'auto', label: tr('Automatycznie') }, ...cuda.devices.map(d => ({ value: d.value, label: `GPU ${d.index} · ${d.name}` }))]} onchange={v => cardDraft = v}/></div>{/if}
       {#if performance}<div class="p-row">
         <div class="t"><b>{tr('Szybkość i jakość')}</b><span>{tr(TIER_HINT[performance.global] ?? 'Globalny wybór zeruje ustawienia rodzin.')}</span></div>
         <div class="inline">{#if savedFlag.tier}<span class="saved on">{tr('Zapisano')}</span>{/if}<ButtonGroup label={tr('Szybkość i jakość')} mode="single" value={performance.global} items={tierItems} disabled={working.tier} onchange={v => saveGlobalTier(String(v))}/></div>
       </div>{/if}
       </div>
+      {#if cuda && cuda.devices.length <= 1}<p class="p-sub">{tr('Wybór fizycznej karty CUDA pojawia się tylko wtedy, gdy komputer ma więcej niż jedną kartę NVIDIA.')}</p>{/if}
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Pamięć i wydajność')}</h3><p>{tr('Presety rodzin, pamięć modeli, przenoszenie, kompilacja i limity czasu.')}</p></header>
       <div class="p-rows">
       {#if performance && performance.applicable_families.length}
-        <div class="p-row"><div class="t"><b>{tr('Rodzina silników')}</b><span>{tr('Inny preset tylko dla wybranej rodziny.')}</span></div><Select ariaLabel={tr('Rodzina silników')} value={fam} options={performance.applicable_families.map(f => ({ value: f, label: famName(f) }))} onchange={v => fam = v}/></div>
+        <div class="p-row"><div class="t"><b>{tr('Wydajność i limity')}</b><span>{tr('Ustaw inny preset tylko dla jednej grupy silników, np. rozpoznawania mowy.')}</span></div><Select ariaLabel={tr('Rodzina silników')} value={fam} options={performance.applicable_families.map(f => ({ value: f, label: famName(f) }))} onchange={v => fam = v}/></div>
         <div class="p-row"><div class="t"><b>{tr('Szybkość i jakość tej rodziny')}</b><span>{famNote}</span></div>
-          <ButtonGroup label={tr('Szybkość i jakość tej rodziny')} mode="single" value={famTier} items={performance.tiers.map(value => ({ value, label: tierName(value) }))} disabled={working.famTier} onchange={v => saveFamTier(String(v))}/></div>
+          <div class="inline">{#if savedFlag.famTier}<span class="saved on">{tr('Zapisano')}</span>{/if}<ButtonGroup label={tr('Szybkość i jakość tej rodziny')} mode="single" value={famTier} items={performance.tiers.map(value => ({ value, label: tierName(value) }))} disabled={working.famTier} onchange={v => saveFamTier(String(v))}/></div></div>
       {/if}
-      <div class="p-row"><div class="t"><b>{tr('Pamięć modeli')}</b><span>{tr('Modele załadują się ponownie przy następnym użyciu.')}</span></div>
-        <div class="inline wrap"><Button variant="outline" disabled={working.flush} onclick={() => flush(false)}>{tr('Wyczyść pamięć podręczną')}</Button>
-          <Button variant={armed.flushAll ? 'destructive' : 'outline'} disabled={working.flushAll} onclick={() => arm('flushAll', () => flush(true))}>{armed.flushAll ? tr('Potwierdź zwolnienie') : tr('Zwolnij modele i wyczyść cache')}</Button></div></div>
-      {#if offload}<div class="p-row"><div class="t"><b>{tr('Przenieś model do RAM po generowaniu')}</b><span>{offload.device === 'cpu' ? tr('Na procesorze model już jest w RAM.') : tr('Zwalnia pamięć karty kosztem kilku sekund przy kolejnym użyciu.')}</span></div><Switch label={tr('Przenieś model do RAM po generowaniu')} checked={offload.enabled} disabled={offload.env_pinned || working.offload} onchange={saveOffload}/></div>{/if}
-      {#if compileOff !== null}<div class="p-row"><div class="t"><b>{tr('Wyłącz torch.compile')}</b><span>{tr('Tylko gdy pierwsze generowanie kończy się błędem kompilacji.')}</span></div><Switch label={tr('Wyłącz torch.compile')} checked={compileOff} disabled={working.compile} onchange={saveCompile}/></div>{/if}
-      {#if info}<div class="p-row"><div class="t"><b>{tr('Limity czasu generowania')}</b><span>{tr('Po tym czasie zadanie jest przerywane.')}</span>{#if limErr}<p class="p-field-err" role="alert">{tr(limErr)}</p>{/if}</div>
+      {#if compileOff !== null}<div class="p-row"><div class="t"><b>{tr('Wyłącz torch.compile')}</b><span>{tr('Włącz tylko, gdy pierwsze generowanie kończy się błędem. Generowanie może być wtedy wolniejsze. Zmiana działa przy kolejnym załadowaniu modelu.')}</span></div>
+        <div class="inline">{#if savedFlag.compile}<span class="saved on">{tr('Zapisano')}</span>{/if}<Switch label={tr('Wyłącz torch.compile')} checked={compileOff} disabled={working.compile} onchange={saveCompile}/></div></div>{/if}
+      {#if info}<div class="p-row"><div class="t"><b>{tr('Limity czasu generowania')}</b><span>{tr('Po tym czasie zadanie zostanie przerwane. Zwiększ przy bardzo długich tekstach.')}</span>{#if limErr}<p class="p-field-err" role="alert">{tr(limErr)}</p>{/if}</div>
         <div class="inline wrap"><label class="inline">{tr('GPU (s)')} <Input class="num" inputmode="numeric" aria-label={tr('Limit GPU w sekundach')} bind:value={limGpu}/></label><label class="inline">{tr('CPU (s)')} <Input class="num" inputmode="numeric" aria-label={tr('Limit CPU w sekundach')} bind:value={limCpu}/></label>
           <Button disabled={working.limits} onclick={saveLimits}>{tr('Zapisz limity')}</Button></div></div>{/if}
       </div>
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Zgodność akceleracji GPU')}</h3><p>{tr('Sprawdza, czy każdy silnik może używać karty graficznej.')}</p></header>
+      <header><h3>{tr('Zgodność akceleracji GPU')}</h3></header>
       <div class="p-rows">
-      <div class="p-row"><div class="t"><b>{tr('Przydział GPU')}</b><span>{gpuReport ? `${tr(gpuStateLabels[gpuReport.state] || 'Silnik zwrócił nierozpoznany stan akceleracji')} · PyTorch ${gpuReport.torch.version || gpuReport.torch.kind}` : tr('Sprawdza, czy każdy silnik może używać karty graficznej.')}</span></div>
+      <div class="p-row"><div class="t"><b>{tr('Przydział GPU')}</b><span>{gpuReport ? `${tr(gpuStateLabels[gpuReport.state] || 'Silnik zwrócił nierozpoznany stan akceleracji')} · PyTorch ${gpuReport.torch.version || gpuReport.torch.kind}` : tr('Sprawdza, które silniki mogą korzystać z karty graficznej.')}</span></div>
         <Button disabled={working.gpu} onclick={gpuCheck}>{#if working.gpu}<LoaderCircle size={15} class="spin"/>{tr('Sprawdzam…')}{:else}<Activity size={15}/>{tr('Sprawdź przydział GPU')}{/if}</Button></div>
       {#if gpuReport}
         {#each gpuReport.options.filter(o => gpuOptionLabels[o]) as option (option)}<div class="p-row"><div class="t"><span>{tr(gpuOptionLabels[option])}</span></div></div>{/each}
         {#each gpuReport.engines as e (`${e.kind}:${e.id}`)}{@const b = ENGINE_BADGE[e.code] ?? [e.available ? 'warn' : 'bad', gpuEngineLabels[e.code] || 'Stan nieustalony']}<div class="p-row"><div class="t"><b>{e.name}</b><span>{tr(gpuEngineLabels[e.code] || 'Stan nieustalony')}{e.params?.device ? ` · ${e.params.device}` : ''}</span></div><StatusBadge kind={b[0] as BadgeKind} text={tr(b[1])}/></div>{/each}
+        <p class="p-sub">{tr('Wynik opisuje zgodność sprzętu z silnikami, których biblioteki wykryto. Działanie silnika potwierdza dopiero jego wybór w sekcji Modele.')}</p>
       {/if}
       </div>
     </div>
@@ -649,7 +747,7 @@
 
   {:else if tab === 'srodowiska'}
       <div class="p-section">
-        <header><h3>{tr('Samodzielne środowisko Python')}</h3><p>{tr('Główne środowisko silnika. Działa także bez uruchomionego silnika.')}</p></header>
+        <header><h3>{tr('Samodzielne środowisko Python')}</h3><p>{tr('Główne środowisko silnika. Działa także wtedy, gdy silnik jest wyłączony.')}</p></header>
         {#if !desktop}<p class="p-sub">{tr('Instalator jest dostępny w aplikacji Windows x64.')}</p>
         {:else}
         <div class="env">
@@ -658,7 +756,7 @@
           {#if !emShowMore || emOpen}<Button variant="outline" disabled={emActive} onclick={() => emOpen = !emOpen}>{tr('Zmień wariant…')}</Button>{:else}<span></span>{/if}
           {#if emShowMore && em}
             <div class="env-more">
-              <div class="p-row flat"><div class="t"><b>{tr('Wariant środowiska')}</b><span>{tr('CUDA działa tylko z kartą NVIDIA. Wariant CPU jest mniejszy.')}</span></div>
+              <div class="p-row flat"><div class="t"><b>{tr('Wariant środowiska')}</b><span>{tr('CUDA działa tylko z kartą NVIDIA. Wariant CPU jest mniejszy, ale wolniejszy.')}</span></div>
                 <Select ariaLabel={tr('Wariant środowiska')} bind:value={emVar} disabled={emActive || working.em} options={[{ value: 'cpu', label: tr('CPU — bez karty NVIDIA') }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]}/></div>
               {#if emActive}<div class="p-progress" role="status">{#if em.phase === 'uv' && em.totalBytes}<progress class="p-bar" max={em.totalBytes} value={em.downloadedBytes} aria-label={tr('Instalacja środowiska')}></progress><span>{byteLabel(em.downloadedBytes)} / {byteLabel(em.totalBytes)} · {tr(EM_PHASES[em.phase] ?? em.phase)}</span>{:else}<progress class="p-bar" aria-label={tr('Instalacja środowiska')}></progress><span>{tr(EM_PHASES[em.phase] ?? em.phase)}</span>{/if}</div>{/if}
               {#if em.message && !emActive}<p class="p-sub">{tr(em.message)}</p>{/if}
@@ -678,7 +776,7 @@
       {#if !on}<p class="p-notice warn">{tr('Dodatkowe środowiska i narzędzia audio wymagają działającego silnika.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>{/if}
       {#if on}<div class="stack">
         <div class="p-section">
-          <header class="split"><div><h3>{tr('Środowiska dodatkowych silników')}</h3><p>{tr('Osobne środowiska dla silników, które nie mieszczą się w głównym.')}</p></div><Button variant="outline" disabled={working.recipes} onclick={() => act('recipes', async s => { await readRecipes(s); toast.info(tr('Odświeżono listę instalacji')); })}><RefreshCw size={15}/>{tr('Odśwież instalacje')}</Button></header>
+          <header class="split"><div><h3>{tr('Środowiska dodatkowych silników')}</h3><p>{tr('Osobne środowiska dla silników, które nie działają w głównym.')}</p></div><Button variant="outline" disabled={working.recipes} onclick={() => act('recipes', async s => { await readRecipes(s); toast.info(tr('Odświeżono listę instalacji')); })}><RefreshCw size={15}/>{tr('Odśwież instalacje')}</Button></header>
           {#if !catalog}<p class="p-sub">{tr('Odczytywanie…')}</p>{:else if !catalog.engines.length}<p class="p-sub">{tr('Brak dodatkowych silników do przygotowania.')}</p>{/if}
           {#each catalog?.engines ?? [] as r (r.engine_id)}
             {@const job = jobFor(r.engine_id)}
@@ -714,8 +812,8 @@
         </div>
 
         <div class="p-section">
-          <header><h3>{tr('Dodatkowe modele TTS')}</h3><p>{tr('Biblioteki potrzebne modelom, które nie należą do głównego środowiska.')}</p></header>
-          <div class="p-row flat"><div class="t"><b>{tr('Obliczenia dla nowych środowisk')}</b><span>{tr('Dotyczy tylko nowo przygotowywanych bibliotek.')}</span></div>
+          <header><h3>{tr('Dodatkowe modele TTS')}</h3><p>{tr('Dodatkowe biblioteki dla modeli, które nie działają w głównym środowisku.')}</p></header>
+          <div class="p-row flat"><div class="t"><b>{tr('Obliczenia dla nowych środowisk')}</b><span>{tr('Na czym liczyć nowo instalowane silniki. Nie zmienia już zainstalowanych.')}</span></div>
             <ButtonGroup label={tr('Obliczenia dla nowych środowisk')} mode="single" value={ttsComp} onchange={v => ttsComp = String(v)} items={[{ value: 'cpu', label: tr('Procesor') }, { value: 'cuda', label: 'CUDA' }]}/></div>
           {#each ttsEnvs as e (e.id)}
             {@const inst = !!e.setup && ['creating', 'installing', 'checking'].includes(e.setup.state)}
@@ -754,21 +852,21 @@
       {#if !on}<p class="p-notice warn">{tr('Silnik jest zatrzymany, więc dziennik i kontrole nie są dostępne.')}{#if desktop} {tr('Uruchom go przyciskiem u góry strony.')}{/if}</p>
       {:else}
       <div class="p-section">
-        <header><h3>{tr('Ostatnie błędy')}</h3><p>{tr('Najnowsze problemy zapisane przez silnik.')}</p></header>
+        <header><h3>{tr('Ostatnie błędy')}</h3><p>{tr('Ostatnie problemy zapisane przez silnik.')}</p></header>
         <div>{#each errors ?? [] as e, i (i)}<div class="err"><div><b>{e.error_class || tr('Błąd silnika')}{e.count && e.count > 1 ? ` · ${tr('wystąpienia: {n}', { n: e.count })}` : ''}</b><span>{[errTime(e), redactDiagnosticText(e.message || e.route || tr('Szczegóły w dzienniku silnika'))].filter(Boolean).join(' · ')}</span></div><Button variant="ghost" onclick={() => showInLog(errKey(e))}><Search size={15}/>{tr('Pokaż w dzienniku')}</Button></div>
         {:else}<p class="p-sub">{errors ? tr('Brak błędów od ostatniego uruchomienia.') : tr('Odczytywanie…')}</p>{/each}</div>
       </div>
 
       <div class="p-section">
-        <header><h3>{tr('Kontrola systemu')}</h3><p>{tr('Sprawdza, czy komputer i silnik mają wszystko do pracy.')}</p></header>
+        <header><h3>{tr('Kontrola systemu')}</h3><p>{tr('Sprawdza, czy komputer i silnik mają wszystko, czego potrzebują.')}</p></header>
         <div class="p-actions"><Button disabled={working.pf} onclick={() => runPf(false)}>{tr('Sprawdź system')}</Button><Button variant="outline" disabled={working.pf} onclick={() => runPf(true)}>{tr('Sprawdź gotowość lokalnie')}</Button><span class="p-sub">{tr('Wersja lokalna nie łączy się z internetem.')}</span></div>
         {#if working.pf}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Postęp kontroli')}></progress><span>{tr('Sprawdzam…')}</span></div>{/if}
         {#if pf}<p class="p-sub">{tr(pf.local ? 'Kontrola lokalna' : 'Kontrola pełna')}, {ago(pf.at)}: {pfCount.ok} {tr('w porządku')} · {pfCount.warn} {tr(pl(pfCount.warn, 'ostrzeżenie', 'ostrzeżenia', 'ostrzeżeń'))} · {pfCount.bad} {tr(pl(pfCount.bad, 'błąd', 'błędy', 'błędów'))}</p>
-        <div>{#each pf.checks as c (c.id)}<div class="chk"><span class="status-dot big {c.res === 'ok' ? 'ready' : c.res}"></span><div><b>{tr(c.label)}</b><span>{tr(c.detail)}{#if c.res !== 'ok' && c.res !== 'skip' && c.hint}<br>{tr(c.hint)}{/if}</span></div><StatusBadge kind={BADGE[c.res][0]} text={tr(BADGE[c.res][1])}/></div>{/each}</div>{/if}
+        <div>{#each pf.checks as c (c.id)}<div class="chk"><span class="status-dot big {c.res === 'ok' ? 'ready' : c.res}"></span><div><b>{tr(c.label)}</b><span>{tr(c.detail)}{#if c.res !== 'ok' && c.res !== 'skip' && c.hint}<br>{tr(c.hint)}{/if}{#if c.id === 'hf_token' && c.res !== 'ok' && c.res !== 'skip'}<br>{tr('Token Hugging Face ustawisz w Modele → Pobieranie i dostęp.')}{/if}</span>{#if c.id === 'hf_token' && c.res !== 'ok' && c.res !== 'skip'}<Button variant="ghost" onclick={() => onnavigate?.('models', 'access')}>{tr('Otwórz Pobieranie i dostęp')}</Button>{/if}</div><StatusBadge kind={BADGE[c.res][0]} text={tr(BADGE[c.res][1])}/></div>{/each}</div>{/if}
       </div>
 
       <div class="p-section">
-        <header><h3>{tr('Dziennik silnika')}</h3><p>{tr('Ostatnie 1000 linii. Hasła i ścieżki osobiste są zamaskowane.')}</p></header>
+        <header><h3>{tr('Dziennik silnika')}</h3><p>{tr('Ostatnie 1000 linii. Hasła i ścieżki osobiste są ukryte.')}</p></header>
         <Input placeholder={tr('Filtruj linie…')} aria-label={tr('Filtruj linie dziennika')} bind:value={q}/>
         <div><ButtonGroup label={tr('Poziom wpisów dziennika')} mode="single" value={lvl} items={lvlItems} onchange={v => lvl = v as typeof lvl}/></div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -782,7 +880,7 @@
       </div>
 
       <div class="p-section">
-        <header class="split"><div><h3>{tr('Raport dla pomocy technicznej')}</h3><p>{tr('Plik JSON ze stanem silnika, kontrolą i końcówką dziennika.')}</p></div><Button disabled={working.report} onclick={report}><FileText size={15}/>{tr('Pobierz raport')}</Button></header>
+        <header class="split"><div><h3>{tr('Raport dla pomocy technicznej')}</h3><p>{tr('Plik z informacjami o silniku, który wyślesz, gdy prosisz o pomoc.')}</p></div><Button disabled={working.report} onclick={report}><FileText size={15}/>{tr('Pobierz raport')}</Button></header>
       </div>
       {/if}
   {/if}
@@ -855,6 +953,7 @@
   .mrow .t{display:flex;flex-direction:column;gap:1px;min-width:0}.mrow .t b{font-size:var(--ui-text-12);font-weight:550}.mrow .t span{font-size:var(--ui-text-11);color:var(--muted);overflow-wrap:anywhere}
   .nm,.err>div,.chk>div{display:flex;flex-direction:column;gap:2px;min-width:0}
   .nm b,.err b,.chk b{font-size:var(--ui-text-13);font-weight:550}
+  .chk>div :global(button){align-self:flex-start}
   .nm span,.err span,.chk span{color:var(--muted);font-size:var(--ui-text-12);line-height:1.6;overflow-wrap:anywhere}
   .option{display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:var(--ui-text-12)}
   /* environments */

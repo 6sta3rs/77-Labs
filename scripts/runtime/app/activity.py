@@ -47,6 +47,7 @@ MONITORS = {
     '/next/preview-cache/state',
     '/next/settings/credentials',
     '/next/settings/proxy',
+    '/next/settings/added-llm-providers',
     '/next/settings/update-source',
     '/system/info',
     '/system/network/state',
@@ -600,6 +601,10 @@ def backend_work_busy():
         return True
     manager = sys.modules.get("model_management")
     if manager is not None and manager.busy():
+        return True
+    # A "load the model now" request returns before the load takes the model lock.
+    settings = sys.modules.get("system_settings")
+    if settings is not None and settings.preload_busy():
         return True
     from core.tasks import task_manager
     from core.db import db_conn

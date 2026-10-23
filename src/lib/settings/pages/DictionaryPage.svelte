@@ -152,7 +152,7 @@
     </div>
 
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Wpisy słownika')}</h3><p>{tr('{entries}. Wyłączony wpis zostaje na liście, ale nie zmienia mowy.', { entries: count(entries.length) })}</p></div>
+      <header class="split"><div><h3>{tr('Wpisy słownika')}</h3><p>{tr('{entries}. Wyłączony wpis zostaje na liście, ale nie zmienia wymowy.', { entries: count(entries.length) })}</p></div>
         {#if entries.length > 5}<div class="search"><Search size={14}/><Input bind:value={q} placeholder={tr('Szukaj we wpisach…')} aria-label={tr('Szukaj we wpisach słownika')}/></div>{/if}</header>
       {#if !loaded}<p class="p-sub" role="status">{tr('Odczytuję słownik…')}</p>
       {:else if !entries.length}<p class="p-sub">{tr('Słownik jest pusty. Dodaj pierwszą wymowę powyżej.')}</p>
@@ -175,7 +175,7 @@
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Sprawdź podstawienie tekstu')}</h3><p>{tr('Używa tego samego słownika co synteza i nie generuje dźwięku.')}</p></header>
+      <header><h3>{tr('Sprawdź podstawienie tekstu')}</h3><p>{tr('Pokazuje, jak słownik zmieni tekst. Nie generuje dźwięku.')}</p></header>
       <div class="test">
         <label class="lang"><span>{tr('Język testu')}</span><Select ariaLabel={tr('Język testu')} bind:value={testLang} onchange={() => preview = undefined} options={langs}/></label>
         <Textarea aria-label={tr('Tekst do sprawdzenia wymowy')} rows={3} bind:value={text} oninput={() => preview = undefined}/>
@@ -191,7 +191,7 @@
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Kopia i przywracanie')}</h3><p>{tr('Eksport zapisuje wszystkie wpisy do pliku JSON. Import pozwala dodać je do słownika albo go zastąpić.')}</p></header>
+      <header><h3>{tr('Kopia i przywracanie')}</h3><p>{tr('Eksport zapisuje wpisy do pliku. Import dodaje je do słownika albo go zastępuje.')}</p></header>
       <div class="p-actions">
         <Button variant="outline" disabled={busy} onclick={exportJson}><Download size={15}/>{tr('Eksportuj słownik JSON')}</Button>
         <FilePicker label={tr('Importuj słownik JSON')} accept=".json,application/json" showName={false} disabled={busy} onchange={chooseFile}/>

@@ -1,28 +1,17 @@
 import { translateUi } from '../i18n';
 import { productionJson, postJson } from './production/production';
 import { request } from '../platform/api';
-import { beginCatalogRead, invalidateCatalogReads, publishEngineCatalog } from '../models/engine-catalog-state';
+import { withConfirmed, beginCatalogRead, invalidateCatalogReads, publishEngineCatalog } from '../models/engine-catalog-state';
 import type { EngineReadiness } from '../models/engine-readiness';
 
-export type PronunciationEntry = { id: string; term: string; replacement: string; type: string; language: string; enabled: boolean };
-export type PronunciationDraft = Omit<PronunciationEntry, 'id'>;
-export type PronunciationTest = { substituted: string; changed: boolean; applied_terms: string[]; inert_entries?: { term: string; type: string }[] };
 export type BatchJob = { id: string; filename: string; status: string; langs: string[]; progress?: { stage?: string; percent?: number } | number | null; error?: string; retry_ready?: boolean; outputs?: Record<string, unknown> };
 export type Engine = EngineReadiness & { id: string; display_name?: string; name?: string; description?:string; available?: boolean; installed?: boolean; reason?: string; unavailable_reason?: string; routing_status?: string; routing_reason?: string; supports_cloning?: boolean | null; supports_voice_design?: boolean | null; preset_voices?: string[]; default_voice?: string | null; supported_language_names?: string[]; license_required?: boolean; license_accepted?: boolean };
-export type EngineFamily = { active: string; active_model?: string; availability_mode?: 'metadata_only'; env_override?: boolean; backends: Engine[] };
+export type EngineFamily = { active: string; configured_active?: string; active_model?: string; availability_mode?: 'metadata_only'; env_override?: boolean; backends: Engine[] };
 export type EngineCatalog = Record<'tts' | 'asr' | 'llm', EngineFamily>;
 export type Model = { repo_id: string; label: string; role: string; installed: boolean; supported: boolean; incomplete?: boolean; size_gb?: number; size_on_disk_bytes?: number };
 export type BackendRecording = { id: string; text: string; profile_name?: string; audio_path: string; created_at: string | number; duration?: number; starred: boolean | number };
 const part = encodeURIComponent;
 const json = productionJson;
-export const dictionary = {
-  list: (signal?: AbortSignal) => json<PronunciationEntry[]>('/pronunciation', { signal }),
-  save: (draft: PronunciationDraft, id?: string, signal?: AbortSignal) => json<PronunciationEntry>(id ? `/pronunciation/${part(id)}` : '/pronunciation', { ...postJson(draft, signal), method: id ? 'PUT' : 'POST' }),
-  remove: (id: string, signal?: AbortSignal) => json<{ deleted: boolean }>(`/pronunciation/${part(id)}`, { method: 'DELETE', signal }),
-  test: (text: string, language: string, signal?: AbortSignal) => json<PronunciationTest>('/pronunciation/test', postJson({ text, language: language === '*' ? null : language }, signal)),
-  export: (signal?: AbortSignal) => json<{ entries: PronunciationDraft[] }>('/pronunciation/export', { signal }),
-  import: (entries: PronunciationDraft[], signal?: AbortSignal) => json<{ imported: number }>('/pronunciation/import', postJson({ entries, replace: false }, signal)),
-};
 export const batch = {
   list: (signal?: AbortSignal) => json<BatchJob[]>('/batch/jobs?limit=100', { signal }),
   enqueue: (file: File, langs: string[], voice: string, preserveBg: boolean, signal?: AbortSignal) => {
@@ -41,12 +30,13 @@ export async function engineCatalog(signal?: AbortSignal) {
   const catalog = await json<EngineCatalog>('/engines', { signal });
   signal?.throwIfAborted();
   if (!publishEngineCatalog(catalog, revision)) throw new DOMException(translateUi("Odczyt zastąpiony nowszym katalogiem modeli."), 'AbortError');
-  return catalog;
+  return withConfirmed(catalog);
 }
 export const modelsCatalog = (signal?: AbortSignal) => json<{ models: Model[]; disk_free_gb?: number; total_installed_bytes?: number }>('/models', { signal });
-export const selectEngine = (family: string, backendId: string, signal?: AbortSignal) => {
+/** `modelId` is honoured by the engine only for family=asr with faster-whisper(-isolated) and tts mlx-audio. */
+export const selectEngine = (family: string, backendId: string, signal?: AbortSignal, modelId?: string) => {
   invalidateCatalogReads();
-  return json<{ active: string; env_override: boolean }>('/engines/select', postJson({ family, backend_id: backendId }, signal));
+  return json<{ active: string; env_override: boolean }>('/engines/select', postJson({ family, backend_id: backendId, ...(modelId ? { model_id: modelId } : {}) }, signal));
 };
 export const backendHistory = (signal?: AbortSignal) => json<BackendRecording[]>('/history', { signal });
 export const starRecording = (id: string, starred: boolean, signal?: AbortSignal) => json(`/history/${part(id)}/starred`, { ...postJson({ starred }, signal), method: 'PUT' });

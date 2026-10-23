@@ -36,14 +36,14 @@
   async function renderLocal(){
     if(!pcm||busy||loading||recording||validation.length)return;
     const current=new AbortController();controller=current;busy=true;error='';message='';
-    try{await tick();current.signal.throwIfAborted();const result=processAudio(pcm,edit),blob=encodeAudioWav(result.pcm);await present(blob,`obrobione-${file?.name.replace(/\.[^.]+$/,'')||'audio'}.wav`,result.measurements,'Lokalna obróbka audio',current.signal);message=`Zapisano wynik PCM WAV 16-bit. ${result.clippedBeforeLimit?`Ograniczono ${result.clippedBeforeLimit} próbek przekraczających zakres; zmniejsz głośność, aby uniknąć przesterowania.`:''}${result.silentNormalization?' Próbka jest bliska ciszy; normalizacja jej nie wzmocniła.':''}`;}
+    try{await tick();current.signal.throwIfAborted();const result=processAudio(pcm,edit),blob=encodeAudioWav(result.pcm);await present(blob,`obrobione-${file?.name.replace(/\.[^.]+$/,'')||'audio'}.wav`,result.measurements,'Lokalna obróbka audio',current.signal);message=[tr("Zapisano wynik PCM WAV 16-bit."),result.clippedBeforeLimit?tr("Ograniczono {count} próbek przekraczających zakres; zmniejsz głośność, aby uniknąć przesterowania.",{count:result.clippedBeforeLimit}):'',result.silentNormalization?tr("Próbka jest bliska ciszy; normalizacja jej nie wzmocniła."):''].filter(Boolean).join(' ');}
     catch(cause){if(!current.signal.aborted&&!disposed)error=redactDiagnosticText((cause as Error).message);}
     finally{if(controller===current&&!disposed)busy=false;}
   }
   async function isolate(){
     if(!ready||!allowModelCleaning||!file||busy||loading||recording)return;
     const current=new AbortController();controller=current;busy=true;error='';message='';
-    try{const result=await cleanAudio(file,current.signal);const decoded=await decodeAudioFile(new File([result.blob],result.filename,{type:'audio/wav'}),current.signal);await present(result.blob,result.filename,measureAudio(decoded),'Przetwarzanie mowy lokalnym modelem',current.signal);message=`Silnik zwrócił przetworzony plik. Ten endpoint nie potwierdza, czy separacja mowy się powiodła. ${result.conversionFallback?'Zgłosił awaryjny zapis formatu źródłowego.':''}`;}
+    try{const result=await cleanAudio(file,current.signal);const decoded=await decodeAudioFile(new File([result.blob],result.filename,{type:'audio/wav'}),current.signal);await present(result.blob,result.filename,measureAudio(decoded),'Przetwarzanie mowy lokalnym modelem',current.signal);message=[tr("Silnik zwrócił przetworzony plik. Ten endpoint nie potwierdza, czy separacja mowy się powiodła."),result.conversionFallback?tr("Zgłosił awaryjny zapis formatu źródłowego."):''].filter(Boolean).join(' ');}
     catch(cause){if(!current.signal.aborted&&!disposed)error=redactDiagnosticText((cause as Error).message);}
     finally{if(controller===current&&!disposed)busy=false;}
   }

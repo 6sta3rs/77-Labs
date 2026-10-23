@@ -70,7 +70,7 @@ function componentScript(text, props, dependencies = {}, exposure = 'select') {
   const code = ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const values = { $props: Object.assign(() => props, { id: () => 'readiness' }), $state: value => value,
     $derived: Object.assign(value => value, { by: compute => compute() }),
-    $bindable: value => value, $effect() {}, untrack: fn => fn(), onDestroy() {}, ...picker, ...dependencies };
+    $bindable: value => value, $effect() {}, untrack: fn => fn(), onDestroy() {}, userMessage: (cause, fallback) => cause?.message || fallback, ...picker, ...dependencies };
   return new Function(...Object.keys({...i18nDeps,...values}), code)(...Object.values({...i18nDeps,...values}));
 }
 await test('Active metadata-only model performs stock POST selection, preserving caller signal', async () => {
@@ -82,7 +82,7 @@ await test('Active metadata-only model performs stock POST selection, preserving
     } }, '../../models/model-licenses': { assertModelLicenseResponse: async () => {} },
   });
   const tools = compile(await source('lib/tools/studio-tools.ts'), { './production/production': production, '../platform/api': {},
-    '../models/engine-catalog-state': { invalidateCatalogReads() {}, beginCatalogRead: () => 1, publishEngineCatalog: () => true } });
+    '../models/engine-catalog-state': { invalidateCatalogReads() {}, beginCatalogRead: () => 1, publishEngineCatalog: () => true, withConfirmed: catalog => catalog } });
   const text = (await source('App.svelte')).match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
   const parsed = ts.createSourceFile('App.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const node = parsed.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'chooseInstalledModel');
@@ -120,8 +120,8 @@ await test('Already selected available model is inert without a redundant POST o
 await test('Catalogue action preserves active verification and all existing licence guards', async () => {
   // The engine catalogue moved from models/EngineCatalog.svelte to settings/pages/ModelsPage.svelte (per-family `fam`, licence switch `agreed`).
   const text = await source('lib/settings/pages/ModelsPage.svelte');
-  assert.ok(text.includes('fam.active !== engine.id || needsEngineVerification(engine)'));
-  assert.ok(text.includes('!canSelectEngine(engine) || Boolean(fam.env_override) || Boolean(engine.license_required && !engine.license_accepted)'));
+  assert.ok(text.includes('!isActive || needsEngineVerification(useEngine)'));
+  assert.ok(text.includes('!canSelectEngine(useEngine) || Boolean(fam.env_override) || Boolean(useEngine.license_required && !useEngine.license_accepted)'));
   assert.ok(text.includes('bind:checked={agreed}'));
   assert.ok(text.includes('disabled={!agreed || busy}'), 'Licence acceptance stays behind the explicit switch.');
   assert.ok(text.includes('<ModelLicenseReview'), 'The licence review stays hosted inside the catalogue.');

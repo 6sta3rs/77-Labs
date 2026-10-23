@@ -25,7 +25,8 @@ export function normalizeTtsModels(family?: EngineFamily): ModelPickerItem[] {
   return family.backends.map(engine => {
     const licenseBlocked = Boolean(engine.license_required && !engine.license_accepted)
     const verificationNeeded = needsEngineVerification(engine)
-    const routingBlocked = engine.routing_status === 'unavailable' && !verificationNeeded
+    const verified = engine.inference_verified === true // it already produced audio here; the catalogue's metadata-only flags are stale
+    const routingBlocked = engine.routing_status === 'unavailable' && !verificationNeeded && !verified
     const reasons = [
       engine.reason || engine.unavailable_reason,
       routingBlocked ? engine.routing_reason || 'Ten silnik nie obsługuje dostępnej konfiguracji sprzętowej.' : undefined,
@@ -37,9 +38,9 @@ export function normalizeTtsModels(family?: EngineFamily): ModelPickerItem[] {
       name: engine.display_name || engine.name || engine.id,
       description: engine.description || (engine.supports_cloning ? 'Synteza mowy z możliwością klonowania głosu.' : 'Silnik syntezy mowy.'),
       languages: engine.supported_language_names || [],
-      installed: engine.installed ?? (engine.available === true),
-      installationKnown: engine.weights_check !== 'not_checked' && (typeof engine.installed === 'boolean' || engine.available === true),
-      available: engine.available === true && !routingBlocked && !licenseBlocked && !family.env_override,
+      installed: verified || (engine.installed ?? (engine.available === true)),
+      installationKnown: verified || engine.weights_check !== 'not_checked' && (typeof engine.installed === 'boolean' || engine.available === true),
+      available: (verified || engine.available === true && !routingBlocked) && !licenseBlocked && !family.env_override,
       canVerify: verificationNeeded && !licenseBlocked && !family.env_override,
       readinessLabel: engine.availability_check ? engineReadinessLabel(engine) : undefined,
       reason: [...new Set(reasons)].join(' ') || undefined,
@@ -72,3 +73,11 @@ export function canSelectModel(model: ModelPickerItem): boolean {
 export function modelSelectionLabel(model: ModelPickerItem): string {
   return model.canVerify && !model.available ? 'Sprawdź i wybierz' : 'Wybierz'
 }
+
+/** Faster-Whisper engines accept `model_id` in /engines/select; the engine only takes Systran/faster-* or the deepdml turbo conversion. */
+export const FASTER_WHISPER_ENGINES = ['faster-whisper', 'faster-whisper-isolated']
+export const FASTER_WHISPER_DEFAULT = 'Systran/faster-whisper-large-v3'
+export const isFasterWhisperModel = (repo: string) => repo.startsWith('Systran/faster-') || repo === 'deepdml/faster-whisper-large-v3-turbo-ct2'
+/** True when `repo` is the CTranslate2 model the active ASR engine will use (an unset preference means the engine default). */
+export const isActiveAsrModel = (family: Pick<EngineFamily, 'active' | 'active_model'> | undefined, repo: string) =>
+  !!family && FASTER_WHISPER_ENGINES.includes(family.active) && (family.active_model || FASTER_WHISPER_DEFAULT) === repo

@@ -333,6 +333,8 @@ struct Inner {
     next_lease: u64,
     last_use: Instant,
     idle_timeout: Duration,
+    /// Warm the TTS model at engine start (read once per spawn; the UI re-applies the stored choice).
+    preload_tts: bool,
 }
 
 impl Drop for Inner {
@@ -357,6 +359,7 @@ impl Default for Runtime {
             next_lease: 0,
             last_use: Instant::now(),
             idle_timeout: Duration::from_secs(900),
+            preload_tts: true,
         })))
     }
 }
@@ -484,12 +487,25 @@ impl Runtime {
     }
 
     /// Only the fixed UI choices are accepted; the idle monitor reads the new budget on its next tick.
+    /// 0 means "always": the engine is never stopped for idleness (the budget never elapses).
     fn set_idle_minutes(&self, minutes: u64) -> Result<u64, String> {
-        if !matches!(minutes, 5 | 15 | 30 | 60) {
-            return Err("Nieobsługiwany czas bezczynności silnika. Wybierz 5, 15, 30 lub 60 minut.".into());
+        if !matches!(minutes, 0 | 5 | 15 | 30 | 60) {
+            return Err("Nieobsługiwany czas bezczynności silnika. Wybierz 5, 15, 30, 60 minut albo Zawsze.".into());
         }
-        self.0.lock().unwrap_or_else(|e| e.into_inner()).idle_timeout = Duration::from_secs(minutes * 60);
+        let (timeout, token) = {
+            let mut inner = self.0.lock().unwrap_or_else(|e| e.into_inner());
+            inner.idle_timeout = if minutes == 0 { Duration::MAX } else { Duration::from_secs(minutes * 60) };
+            (inner.idle_timeout, inner.process.as_ref().filter(|process| process.ready).map(|process| process.token.clone()))
+        };
+        // A running engine unloads its model on its own clock: keep it equal to this one.
+        if let Some(token) = token { push_model_idle(token, timeout); }
         Ok(minutes)
+    }
+
+    /// Applies from the next engine start; a running engine keeps the setting it was launched with.
+    fn set_preload(&self, enabled: bool) -> bool {
+        self.0.lock().unwrap_or_else(|e| e.into_inner()).preload_tts = enabled;
+        enabled
     }
 
     fn acquire(&self, keep_warm: bool) -> RuntimeLease {
@@ -563,11 +579,13 @@ impl Runtime {
                         if let Some(step) = step { process.startup.advance_stage(&step); }
                     }
                     if owns_healthy_listener(&process.token) {
+                        let (just_ready, token) = (!process.ready, process.token.clone());
                         process.ready = true;
                         process.unresponsive_since = None;
                         inner.status.state = "ready".into();
                         if let Ok(data) = active_data_dir() { inner.status.data_dir = Some(data.to_string_lossy().into()); }
                         inner.status.startup = None;
+                        if just_ready { push_model_idle(token, inner.idle_timeout); }
                         inner.status.message = if inner.status.source.as_deref() == Some("shared-python") {
                             "Silnik działa; tymczasowo korzysta ze współdzielonych bibliotek Python".into()
                         } else { "Silnik lokalny jest gotowy".into() };
@@ -601,6 +619,7 @@ impl Runtime {
         if inner.process.is_some() {
             return inner.status.clone();
         }
+        let preload_tts = inner.preload_tts;
         let result = (|| -> Result<(Process, RuntimeStatus), String> {
             let root = runtime_root()?;
             let (python, source) = python(&root)?;
@@ -664,8 +683,8 @@ impl Runtime {
                 .env_remove("PYTHONHOME")
                 .env("VOICESTUDIO_NEXT_BUNDLE", bundle)
                 .env("PYTHONUTF8", "1")
-                // Warm the TTS model in the background so the first synthesis does not wait for the weights.
-                .env("VOICESTUDIO_NEXT_PRELOAD_TTS", "1")
+                // Warm the TTS model in the background so the first synthesis does not wait for the weights (user-switchable).
+                .env("VOICESTUDIO_NEXT_PRELOAD_TTS", if preload_tts { "1" } else { "0" })
                 .stdin(Stdio::piped())
                 .stdout(Stdio::from(log.try_clone().map_err(|e| e.to_string())?))
                 .stderr(Stdio::from(log));
@@ -811,6 +830,39 @@ fn backend_get(token: &str, path: &str, read_timeout: Duration) -> Option<String
     Some(body.to_owned())
 }
 
+/// Mirrors `IDLE_FOREVER_S` in system_settings.py: what "Zawsze" means to the engine's own idle clock.
+const FOREVER_IDLE_SECONDS: u64 = 10 * 365 * 24 * 3600;
+
+/// PUT with the owner headers the engine's admin guard expects (same as `set_media_tool`). True only on a 200 from this engine.
+fn backend_put(token: &str, path: &str, body: &str) -> bool {
+    let Ok(mut stream) = TcpStream::connect_timeout(&SocketAddr::from(([127, 0, 0, 1], PORT)), Duration::from_millis(500)) else { return false };
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(10)));
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(2)));
+    if write!(stream, "PUT {path} HTTP/1.1\r\nHost: 127.0.0.1:{PORT}\r\nX-VoiceStudio-Next: {token}\r\nX-VoiceStudio-CSRF: 1\r\nOrigin: http://tauri.localhost\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).is_err() {
+        return false;
+    }
+    let mut response = String::new();
+    let _ = stream.take(16384).read_to_string(&mut response);
+    let headers = response.split_once("\r\n\r\n").map_or(response.as_str(), |(headers, _)| headers);
+    headers.starts_with("HTTP/1.1 200")
+        && headers.lines().any(|line| line.split_once(':').is_some_and(|(key, value)| key.eq_ignore_ascii_case("x-voicestudio-next") && value.trim() == token))
+}
+
+fn engine_idle_seconds(timeout: Duration) -> u64 {
+    if timeout == Duration::MAX { FOREVER_IDLE_SECONDS } else { timeout.as_secs() }
+}
+
+/// Best effort in the background (never blocks the UI or the status lock); the engine keeps the value in its preferences.
+fn push_model_idle(token: String, timeout: Duration) {
+    std::thread::spawn(move || {
+        let body = format!("{{\"seconds\":{}}}", engine_idle_seconds(timeout));
+        for attempt in 0..5 {
+            if attempt > 0 { std::thread::sleep(Duration::from_secs(3)); }
+            if backend_put(&token, "/next/settings/model-idle", &body) { return; }
+        }
+    });
+}
+
 fn backend_activity(token: &str) -> Option<BackendActivity> {
     let activity: BackendActivity = serde_json::from_str(&backend_get(token, "/next/activity", Duration::from_secs(1))?).ok()?;
     if !activity.idle_seconds.is_finite() || activity.idle_seconds < 0.0 {
@@ -839,6 +891,11 @@ pub async fn runtime_acquire(
 #[tauri::command]
 pub fn runtime_set_idle_minutes(runtime: tauri::State<'_, Runtime>, minutes: u64) -> Result<u64, String> {
     runtime.set_idle_minutes(minutes)
+}
+
+#[tauri::command]
+pub fn runtime_set_preload(runtime: tauri::State<'_, Runtime>, enabled: bool) -> bool {
+    runtime.set_preload(enabled)
 }
 
 #[tauri::command]
@@ -898,10 +955,23 @@ mod tests {
             assert_eq!(runtime.set_idle_minutes(minutes), Ok(minutes));
             assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::from_secs(minutes * 60));
         }
-        for minutes in [0, 1, 10, 45, 61, 900] {
+        for minutes in [1, 10, 45, 61, 900] {
             assert!(runtime.set_idle_minutes(minutes).is_err(), "{minutes} minutes must be rejected");
         }
         assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::from_secs(3600), "Rejected values keep the previous budget");
+        assert_eq!(runtime.set_idle_minutes(0), Ok(0), "0 = Zawsze (never stop for idleness)");
+        assert_eq!(runtime.0.lock().unwrap().idle_timeout, Duration::MAX);
+        assert_eq!(engine_idle_seconds(Duration::MAX), FOREVER_IDLE_SECONDS);
+        assert_eq!(engine_idle_seconds(Duration::from_secs(300)), 300);
+    }
+
+    #[test]
+    fn preload_flag_defaults_on_and_is_switchable() {
+        let runtime = Runtime::default();
+        assert!(runtime.0.lock().unwrap().preload_tts, "Preload stays on by default");
+        assert!(!runtime.set_preload(false));
+        assert!(!runtime.0.lock().unwrap().preload_tts);
+        assert!(runtime.set_preload(true));
     }
 
     #[test]

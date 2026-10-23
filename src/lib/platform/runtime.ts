@@ -96,21 +96,26 @@ export function getRuntimeStatus(): Promise<RuntimeStatus> {
 }
 
 export const engineIdleKey = 'voicestudio.engineIdleMinutes';
-export const engineIdleOptions = [5, 15, 30, 60] as const;
+/** 0 = "Zawsze": the engine is never stopped for idleness (and keeps the model in memory). */
+export const engineIdleOptions = [5, 15, 30, 60, 0] as const;
 export type EngineIdleMinutes = typeof engineIdleOptions[number];
 
 /** Odczyt wyboru użytkownika; brak lub wartość spoza listy oznacza domyślne 15 minut. */
 export function readEngineIdleMinutes(): EngineIdleMinutes {
   try {
-    const saved = Number(localStorage.getItem(engineIdleKey));
+    const raw = localStorage.getItem(engineIdleKey);
+    const saved = raw === null || raw.trim() === '' ? NaN : Number(raw);
     return engineIdleOptions.find(option => option === saved) ?? 15;
   } catch { return 15; }
 }
 
-/** Rust przyjmuje tylko 5/15/30/60; w przeglądarce nie ma silnika do przestawienia. */
+/** Rust przyjmuje tylko 5/15/30/60 oraz 0 (Zawsze); w przeglądarce nie ma silnika do przestawienia. */
 export function applyEngineIdleMinutes(minutes: EngineIdleMinutes): Promise<number | undefined> {
   return isDesktop() ? invoke<number>('runtime_set_idle_minutes', { minutes }) : Promise.resolve(undefined);
 }
+
+/** Seconds the engine itself waits before unloading its models; "Zawsze" = a value no session will reach. */
+export const engineIdleSeconds = (minutes: EngineIdleMinutes) => minutes === 0 ? 10 * 365 * 24 * 3600 : minutes * 60;
 
 /** Zapis dopiero po akceptacji w Rust, żeby nieudana zmiana nie zostawiła innego ustawienia niż aktywne. */
 export async function saveEngineIdleMinutes(minutes: EngineIdleMinutes): Promise<void> {
@@ -120,11 +125,34 @@ export async function saveEngineIdleMinutes(minutes: EngineIdleMinutes): Promise
 }
 
 // ponytail: apply once per app session (Rust keeps the value); retried on the next use if the first call fails.
+// Preload counts only with autostart on: the Settings switch is disabled (and shown off) otherwise, so an on-demand start must not warm the model.
 let idleApplied: Promise<unknown> | undefined;
 function applyStoredIdleOnce(): Promise<unknown> {
   if (!isDesktop()) return Promise.resolve();
-  idleApplied ??= applyEngineIdleMinutes(readEngineIdleMinutes()).catch(() => { idleApplied = undefined; });
+  idleApplied ??= Promise.all([applyEngineIdleMinutes(readEngineIdleMinutes()), applyEnginePreload(readEnginePreload() && readEngineAutostart())]).catch(() => { idleApplied = undefined; });
   return idleApplied;
+}
+
+/** Boolean choices kept in localStorage; a missing or unreadable value means the default (on). */
+function readFlag(key: string): boolean {
+  try { return localStorage.getItem(key) !== '0'; } catch { return true; }
+}
+function writeFlag(key: string, on: boolean) { localStorage.setItem(key, on ? '1' : '0'); }
+
+/** Start the engine when the app opens (default on). Read at launch, so a change applies from the next launch. */
+export const engineAutostartKey = 'voicestudio.engineAutostart';
+export const readEngineAutostart = () => readFlag(engineAutostartKey);
+export const saveEngineAutostart = (on: boolean) => writeFlag(engineAutostartKey, on);
+
+/** Warm the voice model at engine start (default on). Rust reads it when it spawns the engine. */
+export const enginePreloadKey = 'voicestudio.enginePreload';
+export const readEnginePreload = () => readFlag(enginePreloadKey);
+export function applyEnginePreload(enabled: boolean): Promise<boolean | undefined> {
+  return isDesktop() ? invoke<boolean>('runtime_set_preload', { enabled }) : Promise.resolve(undefined);
+}
+export async function saveEnginePreload(enabled: boolean): Promise<void> {
+  await applyEnginePreload(enabled);
+  writeFlag(enginePreloadKey, enabled);
 }
 
 export function startRuntime(): Promise<RuntimeStatus> {

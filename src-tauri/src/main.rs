@@ -11,6 +11,14 @@ mod settings_native;
 use runtime::Runtime;
 use tauri::Manager;
 
+/// True when this build has an update feed (endpoints are injected only by scripts/release/build-update.mjs via `--config`).
+#[tauri::command]
+fn app_updates_supported(app: tauri::AppHandle) -> bool {
+    app.config().plugins.0.get("updater")
+        .and_then(|u| u.get("endpoints")).and_then(|e| e.as_array())
+        .is_some_and(|e| !e.is_empty())
+}
+
 fn main() {
     let runtime = Runtime::default();
     tauri::Builder::default()
@@ -24,12 +32,14 @@ fn main() {
         .manage(dictation_desktop::DictationDesktop::default())
         .manage(watch_folder::WatchFolder::default())
         .invoke_handler(tauri::generate_handler![
+            app_updates_supported,
             runtime::runtime_status,
             runtime::runtime_start,
             runtime::runtime_stop,
             runtime::runtime_acquire,
             runtime::runtime_release,
             runtime::runtime_set_idle_minutes,
+            runtime::runtime_set_preload,
             installer::installer_status,
             installer::installer_start,
             installer::installer_cancel,

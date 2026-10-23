@@ -78,3 +78,7 @@ progress.p-bar::-moz-progress-bar{background:var(--accent);border-radius:2px}
 
 /* A hidden "Zapisano" never reserves width (belt and braces; markup should use {#if} and sit AFTER the button group) */
 .p-page .saved:not(.on){display:none}
+
+/* descriptions: narrower measure; notices keep the full width */
+.p-page .p-section>header p,.p-page .p-row .t>span,.p-page .p-sub{max-width:64ch}
+.p-page .p-notice{max-width:none}

@@ -12,6 +12,7 @@ if (_source_layout / "app/launcher.py").is_file() and (_source_layout / "install
     for _source_dir in ("app", "install"):
         _source_sys.path.insert(0, str(_source_layout / _source_dir))
 
+import asyncio
 import hmac
 import json
 import os
@@ -30,6 +31,16 @@ CREDENTIAL_FIELDS = {
     "AWS_PROFILE": ("AWS · profil", False),
     "AWS_REGION": ("AWS · region", False),
 }
+# "Zawsze" in the UI: a ten-year idle timeout is never reached by a session.
+IDLE_FOREVER_S = 10 * 365 * 24 * 3600
+_preload_task = None
+
+
+def preload_busy() -> bool:
+    """True while a user-requested model load runs (counted as work by activity.py)."""
+    return _preload_task is not None and not _preload_task.done()
+
+
 PROXY_KEYS = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
 
 
@@ -82,6 +93,19 @@ def apply_environment():
                 os.environ.pop(key, None)
 
 
+ADDED_PROVIDERS_KEY = "next.added_llm_providers"
+
+
+def added_llm_providers() -> list[str]:
+    """Providers the user added in "AI i klucze" (keyless local ones have no other 'added' marker)."""
+    from services import settings_store
+    try:
+        value = json.loads(settings_store.get_text(ADDED_PROVIDERS_KEY) or "[]")
+    except ValueError:
+        return []
+    return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+
+
 def credential_state() -> dict:
     from services import settings_store
     rows = []
@@ -109,6 +133,12 @@ def create_router(runtime: Path, data: Path):
 
     class ProxyBody(BaseModel):
         url: str = Field(max_length=4096)
+
+    class AddedProvidersBody(BaseModel):
+        ids: list[str] = Field(max_length=64)
+
+    class IdleBody(BaseModel):
+        seconds: int = Field(ge=60, le=IDLE_FOREVER_S)
 
     class MediaBody(BaseModel):
         tool: str
@@ -157,6 +187,20 @@ def create_router(runtime: Path, data: Path):
         await set_env_var({"key": body.key, "value": body.value.strip()})
         return credential_state()
 
+    @router.get("/added-llm-providers")
+    def get_added_llm_providers():
+        return {"ids": added_llm_providers()}
+
+    @router.put("/added-llm-providers")
+    def save_added_llm_providers(body: AddedProvidersBody):
+        from services import llm_providers, settings_store
+        known = {provider.id for provider in llm_providers.all_providers()} | {"chatgpt"}
+        unknown = [item for item in body.ids if item not in known]
+        if unknown:
+            raise HTTPException(400, "Nieznany dostawca modeli językowych.")
+        settings_store.set_text(ADDED_PROVIDERS_KEY, json.dumps(list(dict.fromkeys(body.ids))))
+        return {"ids": added_llm_providers()}
+
     @router.get("/proxy")
     def get_proxy():
         return proxy_state()
@@ -178,6 +222,13 @@ def create_router(runtime: Path, data: Path):
             else:
                 os.environ.pop(key, None)
         return proxy_state()
+
+    @router.put("/model-idle")
+    def set_model_idle(body: IdleBody):
+        """The engine unloads its voice model after this many idle seconds (read by model_manager every tick)."""
+        from core import prefs
+        prefs.set_("idle_timeout_seconds", body.seconds)
+        return {"seconds": body.seconds, "env_pinned": bool(os.environ.get("OMNIVOICE_IDLE_TIMEOUT_S"))}
 
     @router.post("/media-tool")
     def set_media_tool(body: MediaBody, request: Request):
@@ -202,5 +253,15 @@ def create_router(runtime: Path, data: Path):
             raise HTTPException(400, "Wybrany plik nie jest prawidłowym narzędziem multimedialnym.") from None
         finally:
             path.unlink(missing_ok=True)
+
+    @router.post("/model-preload")
+    async def preload_model():
+        """Start loading the voice model now. Returns at once; progress is read from /model/status."""
+        global _preload_task
+        from services import model_manager
+        if not preload_busy():
+            # A kept reference stops the task from being collected mid-load; preload_model() never raises.
+            _preload_task = asyncio.create_task(model_manager.preload_model())
+        return {**model_manager.get_model_status(), "running": preload_busy()}
 
     return router

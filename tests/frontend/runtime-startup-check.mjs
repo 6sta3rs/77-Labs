@@ -10,7 +10,7 @@ const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKi
 function load(invoke = async () => { throw new Error('Unexpected invoke'); }) {
   const exports = {};
   // The one-time idle-minutes sync is covered by engine-idle-check.mjs; these checks follow the lease flow.
-  const lease = invoke; invoke = async (command, args) => command === 'runtime_set_idle_minutes' ? undefined : lease(command, args);
+  const lease = invoke; invoke = async (command, args) => ['runtime_set_idle_minutes', 'runtime_set_preload'].includes(command) ? undefined : lease(command, args);
   new Function('exports', 'require', 'window', 'CustomEvent', code)(exports, specifier => specifier.endsWith('/i18n') ? i18n : { invoke, isTauri: () => true }, { dispatchEvent() {} }, class { constructor(type, options) { this.type = type; this.detail = options.detail; } });
   return exports;
 }

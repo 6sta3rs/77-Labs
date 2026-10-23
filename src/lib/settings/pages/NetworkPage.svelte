@@ -200,7 +200,7 @@
 
     <div class="p-section">
       <header class="split">
-        <div><h3>{tr('Tailscale Serve')}</h3><p>{tr('Prywatny dostęp dla Twoich urządzeń także poza domem. Bez publicznego Funnel.')}</p></div>
+        <div><h3>{tr('Tailscale Serve')}</h3><p>{tr('Prywatny dostęp do silnika z Twoich urządzeń także poza domem. Nie jest publiczny.')}</p></div>
         <div class="ctl" role="status">
           {#if tsOn}<StatusBadge kind="ok" text={tr('Włączony')}/>{:else}<StatusBadge kind="neutral" text={tr('Wyłączony')}/>{/if}
           {#if tsOn}<Button variant={armed.ts ? 'destructive' : 'outline'} disabled={!!busy} onclick={() => arm('ts', () => setTailscale(false))}>{armed.ts ? tr('Potwierdź wyłączenie') : tr('Wyłącz Tailscale Serve')}</Button>
@@ -214,18 +214,18 @@
     </div>
 
     <div class="p-section">
-      <div class="p-row flat"><div class="t"><b>{tr('Integracje')}</b><span>{tr('API zgodne z OpenAI, serwer MCP i głosy przypisane do klientów.')}</span></div><Button variant="outline" onclick={() => onnavigate?.('integrations')}>{tr('Otwórz Integracje')}<ArrowUpRight size={14}/></Button></div>
+      <div class="p-row flat"><div class="t"><b>{tr('Integracje')}</b><span>{tr('API OpenAI, serwer MCP i głosy przypisane do klientów.')}</span></div><Button variant="outline" onclick={() => onnavigate?.('integrations')}>{tr('Otwórz Integracje')}<ArrowUpRight size={14}/></Button></div>
     </div>
 
   {:else if tab === 'remote'}
     <div class="p-section">
       <header class="split">
-        <div><h3>{tr('Silnik używany przez aplikację')}</h3><p>{tr('Możesz użyć mocniejszego komputera z kartą graficzną zamiast lokalnego silnika.')}</p></div>
+        <div><h3>{tr('Silnik używany przez aplikację')}</h3><p>{tr('Zamiast lokalnego silnika możesz użyć mocniejszego komputera z kartą graficzną.')}</p></div>
         <div class="ctl" role="status">{#if remote}<StatusBadge kind={$remoteBackendState.error ? 'bad' : 'ok'} text={tr('Zdalny silnik')}/>{:else}<StatusBadge kind="neutral" text={tr('Lokalny silnik')}/>{/if}</div>
       </header>
       {#if $remoteBackendState.error}<p class="p-notice bad" role="alert">{tr($remoteBackendState.error)}</p>{/if}
       <div class="flow" role="img" aria-label={tr('Kierunek połączenia: To urządzenie → silnik na innym komputerze')}>
-        <div class="node" class:active={!remote}><b>{tr('To urządzenie')}</b><span>{tr('Aplikacja, którą teraz widzisz')}</span></div>
+        <div class="node" class:active={!remote}><b>{tr('To urządzenie')}</b><span>{tr('Aplikacja, którą teraz widzisz.')}</span></div>
         <div class="arrow"><ArrowRight size={16}/><span>{tr('To urządzenie → silnik na innym komputerze')}</span></div>
         <div class="node" class:active={remote}><b>{tr('Silnik na innym komputerze')}</b><span>{remote ? $remoteBackendState.url : tr('Nie połączono')}</span></div>
       </div>
@@ -234,7 +234,7 @@
 
     <div class="p-section">
       <header class="split">
-        <div><h3>{tr('Połączenie ze zdalnym silnikiem')}</h3><p>{tr('Adres i klucz znajdziesz na drugim komputerze, w jego zakładce Udostępnianie.')}</p></div>
+        <div><h3>{tr('Połączenie ze zdalnym silnikiem')}</h3><p>{tr('Adres i klucz znajdziesz na drugim komputerze, w zakładce Udostępnianie.')}</p></div>
         <Button variant="outline" disabled={!!busy} onclick={refreshRemote}><RefreshCw size={14}/>{tr('Odśwież połączenie')}</Button>
       </header>
       <div class="p-rows">
@@ -254,7 +254,7 @@
   {:else}
     <div class="p-section">
       <header class="split">
-        <div><h3>{tr('Serwer proxy')}</h3><p>{tr('Dla pobierania modeli, tłumaczy i dostawców LLM. Lokalna synteza pozostaje lokalna.')}</p></div>
+        <div><h3>{tr('Serwer proxy')}</h3><p>{tr('Używany przy pobieraniu modeli, tłumaczeniu i dostawcach LLM. Synteza zostaje lokalna.')}</p></div>
         <div class="ctl" role="status">{#if proxy?.set}<StatusBadge kind="ok" text={tr('Proxy ustawione')}/>{:else}<StatusBadge kind="neutral" text={tr('Brak proxy')}/>{/if}</div>
       </header>
       {#if proxy?.set}<dl class="p-kv"><div><dt>{tr('Aktualny adres')}</dt><dd><code>{proxy.address}</code></dd></div></dl>{/if}
@@ -272,7 +272,7 @@
     </div>
 
     <div class="p-section">
-      <div class="p-row flat"><div class="t"><b>{tr('Mirror i token Hugging Face')}</b><span>{tr('Ustawisz je w Modele, w zakładce Pobieranie i dostęp.')}</span></div><Button variant="outline" onclick={() => onnavigate?.('models')}>{tr('Otwórz Modele')}<ArrowUpRight size={14}/></Button></div>
+      <div class="p-row flat"><div class="t"><b>{tr('Mirror i token Hugging Face')}</b><span>{tr('Ustawisz je w Modele → Pobieranie i dostęp.')}</span></div><Button variant="outline" onclick={() => onnavigate?.('models')}>{tr('Otwórz Modele')}<ArrowUpRight size={14}/></Button></div>
     </div>
   {/if}
   </div>

@@ -8,13 +8,13 @@ const routing = await import('data:text/javascript;base64,' + Buffer.from(transp
 let source = await readFile(new URL('../../src/lib/platform/api.ts', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('api.ts', source, ts.ScriptTarget.Latest, true);
 for (const statement of [...ast.statements].reverse()) if (ts.isImportDeclaration(statement)) source = source.slice(0, statement.pos) + source.slice(statement.end);
-let nativeReads = 0, calls = [], bridgeRunning = false, remoteSelected = false;
+let stateReads = 0, nativeReads = 0, calls = [], bridgeRunning = false, remoteSelected = false;
 const context = vm.createContext({ Headers, Response, AbortSignal, crypto, routeBackendPath: routing.routeBackendPath,
   synchronizeRemoteRouting: routing.synchronizeRemoteRouting, setRemoteRouting: routing.setRemoteRouting,
   publishRemoteState: value => routing.setRemoteRouting(value.active), getRuntimeStatus: async () => ({state:bridgeRunning?'ready':'stopped'}),
   isTauri: () => true, isDesktop: () => true, invoke: async () => { nativeReads++; return []; },
   acquireRuntime: async () => async () => {},
-  desktopFetch: async (url, options) => { if(url.endsWith('/next/remote/state')) return new Response(JSON.stringify({active:remoteSelected})); calls.push({url, options}); return new Response('{}'); },
+  desktopFetch: async (url, options) => { if(url.endsWith('/next/remote/state')) { stateReads++; return new Response(JSON.stringify({active:remoteSelected})); } calls.push({url, options}); return new Response('{}'); },
 });
 vm.runInContext(transpile(source).replace(/^export /gm, '') + '\nglobalThis.client={request};', context);
 await context.client.request('/profiles');
@@ -38,13 +38,20 @@ assert.equal(ws.pathname, '/next/remote/ws');
 assert.equal(ws.searchParams.get('path'), '/ws/transcribe');
 assert.equal(ws.searchParams.get('sr'), '16000');
 assert.equal(ws.searchParams.has('token'), false);
-routing.remoteRouting.active = false;
+routing.setRemoteRouting(false); // simulates a reload: routing state changes, which invalidates the sync cache
 await context.client.request('/generate', {method:'POST',body:'fixture'});
 assert.equal(calls.at(-1).url,'http://127.0.0.1:4312/next/remote/proxy/generate','Renderer reload must synchronize the still-remote bridge before posting');
+const readsBefore = stateReads;
+await context.client.request('/profiles'); await context.client.request('/generate', {method:'POST',body:'fixture'});
+assert.equal(stateReads, readsBefore, 'Sequential requests within the TTL must not re-read the remote state');
+routing.setRemoteRouting(false);
+await context.client.request('/profiles');
+assert.equal(stateReads, readsBefore + 1, 'A routing change must invalidate the sync cache');
+routing.setRemoteRouting(false);
 let complete; const delayed = new Promise(resolve => complete=resolve);
 const synchronizing = routing.synchronizeRemoteRouting(()=>delayed,value=>routing.setRemoteRouting(value.active));
 routing.setRemoteRouting(true); complete({active:false}); await synchronizing;
 assert.equal(routing.remoteRouting.active,true,'An old handshake cannot undo a newer explicit connection');
 routing.remoteRouting.active = false;
 assert.equal(routing.routeBackendPath('/generate'), '/generate');
-console.log('Remote routing: 15 assertions passed (real native request, reload and response races, profile isolation, local recovery and WS).');
+console.log('Remote routing: 18 assertions passed (real native request, reload and response races, profile isolation, local recovery and WS).');

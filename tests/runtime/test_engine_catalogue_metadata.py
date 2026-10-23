@@ -99,6 +99,7 @@ class CatalogueTests(unittest.TestCase):
         self.env_patch = patch.dict(os.environ, {}, clear=True)
         self.env_patch.start(); self.addCleanup(self.env_patch.stop)
         self.calls = []
+        self.listed = []
         self.marker = object()
         self.modules = {}
         for family in ("tts", "asr", "llm"):
@@ -106,6 +107,7 @@ class CatalogueTests(unittest.TestCase):
             if family == "tts": ids.update(subject._DATA["extra"])
             module = types.ModuleType("fixture_" + family)
             module._REGISTRY = LazyTrap({name: object() for name in ids})
+            module.list_backends = lambda *args, _family=family, **kwargs: self.listed.append(_family) or "stock-" + _family
             self.modules[family] = module
         self.router = types.ModuleType("api.routers.engines")
         self.router.__file__ = str(self.engine / "backend/api/routers/engines.py")
@@ -433,6 +435,47 @@ class CatalogueTests(unittest.TestCase):
             self.assertEqual(row["active_model"],"qwen3-tts")
         self.assertEqual(catalogue.family_payload("asr")["model_check"],"not_checked")
 
+    def test_asr_active_model_reports_faster_whisper_pick(self):
+        catalogue = self.catalogue()
+        turbo = "deepdml/faster-whisper-large-v3-turbo-ct2"
+        self.assertIsNone(catalogue.family_payload("asr")["active_model"])
+        (self.data/"prefs.json").write_text(json.dumps({"asr_backend": "faster-whisper", "asr_model_faster": turbo}))
+        result = catalogue.family_payload("asr")
+        self.assertEqual((result["active"], result["active_model"], result["model_check"]), ("faster-whisper", turbo, "configured_not_loaded"))
+        with patch.dict(os.environ, {"ASR_MODEL_FASTER": "Systran/faster-whisper-small"}):
+            self.assertEqual(catalogue.family_payload("asr")["active_model"], "Systran/faster-whisper-small")
+        (self.data/"prefs.json").write_text(json.dumps({"asr_model_faster": ["bad"]}))
+        self.assertIsNone(catalogue.family_payload("asr")["active_model"])
+
+    def test_asr_active_model_ignores_faster_whisper_pick_for_other_backends(self):
+        catalogue = self.catalogue()
+        turbo = "deepdml/faster-whisper-large-v3-turbo-ct2"
+        (self.data/"prefs.json").write_text(json.dumps({"asr_backend": "whisperx", "asr_model_faster": turbo}))
+        self.assertIsNone(catalogue.family_payload("asr")["active_model"])
+        with patch.dict(os.environ, {"ASR_MODEL_WHISPERX": turbo}):
+            self.assertEqual(catalogue.family_payload("asr")["active_model"], turbo)
+
+    def test_asr_model_default_follows_the_installed_weight_without_touching_prefs(self):
+        turbo, systran = "deepdml/faster-whisper-large-v3-turbo-ct2", "Systran/faster-whisper-large-v3"
+        def run(installed, prefs=None, env=None):
+            for key in ("ASR_MODEL_FASTER", "ASR_MODEL_WHISPERX"): os.environ.pop(key, None)
+            os.environ.update(env or {})
+            path = self.data/"prefs.json"
+            if prefs is None: path.unlink(missing_ok=True)
+            else: path.write_text(json.dumps(prefs))
+            with patch.object(subject, "_repo_installed", side_effect=lambda repo: repo in installed):
+                subject.apply_asr_model_defaults(self.data)
+            return os.environ.get("ASR_MODEL_FASTER"), os.environ.get("ASR_MODEL_WHISPERX")
+        self.assertEqual(run({turbo}), (turbo, turbo), "turbo-only install: both default to the turbo weight")
+        self.assertFalse((self.data/"prefs.json").exists(), "prefs.json is never written")
+        self.assertEqual(run({turbo, systran}), (None, None), "the stock default is installed: untouched")
+        self.assertEqual(run(set()), (None, None), "nothing installed: untouched")
+        self.assertEqual(run({turbo}, env={"ASR_MODEL_WHISPERX": "large-v3"}), (None, "large-v3"), "external pin wins")
+        self.assertEqual(run({turbo}, prefs={"asr_backend": "whisperx"}), (turbo, turbo), "backend choice does not matter")
+        self.assertEqual(run({turbo}, prefs={"asr_model_faster": "Systran/faster-whisper-small"}), ("Systran/faster-whisper-small", None),
+                         "a saved pick is exported for the sidecar and not replaced by the default")
+        self.assertEqual(run({turbo}, prefs={"asr_model_faster": "Systran/faster-whisper-small"}, env={"ASR_MODEL_FASTER": "x/y"}), ("x/y", None))
+
     def test_dependency_presence_never_claims_available_or_inference(self):
         self.packages.update({"torch", "torchaudio", "transformers", "soundfile"})
         catalogue = self.catalogue()
@@ -579,6 +622,42 @@ class CatalogueTests(unittest.TestCase):
         seen = asyncio.run(scenario())
         self.assertEqual(len(seen),4); self.assertEqual(self.calls,[])
         self.assertTrue(all(isinstance(result,dict) for _,result in seen))
+
+    def test_gpu_report_lists_engines_from_declarations_only_inside_its_scope(self):
+        import anyio
+        stock = {family: self.modules[family].list_backends for family in ("tts", "asr")}
+        self.install()
+        self.assertIs(self.modules["tts"].list_backends.__wrapped__, stock["tts"])
+        self.assertFalse(hasattr(self.modules["llm"].list_backends, "__wrapped__"), "Only the families the GPU report lists are wrapped")
+        self.assertEqual(self.modules["tts"].list_backends(), "stock-tts", "Outside the scope the stock listing (and its probes) is untouched")
+        async def scenario():
+            seen = []
+            async def endpoint(scope, receive, send):
+                seen.append(await anyio.to_thread.run_sync(lambda: (self.modules["tts"].list_backends(), self.modules["asr"].list_backends())))
+            middleware = subject.EngineCatalogueMetadataScope(endpoint)
+            with patch.object(subject.MetadataCatalogue, "gpu_rows", lambda catalogue, family: ["declared-" + family]):
+                await middleware({"type": "http", "method": "GET", "path": subject.GPU_REPORT_PATH}, None, None)
+                await middleware({"type": "http", "method": "POST", "path": subject.GPU_REPORT_PATH}, None, None)
+            return seen
+        seen = asyncio.run(scenario())
+        self.assertEqual(seen[0], (["declared-tts"], ["declared-asr"]))
+        self.assertEqual(seen[1], ("stock-tts", "stock-asr"), "Only a GET gets declarations")
+        self.assertEqual(self.listed, ["tts", "tts", "asr"], "Probing ran only for the unscoped call and the POST")
+        self.assertNotIn(subject.GPU_REPORT_PATH, subject.CATALOGUE_PATHS)
+
+    def test_gpu_rows_are_routing_arithmetic_on_declared_compatibility_not_availability_proof(self):
+        class Caps: family = "cuda"
+        routing = lambda compat, caps, floor=0.0: {"effective_device": "cuda" if "cuda" in compat else "cpu", "routing_status": "accelerated" if "cuda" in compat else "cpu_only", "routing_reason": None}
+        device_caps = types.ModuleType("core.device_caps"); device_caps.detect_host_caps = lambda: Caps()
+        engine_routing = types.ModuleType("services.engine_routing"); engine_routing.routing_fields = routing
+        self.packages.update({"torch", "torchaudio", "transformers", "soundfile"})
+        with patch.dict(sys.modules, {"core.device_caps": device_caps, "services.engine_routing": engine_routing}):
+            rows = {row["id"]: row for row in self.catalogue().gpu_rows("tts")}
+        self.assertTrue(rows["omnivoice"]["available"], "Detected dependencies read as present")
+        self.assertEqual(rows["omnivoice"]["routing_status"], "accelerated")
+        self.assertFalse(rows["cosyvoice"]["available"], "A missing dependency stays unavailable (not_installed in the report)")
+        self.assertTrue(all(row["display_name"] and row["gpu_compat"] is not None for row in rows.values()))
+        self.assertFalse(any(row["inference_verified"] for row in rows.values()))
 
     def test_explicit_post_health_and_nonexact_paths_delegate_original_identity(self):
         self.install()

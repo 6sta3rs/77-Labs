@@ -4,7 +4,7 @@
   import { uiLanguage, createUiTranslator } from "../i18n"
   const tr = $derived(createUiTranslator($uiLanguage))
 
-  import { onMount } from 'svelte'
+  import { onMount, untrack } from 'svelte'
   import { Search, Upload, RotateCcw, ArrowUpRight, SlidersHorizontal } from '@lucide/svelte'
   import Select from '../ui/Select.svelte'
   import Slider from '../ui/Slider.svelte'
@@ -31,7 +31,7 @@
 
   let appearance = $state<AppearanceSettings>({ ...defaultAppearance })
   let name = $state('Nowa narracja'), email = $state(''), password = $state(''), seed = $state<number | null>(42)
-  let query = $state(''), text = $state('Cześć! To jest miejsce na twoją następną opowieść.\n\nMożesz edytować ten tekst i zmieniać rozmiar pola.')
+  let query = $state(''), text = $state(untrack(() => tr('Cześć! To jest miejsce na twoją następną opowieść.\n\nMożesz edytować ten tekst i zmieniać rozmiar pola.')))
   let language = $state('pl'), selectedEffect = $state('raw'), speed = $state(1), steps = $state(16)
   let stability = $state(44), similarity = $state(75)
   let previewLightTheme = $state<ThemeDefinition>(), previewDarkTheme = $state<ThemeDefinition>()
@@ -51,7 +51,7 @@
   })
   let drawerOpen = $state(false), checkA = $state(true), checkB = $state(false), checkAll = $state(false)
   let enabled = $state(true), reduced = $state(false), fileName = $state(''), resetKey = $state(0)
-  const initialBlocks = (): SpeechBlock[] => [{ id: 'gallery-speaker', voiceId: voices[0].id, text: 'Dobry głos zaczyna się od dobrego tekstu. [pause 250ms] Sprawdź tagi i dopisz swoją historię.' }]
+  const initialBlocks = (): SpeechBlock[] => [{ id: 'gallery-speaker', voiceId: voices[0].id, text: tr('Dobry głos zaczyna się od dobrego tekstu. [pause 250ms] Sprawdź tagi i dopisz swoją historię.') }]
   let blocks = $state<SpeechBlock[]>(initialBlocks())
   const languageOptions = [{ value: 'pl', label: 'Polski' }, { value: 'en', label: 'English' }, { value: 'auto', label: 'Automatycznie', description: 'Rozpoznanie języka na podstawie tekstu.' }]
   const effectOptions = [{ value: 'raw', label: 'Bez efektów' }, { value: 'podcast', label: 'Podcast', description: 'Wyraźna i wyrównana mowa.' }, { value: 'warm', label: 'Ciepłe' }, { value: 'broadcast', label: 'Radiowe' }, { value: 'cinematic', label: 'Filmowe' }, { value: 'bright', label: 'Jasne' }]
@@ -90,7 +90,7 @@
   })
   function reset() {
     appearance = { ...defaultAppearance }; name = 'Nowa narracja'; email = ''; password = ''; seed = 42; query = ''
-    text = 'Cześć! To jest miejsce na twoją następną opowieść.\n\nMożesz edytować ten tekst i zmieniać rozmiar pola.'
+    text = tr('Cześć! To jest miejsce na twoją następną opowieść.\n\nMożesz edytować ten tekst i zmieniać rozmiar pola.')
     stability = 44; similarity = 75; previewLightTheme = undefined; previewDarkTheme = undefined; groupedVoice = 'voice-0'; language = 'pl'; selectedEffect = 'raw'; speed = 1; steps = 16; enabled = true; reduced = false; fileName = ''; blocks = initialBlocks(); resetKey++
   }
 </script>
@@ -104,7 +104,7 @@
     <a class="sidebar-link" class:active={activeSection === 'intro'} href="#intro">{tr("Wprowadzenie")}</a>
     <a class="sidebar-link" class:active={activeSection === 'appearance'} href="#appearance">{tr("Wygląd podglądu")}</a>
     <p class="sidebar-group">{tr("Komponenty")}</p>
-    {#each sections as section}<a class="sidebar-link" class:active={activeSection === section.id} href={`#${section.id}`} aria-current={activeSection === section.id ? 'location' : undefined}>{tr(section.label)}<small>{section.code}</small></a>{/each}
+    {#each sections as section}<a class="sidebar-link" class:active={activeSection === section.id} href={`#${section.id}`} aria-current={activeSection === section.id ? 'location' : undefined}>{tr(section.label)}<small>{tr(section.code)}</small></a>{/each}
   </aside>
   <div class="gallery-page">
   <header class="gallery-header"><span class="gallery-crumb">{tr("Seventy Seven Labs")} <span class="slash">/</span> {tr("Kontrolki")}</span><div class="header-actions"><Button variant="ghost" href="/">{tr("Otwórz Studio")} <ArrowUpRight size={14}/></Button><Button variant="outline" size="sm" onclick={reset}><RotateCcw size={13}/>{tr("Resetuj podgląd")}</Button></div></header>

@@ -104,7 +104,7 @@
 
   <section class="p-card card">
     <div class="p-section">
-      <header><h3>{tr('Skróty w aplikacji')}</h3><p>{tr('Działają w każdym oknie aplikacji. Nie można ich zmienić.')}</p></header>
+      <header><h3>{tr('Skróty w aplikacji')}</h3><p>{tr('Działają w całej aplikacji. Nie można ich zmienić.')}</p></header>
       <dl class="p-kv">
         {#each APP_KEYS as [label, combos]}
           <div><dt>{tr(label)}</dt><dd>{#each combos as combo, i}{#if i}<span class="sep">/</span>{/if}{#each combo as k, j}{#if j}<span class="sep">+</span>{/if}<kbd>{k}</kbd>{/each}{/each}</dd></div>
@@ -113,7 +113,7 @@
     </div>
 
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Dyktowanie w innych oknach')}</h3><p>{tr('Globalny skrót otwiera pływające okno. Mikrofon uruchamiasz osobnym przyciskiem.')}</p></div>
+      <header class="split"><div><h3>{tr('Dyktowanie w innych oknach')}</h3><p>{tr('Skrót otwiera pływające okno. Mikrofon włączasz osobnym przyciskiem.')}</p></div>
         {#if supported}<Button variant="outline" disabled={saving} onclick={showWidget}><AppWindow size={15}/>{tr('Pokaż pływające okno')}</Button>{/if}</header>
       {#if !supported}
         <p class="p-notice">{status || !desktop ? tr('Globalny skrót, pływające okno i natywne wklejanie są dostępne w aplikacji desktopowej na Windows.') : tr('Odczytuję stan dyktowania…')}</p>
@@ -121,7 +121,7 @@
         {#if status?.error}<p class="p-notice bad" role="alert">{tr(String(status.error))}</p>{/if}
         <div class="p-rows">
           <div class="p-row">
-            <div class="t"><b>{tr('Włącz globalny skrót')}</b><span>{tr('Skrót działa także wtedy, gdy aplikacja jest w tle.')}</span></div>
+            <div class="t"><b>{tr('Włącz globalny skrót')}</b><span>{tr('Działa też, gdy aplikacja jest w tle.')}</span></div>
             <Switch label={tr('Włącz globalny skrót dyktowania')} checked={draft.enabled} disabled={saving} onchange={v => change({ enabled: v })}/>
           </div>
           <div class="p-row" class:off={!draft.enabled}>
@@ -137,7 +137,7 @@
           </div>
           {#if invalid}<p class="p-field-err" role="alert">{invalid}</p>{/if}
           <div class="p-row">
-            <div class="t"><b>{tr('Włącz przycisk wklejania do poprzedniego okna')}</b><span>{tr('Po dyktowaniu klikasz „Wklej” przy tytule okna. Kopiowanie i wklejanie to osobne, jawne akcje.')}</span></div>
+            <div class="t"><b>{tr('Włącz przycisk wklejania do poprzedniego okna')}</b><span>{tr('Po dyktowaniu klikasz „Wklej” przy tytule okna. Kopiowanie i wklejanie to osobne akcje.')}</span></div>
             <Switch label={tr('Włącz ręczne wklejanie dyktowania do poprzedniego okna')} checked={draft.paste_enabled} disabled={saving} onchange={v => change({ paste_enabled: v })}/>
           </div>
         </div>
@@ -152,7 +152,7 @@
     </div>
 
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Mikrofon')}</h3><p>{tr('Służy do dyktowania i nagrywania referencji głosu. Samo otwarcie tej strony go nie uruchamia.')}</p></div><StatusBadge kind={badge[0]} text={tr(badge[1])}/></header>
+      <header class="split"><div><h3>{tr('Mikrofon')}</h3><p>{tr('Do dyktowania i nagrywania próbek głosu. Samo otwarcie tej strony go nie włącza.')}</p></div><StatusBadge kind={badge[0]} text={tr(badge[1])}/></header>
       <div class="p-actions">
         <Button disabled={checking || !navigator.mediaDevices?.getUserMedia} onclick={checkMic}>{#if checking}<LoaderCircle size={15} class="spin"/>{tr('Sprawdzam…')}{:else}<Mic size={15}/>{tr('Sprawdź dostęp do mikrofonu')}{/if}</Button>
         <Button variant="outline" disabled={checking} onclick={refreshMic}><RefreshCw size={15}/>{tr('Odśwież uprawnienia')}</Button>

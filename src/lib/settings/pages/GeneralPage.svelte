@@ -45,12 +45,12 @@
       <header><h3>{tr('Praca w studiu')}</h3></header>
       <div class="p-rows">
         <div class="p-row">
-          <div class="t"><b>{tr('Język interfejsu')}</b><span>{tr('Dotyczy całej aplikacji. Tekst narracji, głosy i modele zostają bez zmian.')}</span></div>
+          <div class="t"><b>{tr('Język interfejsu')}</b><span>{tr('Język menu i przycisków. Nie zmienia języka narracji ani głosów.')}</span></div>
           <div class="inline"><span class="saved" class:on={saved.lang}>{tr('Zapisano')}</span><Select ariaLabel={tr('Język interfejsu')} value={lang} options={[{ value: 'pl', label: 'Polski' }, { value: 'en', label: 'English' }]} onchange={changeLanguage}/></div>
         </div>
         {#if languageError}<p class="p-field-err" role="alert">{languageError}</p>{/if}
         <div class="p-row">
-          <div class="t"><b>{tr('Zatrzymuj dubbing do sprawdzenia')}</b><span>{$generalPreferences.reviewMode ? tr('Po transkrypcji aplikacja czeka na Twoje sprawdzenie. Audio generujesz ręcznie.') : tr('Po transkrypcji przygotowanie od razu tłumaczy tekst. Audio nadal generujesz ręcznie.')}</span></div>
+          <div class="t"><b>{tr('Zatrzymuj dubbing do sprawdzenia')}</b><span>{$generalPreferences.reviewMode ? tr('Po rozpoznaniu mowy program czeka, aż sprawdzisz tekst. Nagranie zawsze generujesz sam.') : tr('Po rozpoznaniu mowy program od razu tłumaczy tekst. Nagranie zawsze generujesz sam.')}</span></div>
           <div class="inline"><span class="saved" class:on={saved.review}>{tr('Zapisano')}</span><Switch label={tr('Zatrzymuj dubbing do sprawdzenia')} checked={$generalPreferences.reviewMode} onchange={v => preference('review', { reviewMode: v })}/></div>
         </div>
         <div class="p-row">
@@ -59,7 +59,7 @@
         </div>
         {#if prefError}<p class="p-field-err" role="alert">{tr(prefError)}</p>{/if}
         <div class="p-row">
-          <div class="t"><b>{tr('Dostawcy LLM, tłumacze i klucze')}</b><span>{tr('Konfiguracja usług językowych jest teraz w osobnej sekcji.')}</span></div>
+          <div class="t"><b>{tr('Dostawcy LLM, tłumacze i klucze')}</b><span>{tr('Ustawienia usług językowych są w sekcji „AI i klucze”.')}</span></div>
           <Button variant="ghost" onclick={() => onnavigate?.('ai')}>{tr('AI i klucze')}<ChevronRight size={15}/></Button>
         </div>
       </div>

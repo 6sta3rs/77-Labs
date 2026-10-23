@@ -86,6 +86,7 @@ async function modelsPage(deps = {}, props = {}) {
     reportDownloads() {}, downloadState: { subscribe: run => (run({ jobs: [], eta: {} }), () => {}) },
     activeDownload: () => false, byteLabel: String, downloadPercent: () => 0, engineLicenses: {}, modelFamily: () => 'other',
     modelManagement: { status: async () => ({ jobs: [], storage: {} }) }, requiredLicenseRepos: () => [], validModelRepo: () => true,
+    markEngineConfirmed() {},
     openLicenseSource: async () => {}, hfMirrorAddress: String, putSettings: async () => ({}), settingsError: cause => String(cause?.message ?? cause),
     ...deps }, exposure: 'refresh, select, get catalog() { return catalog }' });
 }

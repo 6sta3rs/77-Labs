@@ -2,7 +2,7 @@
   // "Aktualizacje": app self-update from GitHub Releases, pinned engine provenance, public upstream releases and the bundled changelog.
   import { onDestroy, onMount, untrack } from 'svelte';
   import { Copy, Check, RefreshCw, ExternalLink, Download } from '@lucide/svelte';
-  import { findAppUpdate, installAppUpdate, type Update } from '../../platform/app-update';
+  import { findAppUpdate, installAppUpdate, updatesSupported, type Update } from '../../platform/app-update';
   import { getVersion } from '@tauri-apps/api/app';
   import { version as appVersion } from '../../../../package.json';
   import { uiLanguage, createUiTranslator } from '../../i18n';
@@ -57,10 +57,10 @@
   }
 
   /* ---------- app update (Tauri updater, signed releases of this app on GitHub) ---------- */
-  let appChecking = $state(false), appInstalling = $state(false), appUpdate = $state.raw<Update | null>(), appProgress = $state<[number, number]>([0, 0]);
+  let supported = $state<boolean>(), appChecking = $state(false), appInstalling = $state(false), appUpdate = $state.raw<Update | null>(), appProgress = $state<[number, number]>([0, 0]);
   const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
   async function checkApp() {
-    if (!desktop || appChecking || appInstalling) return;
+    if (!desktop || supported === false || appChecking || appInstalling) return;
     appChecking = true; appUpdate = undefined;
     try {
       const update = await findAppUpdate();
@@ -68,7 +68,12 @@
       appUpdate = update;
       if (update) toast.info(tr('Dostępna nowa wersja aplikacji: {version}', { version: update.version }));
       else toast.ok(tr('Masz najnowszą wersję aplikacji ({version})', { version }));
-    } catch (cause) { if (!disposed) toast.bad(tr('Nie udało się sprawdzić aktualizacji: {reason}', { reason: String((cause as Error)?.message || cause) })); }
+    } catch (cause) {
+      const reason = String((cause as Error)?.message || cause);
+      if (disposed) return;
+      // Fallback: a build without an update feed reports a raw "endpoints" error.
+      if (/endpoints/i.test(reason)) supported = false; else toast.bad(tr('Nie udało się sprawdzić aktualizacji: {reason}', { reason }));
+    }
     finally { if (!disposed) appChecking = false; }
   }
   async function installApp() {
@@ -77,7 +82,7 @@
     try { await installAppUpdate(appUpdate, (done, total) => { appProgress = [done, total]; }); }
     catch (cause) { if (!disposed) { appInstalling = false; toast.bad(tr('Nie udało się zainstalować aktualizacji: {reason}', { reason: String((cause as Error)?.message || cause) })); } }
   }
-  onMount(() => { if (intent === 'check') void checkApp(); });
+  onMount(async () => { if (desktop) supported = await updatesSupported(); if (!disposed && intent === 'check') void checkApp(); });
 
   /* ---------- public release check ---------- */
   let channel = $state('stable'), checking = $state(false), latest = $state<Release>(), result = $state<null | 'latest' | 'newer'>(null);
@@ -110,8 +115,9 @@
         <div class="p-actions">
           {#if appUpdate}<Button disabled={appInstalling} onclick={installApp}><Download size={15}/>{appInstalling ? tr('Instaluję…') : tr('Pobierz i zainstaluj {version}', { version: appUpdate.version })}</Button>
             <Button variant="outline" disabled={appChecking || appInstalling} onclick={checkApp}><RefreshCw size={15} class={appChecking ? 'spin' : ''}/>{tr('Sprawdź ponownie')}</Button>
-          {:else}<Button disabled={appChecking} onclick={checkApp}><RefreshCw size={15} class={appChecking ? 'spin' : ''}/>{appChecking ? tr('Sprawdzam…') : tr('Sprawdź aktualizacje')}</Button>{/if}
+          {:else}<Button disabled={appChecking || supported === false} onclick={checkApp}><RefreshCw size={15} class={appChecking ? 'spin' : ''}/>{appChecking ? tr('Sprawdzam…') : tr('Sprawdź aktualizacje')}</Button>{/if}
         </div>
+        {#if supported === false}<p class="p-notice">{tr('Ta kopia nie obsługuje aktualizacji — zainstaluj wersję z instalatora.')}</p>{/if}
         {#if appChecking}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Sprawdzanie aktualizacji')}></progress><span>{tr('Łączenie z GitHub')}</span></div>{/if}
         {#if appInstalling}<div class="p-progress" role="status">{#if appProgress[1]}<progress class="p-bar" max={appProgress[1]} value={appProgress[0]} aria-label={tr('Pobieranie aktualizacji')}></progress><span>{tr('{done} z {total} MB', { done: mb(appProgress[0]), total: mb(appProgress[1]) })}</span>{:else}<progress class="p-bar" aria-label={tr('Pobieranie aktualizacji')}></progress><span>{tr('Pobieranie')}</span>{/if}</div>
           <p class="p-sub">{tr('Po pobraniu uruchomi się instalator, a aplikacja zamknie się i otworzy ponownie. Silnik zatrzyma się na ten czas.')}</p>{/if}
@@ -123,7 +129,7 @@
       <p class="p-notice">{tr('Silnik jest zatrzymany, więc pochodzenie silnika i opis zmian są niedostępne. Uruchom go na stronie Silnik.')}{#if onnavigate} <Button size="sm" onclick={() => onnavigate?.('engine')}>{tr('Przejdź do strony Silnik')}</Button>{/if}</p>
     {:else}
     <div class="p-section">
-      <header><h3>{tr('Pochodzenie silnika')}</h3><p>{tr('Silnik korzysta z przypiętych źródeł VoiceStudio (AGPL-3.0-only). To dane pakietu źródłowego, nie wersji aplikacji.')}</p></header>
+      <header><h3>{tr('Pochodzenie silnika')}</h3><p>{tr('Silnik pochodzi z VoiceStudio (AGPL-3.0-only). To dane pakietu źródłowego, nie wersja aplikacji.')}</p></header>
       {#if !loaded}<p class="p-sub" role="status">{tr('Odczytuję metadane…')}</p>
       {:else}
       <dl class="p-kv">
@@ -135,10 +141,10 @@
     </div>
 
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Publiczne wydania źródeł bazowych')}</h3><p>{tr('Sprawdzenie łączy się z GitHub dopiero po kliknięciu i pobiera tylko opis wydań. To nie jest aktualizacja aplikacji.')}</p></div>
+      <header class="split"><div><h3>{tr('Publiczne wydania źródeł bazowych')}</h3></div>
         {#if result}<StatusBadge kind={result === 'latest' ? 'ok' : 'warn'} text={result === 'latest' ? tr('Masz najnowszą wersję') : tr('Dostępna nowsza')}/>{/if}</header>
       <div class="p-row flat">
-        <div class="t"><b>{tr('Kanał publicznych wydań źródeł')}</b><span>{tr('Stabilne lub także testowe.')}</span></div>
+        <div class="t"><b>{tr('Kanał publicznych wydań źródeł')}</b><span>{tr('Stabilne albo także testowe. Łączy się z GitHub po kliknięciu i nie aktualizuje aplikacji.')}</span></div>
         <Select ariaLabel={tr('Kanał publicznych wydań źródeł')} value={channel} disabled={checking} options={[{ value: 'stable', label: tr('Stabilne') }, { value: 'preview', label: tr('Stabilne i testowe') }]} onchange={v => { channel = v; result = null; latest = undefined; }}/>
       </div>
       <div class="p-actions">
@@ -150,7 +156,7 @@
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Zmiany w pakiecie silnika')}</h3><p>{tr('Trzy ostatnie wydania osadzonego silnika.')}</p></header>
+      <header><h3>{tr('Zmiany w pakiecie silnika')}</h3><p>{tr('Trzy ostatnie wydania silnika.')}</p></header>
       {#if loaded && !changelog.length}<p class="p-sub">{tr('Pakiet nie udostępnił opisu zmian.')}</p>{/if}
       <div class="log">
         {#each changelog as r (r.version)}

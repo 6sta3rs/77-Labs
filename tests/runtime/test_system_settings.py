@@ -167,6 +167,69 @@ class OriginalStoreTests(unittest.TestCase):
             rows = connection.execute("SELECT value FROM settings").fetchall()
         self.assertNotIn("proxy-password-fixture", json.dumps(rows))
 
+    def test_added_llm_providers_roundtrip_validate_ids_and_survive_restart(self):
+        self.assertEqual(self.client.get("/next/settings/added-llm-providers").json(), {"ids": []})
+        response = self.client.put("/next/settings/added-llm-providers", json={"ids": ["ollama", "chatgpt", "ollama"]})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json(), {"ids": ["ollama", "chatgpt"]})
+        self.assertEqual(settings.added_llm_providers(), ["ollama", "chatgpt"])
+        self.assertEqual(self.client.put("/next/settings/added-llm-providers", json={"ids": ["not-a-provider"]}).status_code, 400)
+        self.assertEqual(self.client.get("/next/settings/added-llm-providers").json(), {"ids": ["ollama", "chatgpt"]}, "a rejected write changes nothing")
+        from services import settings_store
+        settings_store.set_text(settings.ADDED_PROVIDERS_KEY, "{broken")
+        self.assertEqual(settings.added_llm_providers(), [])
+        self.assertEqual(self.client.put("/next/settings/added-llm-providers", json={"ids": []}).json(), {"ids": []})
+
+    def test_model_idle_is_validated_and_read_by_the_engine_idle_clock(self):
+        from core import prefs
+        from services import model_manager
+        for seconds in (30, 0, -5, settings.IDLE_FOREVER_S + 1, "soon", None):
+            with self.subTest(seconds=seconds):
+                self.assertEqual(self.client.put("/next/settings/model-idle", json={"seconds": seconds}).status_code, 422)
+        with patch.dict(os.environ, {"OMNIVOICE_IDLE_TIMEOUT_S": ""}):
+            response = self.client.put("/next/settings/model-idle", json={"seconds": 1800})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json(), {"seconds": 1800, "env_pinned": False})
+            self.assertEqual(prefs.get("idle_timeout_seconds"), 1800)
+            self.assertEqual(model_manager._resolve_idle_timeout(), 1800.0)
+            # "Zawsze" is the largest accepted value, so the engine's tick never reaches it.
+            self.assertEqual(self.client.put("/next/settings/model-idle", json={"seconds": settings.IDLE_FOREVER_S}).status_code, 200)
+            self.assertEqual(model_manager._resolve_idle_timeout(), float(settings.IDLE_FOREVER_S))
+            self.assertEqual(self.client.put("/next/settings/model-idle", json={"seconds": 900}).status_code, 200)
+        with patch.dict(os.environ, {"OMNIVOICE_IDLE_TIMEOUT_S": "60"}):
+            self.assertTrue(self.client.put("/next/settings/model-idle", json={"seconds": 900}).json()["env_pinned"])
+        remote = __import__("fastapi.testclient", fromlist=["TestClient"]).TestClient(self.app, client=("192.0.2.1", 49000))
+        self.assertEqual(remote.put("/next/settings/model-idle", json={"seconds": 900}).status_code, 403)
+
+    def test_model_preload_starts_one_tracked_task_that_counts_as_work(self):
+        import asyncio
+        import activity
+        from fastapi.testclient import TestClient
+        from services import model_manager
+        started = []
+        release = {}
+        async def slow_preload():
+            started.append(1)
+            release["event"] = asyncio.Event()
+            await release["event"].wait()
+        self.assertFalse(settings.preload_busy())
+        with patch.object(model_manager, "preload_model", slow_preload),              TestClient(self.app, client=("127.0.0.1", 49000), headers=dict(self.client.headers)) as client:
+            first = client.post("/next/settings/model-preload")
+            self.assertEqual(first.status_code, 200, first.text)
+            self.assertTrue(first.json()["running"])
+            self.assertIn("loaded", first.json())
+            self.assertTrue(settings.preload_busy())
+            self.assertTrue(activity.backend_work_busy(), "The idle monitor must see the load as work")
+            self.assertTrue(client.post("/next/settings/model-preload").json()["running"])
+            self.assertEqual(started, [1], "A second request must not start a second load")
+            client.portal.call(release["event"].set)
+            for _ in range(50):
+                if not settings.preload_busy(): break
+                time.sleep(0.05)
+            self.assertFalse(settings.preload_busy())
+        with TestClient(self.app, client=("192.0.2.1", 49000)) as remote:
+            self.assertEqual(remote.post("/next/settings/model-preload").status_code, 403)
+
     def test_remote_guest_cannot_read_or_write_private_settings(self):
         from fastapi.testclient import TestClient
         with TestClient(self.app, client=("192.0.2.1", 49000)) as remote:

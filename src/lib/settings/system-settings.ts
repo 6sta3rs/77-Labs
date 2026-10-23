@@ -33,8 +33,11 @@ export const gpuStateLabels: Record<string, string> = {
 export const gpuEngineLabels: Record<string, string> = { gpu: 'GPU', gpu_caveat: 'GPU z ograniczeniami', cpu_by_design: 'Silnik przeznaczony dla CPU', host_gpu_unusable: 'GPU nieużyteczne w bieżącym środowisku', host_gpu_unusable_rocm: 'GPU wymaga zgodnej instalacji ROCm', host_gpu_unusable_no_amd_path: 'Brak obsługiwanej ścieżki AMD', pinned_cpu: 'Przypięto CPU', no_family_path: 'Brak obsługi tej rodziny GPU', no_gpu: 'Brak GPU', needs_accelerator: 'Wymaga akceleratora', not_installed: 'Nie zainstalowano' }
 export const gpuOptionLabels: Record<string, string> = { vulkan_engines: 'Można użyć silników obsługujących Vulkan.', rocm_windows_manual: 'ROCm na Windows wymaga zgodnej ręcznej konfiguracji runtime.', rocm_variant_linux: 'Można przygotować zgodny wariant ROCm dla Linux.', rocm_device_access: 'Sprawdź uprawnienia dostępu do urządzenia ROCm.', reinstall_cuda_torch: 'Wybierz oddzielny runtime CUDA w instalatorze aplikacji.', update_nvidia_driver: 'Sprawdź sterownik karty NVIDIA.' }
 
+// The desktop transport reports an expired status-read timer as "Request cancelled" (AbortError), not as a TimeoutError.
+// Callers drop errors from their own abort before they get here, so a remaining abort means the engine did not answer in time.
+const timedOut = (cause: unknown) => cause instanceof Error && (cause.name === 'TimeoutError' || cause.name === 'AbortError' || /request cancell?ed/i.test(cause.message))
 export function settingsError(cause: unknown) {
-  return cause instanceof Error && cause.name === 'TimeoutError' ? translateUi("Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.") : translateUi(userMessage(cause instanceof Error ? new Error(redactDiagnosticText(cause.message)) : redactDiagnosticText(cause), 'Nie udało się wykonać operacji. Sprawdź stan silnika i spróbuj ponownie.')).slice(0, 900)
+  return timedOut(cause) ? translateUi("Silnik nie odpowiedział w wymaganym czasie. Odśwież stan i spróbuj ponownie.") : translateUi(userMessage(cause instanceof Error ? new Error(redactDiagnosticText(cause.message)) : redactDiagnosticText(cause), 'Nie udało się wykonać operacji. Sprawdź stan silnika i spróbuj ponownie.')).slice(0, 900)
 }
 export function putSettings<T>(path: string, body: unknown, signal?: AbortSignal) { return productionJson<T>(path, { ...postJson(body, signal), method: 'PUT' }) }
 export function hfMirrorAddress(value: string): string {

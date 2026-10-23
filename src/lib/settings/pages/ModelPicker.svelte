@@ -6,7 +6,8 @@
 <script lang="ts">
   // Unified model picker (port of the approved prototype): ONE dropdown with the models of all connected providers,
   // grouped by provider (icon + name header). Choosing a row sets provider AND model. Custom opaque popup (the app's
-  // Select cannot render icons in options). Compact form adds "Wpisz model ręcznie" (manual id in the same slot).
+  // Select cannot render icons in options). Both the compact and the full form offer "Wpisz model ręcznie" (manual id in
+  // the same slot) unless manualEntry is off.
   // ponytail: the engine's /models list has no dates, so there is no "Najnowsze"/"Starsze" split or "nowy" mark; rows keep the engine order.
   import { tick } from 'svelte';
   import { Check, ChevronDown, LoaderCircle, Search } from '@lucide/svelte';
@@ -115,7 +116,13 @@
 {/snippet}
 
 {#if full}
-  <div class="mp mp-full"><div class="mp-line">{@render trig()}</div></div>
+  <div class="mp mp-full"><div class="mp-line">
+    {#if manual}{@render manualRow()}
+      <Button variant="ghost" size="xs" aria-pressed="true" onclick={() => manual = false}>{tr('Wybierz z listy')}</Button>
+    {:else}{@render trig()}
+      {#if manualEntry}<Button variant="ghost" size="xs" onclick={startManual}>{tr('Wpisz model ręcznie')}</Button>{/if}
+    {/if}
+  </div></div>
 {:else}
   <div class="mp">
     {#if manual}{@render manualRow()}

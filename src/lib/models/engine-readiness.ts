@@ -12,15 +12,17 @@ export type EngineReadiness = {
 };
 
 export function needsEngineVerification(engine: EngineReadiness): boolean {
-  return engine.available !== true && engine.availability_check === 'dependencies_detected' && engine.can_verify === true;
+  return engine.inference_verified !== true && engine.available !== true && engine.availability_check === 'dependencies_detected' && engine.can_verify === true;
 }
 
 export function canSelectEngine(engine: EngineReadiness): boolean {
-  return needsEngineVerification(engine) || engine.available === true && engine.routing_status !== 'unavailable';
+  // inference_verified: this engine already produced audio in this app (see markEngineConfirmed), whatever the metadata-only catalogue says.
+  return engine.inference_verified === true || needsEngineVerification(engine) || engine.available === true && engine.routing_status !== 'unavailable';
 }
 
 export function engineReadinessLabel(engine: EngineReadiness): string {
   if (engine.available === true) return translateUi("Dostępny silnik");
+  if (engine.inference_verified === true) return translateUi("Sprawdzony — wygenerował nagranie");
   switch (engine.availability_check) {
     case 'dependencies_detected': return 'Biblioteki wykryte · wymaga sprawdzenia';
     case 'missing_dependencies': return translateUi("Brak wymaganych bibliotek");

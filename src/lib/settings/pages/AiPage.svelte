@@ -18,6 +18,7 @@
   import { productionJson, postJson } from '../../tools/production/production';
   import { skillLabels, connectionMessage, type LlmProvider, type LlmSkill, type RefinementSettings, type AsrEndpoint, type ConnectionResult } from '../general-settings';
   import { putSettings, settingsError, type CredentialState } from '../system-settings';
+  import { HIDDEN_LLM_PROVIDERS as HIDDEN, modelOnlyProvider } from '../../models/llm-usable';
   import { getAISettings, getAIStatus, saveAISettings, testAI, type AISettings, type AIStatus } from '../../tts/ai';
   const tr = $derived(createUiTranslator($uiLanguage));
 
@@ -57,7 +58,9 @@
   let refinement = $state<RefinementSettings>();
   let asrSaved = $state<AsrEndpoint>();
   let creds = $state<CredentialState>();
+  // `got` flips per read (also when it failed), so each section appears as soon as its own data arrives; `loaded` = all reads settled.
   let loaded = $state(false), loading = $state(false), failed = $state<string[]>([]);
+  const got = $state({ prov: false, skills: false, dict: false, asr: false, creds: false });
   // Session-only check results (the engine does not persist health).
   let health = $state<Record<string, 'ok' | 'bad'>>({});
   function accept(data: Providers) { all = data.providers; active = data.active || ''; pinned = !!data.engine_from_env; }
@@ -65,17 +68,20 @@
   const readSkills = async () => { skills = (await productionJson<{ skills: LlmSkill[] }>('/api/settings/llm-skills', { signal })).skills; };
 
   async function load() {
-    loading = true;
-    const parts: [string, () => Promise<unknown>][] = [
-      ['dostawców LLM', readProviders], ['funkcji LLM', readSkills],
-      ['redakcji dyktowania', async () => { refinement = await productionJson<RefinementSettings>('/api/settings/dictation-refinement', { signal }); }],
-      ['zewnętrznego ASR', async () => { asrSaved = await productionJson<AsrEndpoint>('/api/settings/asr-openai-compat', { signal }); asrSync(); }],
-      ['tłumaczy', async () => { creds = await productionJson<CredentialState>('/next/settings/credentials', { signal }); svcSync(); }]];
-    const results = await Promise.allSettled(parts.map(([, run]) => run()));
-    if (disposed) return;
-    failed = parts.flatMap(([label], i) => results[i].status === 'rejected' ? [label] : []);
-    loaded = true; loading = false;
+    loading = true; failed = [];
+    const parts: [keyof typeof got, string, () => Promise<unknown>][] = [
+      ['prov', 'dostawców LLM', async () => { await Promise.all([readProviders(), readAdded()]); await migrateAdded(); }], ['skills', 'funkcji LLM', readSkills],
+      ['dict', 'redakcji dyktowania', async () => { refinement = await productionJson<RefinementSettings>('/api/settings/dictation-refinement', { signal }); }],
+      ['asr', 'zewnętrznego ASR', async () => { asrSaved = await productionJson<AsrEndpoint>('/api/settings/asr-openai-compat', { signal }); asrSync(); }],
+      ['creds', 'tłumaczy', async () => { creds = await productionJson<CredentialState>('/next/settings/credentials', { signal }); svcSync(); }]];
+    for (const [key] of parts) got[key] = false;
     void refreshAi();
+    await Promise.all(parts.map(async ([key, label, run]) => {
+      try { await run(); } catch { if (!disposed && !signal.aborted) failed = [...failed, label]; }
+      if (!disposed) got[key] = true;
+    }));
+    if (disposed) return;
+    loaded = true; loading = false;
   }
   $effect(() => { if (ready && !loaded && !loading) untrack(() => void load()); });
   $effect(() => { if (!ready) untrack(() => { loaded = false; ed = null; }); });
@@ -94,24 +100,49 @@
   }
 
   /* ---------- provider rows ---------- */
-  // CLI agents other than Claude Code are not in the approved design (they behave the same: not detected in this app).
-  const HIDDEN = new Set(['codex-cli', 'pi-cli', 'opencode-cli']);
-  const ICON: Record<string, string> = { 'google-ai': 'gemini', 'claude-code': 'anthropic', [CHATGPT]: 'openai' };
-  const ALIAS: Record<string, string> = { gemini: 'google-ai', claudecode: 'claude-code' };
+  // CLI agents (HIDDEN) are not offered; see models/llm-usable.ts.
+  const ICON: Record<string, string> = { 'google-ai': 'gemini', [CHATGPT]: 'openai' };
+  const ALIAS: Record<string, string> = { gemini: 'google-ai' };
   const NAMES: Record<string, string> = { custom: 'Własny (zgodny z OpenAI)', sdk: 'LiteLLM (inni dostawcy)' };
   const iconOf = (id: string) => ICON[id] ?? id;
   const nameOf = (p: Prov) => NAMES[p.id] ? tr(NAMES[p.id]) : p.display_name.replace(/ \(local\)$/, '');
-  const CC_TIP = 'Zgodność z warunkami Anthropic wymaga sprawdzenia przed wdrożeniem.';
-  const ccLine = 'Używa zainstalowanego Claude Code i jego logowania — bez wpisywania klucza.';
-  // Providers without a key (local servers, CLI) that the user added; the engine has no "added" flag for them.
-  const ADDED_KEY = 'voicestudio.ai.providers.v1';
-  let added = $state<string[]>((() => { try { const v = JSON.parse(localStorage.getItem(ADDED_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; } catch { return []; } })());
-  function setAdded(next: string[]) { added = next; try { localStorage.setItem(ADDED_KEY, JSON.stringify(next)); } catch { /* list stays for this session */ } }
-  const addRow = (id: string) => { if (!added.includes(id)) setAdded([...added, id]); };
+  // Providers without a key (local servers) that the user added; the engine has no "added" flag for them, so the list
+  // is stored by the engine (/next/settings/added-llm-providers) and survives a WebView data reset.
+  const ADDED_URL = '/next/settings/added-llm-providers';
+  const LEGACY_ADDED_KEY = 'voicestudio.ai.providers.v1'; // older versions kept the list in localStorage
+  let added = $state<string[]>([]);
+  let addedStored = false, addedRead = false, addedOk: string[] = [], addedChain: Promise<unknown> = Promise.resolve(); // addedOk = last list the engine confirmed
+  const legacyAdded = (): string[] => { try { const v = JSON.parse(localStorage.getItem(LEGACY_ADDED_KEY) || '[]'); return Array.isArray(v) ? v.filter(x => typeof x === 'string') : []; } catch { return []; } };
+  async function readAdded() {
+    try { added = addedOk = (await productionJson<{ ids?: string[] }>(ADDED_URL, { signal })).ids ?? []; addedStored = addedRead = true; }
+    catch (cause) {
+      added = legacyAdded(); addedRead = false;
+      // only a missing route (older engine) means "session-only"; a timeout or 401 keeps writing so the next PUT repairs the list
+      addedStored = !/not found|method not allowed|\b40[45]\b/i.test(cause instanceof Error ? cause.message : String(cause));
+    }
+  }
+  // Optimistic like saveTag: the list changes at once and returns to the previous state when the engine refuses the write.
+  function setAdded(next: string[]) {
+    added = next;
+    if (!addedStored) return Promise.resolve(true); // ponytail: no engine route (older engine) = list lives only for this session
+    addedChain = addedChain.then(async () => { // serialised; a refused write returns to the last confirmed list, whatever was queued meanwhile
+      try { const res = await putSettings<{ ids: string[] }>(ADDED_URL, { ids: next }, signal); addedOk = res.ids; addedRead = true; if (!disposed) added = res.ids; return true; }
+      catch (cause) { if (!disposed) added = addedOk; fail(cause); return false; }
+    });
+    return addedChain as Promise<boolean>;
+  }
+  // One-time move of the old localStorage list; the old key is removed only after the engine stored it.
+  async function migrateAdded() {
+    if (!addedStored || !addedRead) return; // keep the old key until the engine list was read (or a write succeeded)
+    const old = legacyAdded().filter(id => (id === CHATGPT || provById(id)) && !added.includes(id));
+    if (old.length && !(await setAdded([...added, ...old]))) return;
+    try { localStorage.removeItem(LEGACY_ADDED_KEY); } catch { /* nothing to clean */ }
+  }
+  const addRow = (id: string) => { if (!added.includes(id)) void setAdded([...added, id]); };
 
-  type Auth = 'key' | 'chatgpt' | 'local' | 'cli';
+  type Auth = 'key' | 'chatgpt' | 'local';
   type Row = { id: string; tpl: string; name: string; local: boolean; auth: Auth; p?: Prov };
-  const authOf = (p: Prov): Auth => p.transport === 'cli' ? 'cli' : p.local ? 'local' : 'key';
+  const authOf = (p: Prov): Auth => p.local ? 'local' : 'key';
   const provById = (id: string) => all.find(p => p.id === id);
   const rows = $derived.by((): Row[] => {
     const list: Row[] = all.filter(p => !HIDDEN.has(p.id) && (p.has_api_key || p.id === active || added.includes(p.id) || skills.some(s => s.provider_override === p.id)))
@@ -120,13 +151,16 @@
     return list;
   });
   const isReady = (r: Row) => r.auth === 'chatgpt' ? gptOk : !!r.p?.configured;
-  const missing = (r: Row) => r.auth === 'chatgpt' ? 'Niezalogowany' : r.auth === 'cli' ? 'Nie wykryto' : !r.p?.has_key ? 'Brak klucza' : 'Wymaga konfiguracji';
+  // A connected provider (key or local server, address set) that only lacks a default model, e.g. Together or Fireworks:
+  // the engine can list its models, so the picker offers them instead of a dead "Wymaga konfiguracji".
+  const modelOnly = (r: Row) => !!r.p && modelOnlyProvider(r.p);
+  const pickableRow = (r: Row) => isReady(r) || modelOnly(r);
+  const missing = (r: Row) => r.auth === 'chatgpt' ? 'Niezalogowany' : modelOnly(r) ? 'Wybierz model' : !r.p?.has_key ? 'Brak klucza' : 'Wymaga konfiguracji';
   const stOf = (r: Row): [BadgeKind, string] => r.auth === 'chatgpt' ? (aiLoading ? ['wait', 'Sprawdzanie…'] : gptOk ? ['ok', 'Połączony'] : ['warn', 'Niezalogowany'])
     : r.id === active && isReady(r) && health[r.id] !== 'bad' ? ['ok', 'Aktywny']
     : !isReady(r) ? ['warn', missing(r)]
     : health[r.id] === 'bad' ? ['bad', 'Błąd'] : health[r.id] === 'ok' ? ['ok', 'Połączony'] : ['neutral', 'Niesprawdzony'];
   function subOf(r: Row) {
-    if (r.auth === 'cli') return tr(r.p?.configured ? 'Wykryto Claude Code na tym komputerze' : 'Nie wykryto — zainstaluj Claude Code');
     if (r.auth === 'chatgpt') return tr('{model} · konto ChatGPT', { model: aiSet?.model || aiStat?.defaultModel || '—' });
     const p = r.p!; const where = p.base_url ? host(p.base_url) : p.transport === 'sdk' ? '' : tr('brak adresu');
     return [p.model || tr('brak modelu'), where].filter(Boolean).join(' · ');
@@ -153,7 +187,6 @@
     } catch (cause) { health = { ...health, [r.id]: 'bad' }; fail(cause); }
     finally { if (!disposed) checking = null; }
   }
-  function detach(r: Row) { setAdded(added.filter(x => x !== r.id)); if (ed?.row === r.id) ed = null; toast.ok(tr('Odłączono: {name}', { name: r.name })); }
 
   /* ---------- model lists (GET /llm-providers/{id}/models; only OpenAI-compatible providers can list) ---------- */
   let lists = $state<Record<string, { models: string[]; err: string; loading: boolean }>>({});
@@ -168,7 +201,7 @@
       return err;
     } catch (cause) { const err = settingsError(cause); lists[p.id] = { models: [], err, loading: false }; return err; }
   }
-  function fetchLists() { for (const r of rows) if (r.p?.supports_model_listing && isReady(r) && (!lists[r.id] || lists[r.id].err)) void fetchList(r.p); }
+  function fetchLists() { for (const r of rows) if (r.p?.supports_model_listing && pickableRow(r) && (!lists[r.id] || lists[r.id].err)) void fetchList(r.p); }
   const modelsOf = (p: Prov) => { const ids = lists[p.id]?.models ?? []; return p.model && !ids.includes(p.model) ? [p.model, ...ids] : ids; };
 
   /* ---------- editor (add / edit), rendered under the edited row or under the list ---------- */
@@ -192,10 +225,12 @@
   function setAuth(v: string) { if (!ed || !edP) return; ed.auth = v as Auth; ed.model = v === 'chatgpt' ? aiSet?.model ?? '' : edP.model; }
   // `#ai/add` opens the add-provider picker, `#ai/<providerId>` that provider's editor, `#ai/funkcje` the functions tab.
   let lastIntent = '';
+  $effect(() => { if (intent === 'funkcje') tab = 'funkcje'; }); // no provider data needed: switch at once
   $effect(() => {
-    const it = intent; if (!it || !loaded || it === lastIntent) return;
+    const it = intent; if (!it || !got.prov || it === lastIntent) return;
     untrack(() => {
-      lastIntent = it; tab = it === 'funkcje' ? 'funkcje' : 'llm'; if (it === 'funkcje') return;
+      lastIntent = it; if (it === 'funkcje') return;
+      tab = 'llm';
       if (it === 'add') openAdd();
       else { const id = ALIAS[it] ?? it, r = rows.find(x => x.id === id); if (r) openEdit(r); else if (provById(id)) { openAdd(); pickTpl(id); } }
       tick().then(() => document.querySelector('.ai-page .form')?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
@@ -203,7 +238,7 @@
   });
   // one blue button per editor: "Zapisz dostawcę" steps back to outline while a key is typed or the ChatGPT account is not connected
   const otherPrimary = $derived(!!ed && ((ed.auth === 'key' && ed.mode === 'edit' && !!ed.key.trim()) || (ed.auth === 'chatgpt' && !gptOk)));
-  const edHint = $derived(!ed ? '' : !ed.tpl ? 'Wybierz dostawcę.' : ed.auth === 'cli' ? (edP?.configured ? '' : 'Nie wykryto Claude Code — zainstaluj go, aby połączyć.')
+  const edHint = $derived(!ed ? '' : !ed.tpl ? 'Wybierz dostawcę.'
     : ed.auth === 'chatgpt' ? '' : edP?.transport === 'openai' && !urlOk(ed.url) ? 'Podaj adres zaczynający się od http:// lub https://.'
     : !ed.model.trim() && !edP?.local ? 'Podaj nazwę modelu.' : edP?.needs_account && !ed.account.trim() ? 'Podaj Id konta dostawcy.' : '');
   async function putProvider(id: string, body: Record<string, unknown>) {
@@ -217,8 +252,7 @@
       if (e.auth === 'chatgpt') {
         if (aiSet && e.model !== aiSet.model) aiSet = await saveAISettings({ ...aiSet, model: e.model }, signal);
         addRow(CHATGPT); toast.ok(tr('Zapisano dostawcę.'));
-      } else if (e.auth === 'cli') { addRow(p.id); toast.ok(tr('Połączono Claude Code. Wybierz „Użyj”, aby go aktywować.')); }
-      else {
+      } else {
         const changed = e.url.trim() !== p.base_url || !!e.key.trim();
         await putProvider(p.id, edBody(e, p)); addRow(p.id);
         if (changed) { const { [p.id]: _, ...rest } = health; health = rest; }
@@ -274,8 +308,8 @@
   type Field = { key: string; label: string; desc?: string; secret?: boolean; ph?: string };
   type Svc = { id: string; name: string; desc: string; fields: Field[] };
   const SVC: Svc[] = [
-    { id: 'deepl', name: 'DeepL', desc: 'Tłumaczenie tekstu i napisów.', fields: [{ key: 'DEEPL_API_KEY', label: 'Klucz API', secret: true }, { key: 'DEEPL_BASE_URL', label: 'Adres API', desc: 'Zmień tylko dla innego regionu lub własnej bramki.', ph: 'https://api-free.deepl.com/v2' }] },
-    { id: 'ms', name: 'Microsoft Translator', desc: 'Tłumaczenie tekstu i napisów.', fields: [{ key: 'MICROSOFT_API_KEY', label: 'Klucz API', secret: true }, { key: 'MICROSOFT_REGION', label: 'Region', desc: 'Region zasobu Azure, np. westeurope.', ph: 'westeurope' }, { key: 'MICROSOFT_BASE_URL', label: 'Adres API', desc: 'Zmień tylko dla innego regionu lub własnej bramki.', ph: 'https://api.cognitive.microsofttranslator.com' }] },
+    { id: 'deepl', name: 'DeepL', desc: 'Tłumaczenie tekstu i napisów.', fields: [{ key: 'DEEPL_API_KEY', label: 'Klucz API', secret: true }, { key: 'DEEPL_BASE_URL', label: 'Adres API', desc: 'Zmień tylko, jeśli używasz innego regionu lub własnej bramki.', ph: 'https://api-free.deepl.com/v2' }] },
+    { id: 'ms', name: 'Microsoft Translator', desc: 'Tłumaczenie tekstu i napisów.', fields: [{ key: 'MICROSOFT_API_KEY', label: 'Klucz API', secret: true }, { key: 'MICROSOFT_REGION', label: 'Region', desc: 'Region zasobu Azure, np. westeurope.', ph: 'westeurope' }, { key: 'MICROSOFT_BASE_URL', label: 'Adres API', desc: 'Zmień tylko, jeśli używasz innego regionu lub własnej bramki.', ph: 'https://api.cognitive.microsofttranslator.com' }] },
     { id: 'google', name: 'Google Cloud Translation', desc: 'Tłumaczenie tekstu i napisów.', fields: [{ key: 'GOOGLE_TRANSLATE_API_KEY', label: 'Klucz API', secret: true }] },
     { id: 'aws', name: 'Amazon Translate', desc: 'Tłumaczenie przez profil z lokalnej konfiguracji AWS.', fields: [{ key: 'AWS_PROFILE', label: 'Profil AWS', desc: 'Nazwa profilu z lokalnej konfiguracji AWS.', ph: 'default' }, { key: 'AWS_REGION', label: 'Region AWS', desc: 'Region usługi, np. eu-central-1.', ph: 'eu-central-1' }] }];
   const URL_KEYS = new Set(['DEEPL_BASE_URL', 'MICROSOFT_BASE_URL']);
@@ -332,14 +366,16 @@
     direction_parse: 'Wykrywa emocje i didaskalia w tekście.', dictation_refinement: 'Poprawia tekst rozpoznany z mikrofonu i nagrań.' };
   const skLabel = (sk: LlmSkill) => tr(skillLabels[sk.id] ?? sk.id);
   const llmRows = $derived(rows.filter(r => r.p));
-  const usableRow = (r: Row) => isReady(r) && health[r.id] !== 'bad';
+  const usableRow = (r: Row) => pickableRow(r) && health[r.id] !== 'bad';
+  // ChatGPT (Codex) only serves tagging; the engine's AI functions need a key-based or local provider (llmRows has no ChatGPT row).
   const blocked = $derived(!llmRows.some(usableRow));
   const unavailable = (id: string) => { const r = llmRows.find(x => x.id === id); return !r || !usableRow(r); };
   const pickGroups = $derived(llmRows.map((r): PickGroup => ({ id: r.id, tpl: r.tpl, name: r.name + (r.local ? tr(' · lokalny') : ''),
-    state: !isReady(r) ? tr(missing(r)) : health[r.id] === 'bad' ? tr('Niedostępny') : '', models: r.p ? modelsOf(r.p) : [], loading: lists[r.id]?.loading, err: lists[r.id]?.err })));
+    state: !pickableRow(r) ? tr(missing(r)) : health[r.id] === 'bad' ? tr('Niedostępny') : '', models: r.p ? modelsOf(r.p) : [], loading: lists[r.id]?.loading, err: lists[r.id]?.err })));
   const defModel = $derived(provById(active)?.model ?? '');
-  const attention = $derived(!blocked && unavailable(active));
+  const attention = $derived(!blocked && !!active && unavailable(active));
   function startConnect() { tab = 'llm'; openAdd(); tick().then(() => document.querySelector('.ai-page .form')?.scrollIntoView({ block: 'center', behavior: 'smooth' })); }
+  const toTagging = () => document.getElementById('ai-tagging')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   let working = $state(false);
   async function guard(run: () => Promise<void>) { if (working) return; working = true; try { await run(); } catch (cause) { fail(cause); } finally { if (!disposed) working = false; } }
   // ponytail: the engine keeps ONE model per provider (no per-function model), so picking a model also sets it for that provider.
@@ -424,6 +460,8 @@
   <span class="mstat" class:none={!model} role="status" aria-label={label} title={model ? `${name} · ${model}` : undefined}>{#if model}<ProviderIcon id={tpl} size={16}/><span class="mtxt">{name} · {model}</span>{:else}{tr(empty)}{/if}</span>
 {/snippet}
 {#snippet spin(text: string)}<LoaderCircle size={15} class="spin"/>{tr(text)}{/snippet}
+<!-- small per-section progress while that section's own engine read is still running -->
+{#snippet waiting(text: string)}<div class="p-progress" role="status"><progress class="p-bar" aria-label={tr(text)}></progress><span>{tr(text)}</span></div>{/snippet}
 
 {#snippet editor()}
   {#if ed}
@@ -442,16 +480,12 @@
       {/if}
       {#if ed.tpl && edP}
         {#if ed.tpl === 'anthropic'}<p class="p-notice info">{tr('Subskrypcji Claude (Pro/Max) nie można używać w innych aplikacjach — zezwala na to tylko Claude Code i claude.ai. Użyj klucza API z konsoli Anthropic.')}</p>{/if}
-        {#if ed.auth === 'cli'}
-          <div class="p-rows"><div class="p-row"><div class="t"><b>{tr(edP.configured ? 'Wykryto Claude Code na tym komputerze' : 'Nie wykryto — zainstaluj Claude Code')}</b><span>{tr(ccLine)}</span></div>
-            <div class="inline"><Tooltip content={tr(CC_TIP)}><StatusBadge kind="warn" text={tr('Do potwierdzenia')}/></Tooltip></div></div></div>
-        {:else}
         <div class="p-rows">
           <div class="p-row"><div class="t"><b>{tr('Sposób połączenia')}</b><span>{tr(authHelp)}</span></div>
             <ButtonGroup label={tr('Sposób połączenia')} mode="single" value={ed.auth} items={authItems} onchange={v => setAuth(String(v))}/></div>
 
           {#if ed.auth === 'key'}
-            <div class="p-row"><div class="t"><b>{tr('Klucz API')}</b><span>{#if edP.key_from_env}{tr('Używany jest klucz ze zmiennej środowiskowej; ma pierwszeństwo przed zapisanym.')}{:else if storedKey}{tr('Klucz jest zapisany. Puste pole zachowuje go.')}{:else}{tr('Trafia do prywatnego magazynu i nie jest pokazywany ponownie.')}{/if}</span></div>
+            <div class="p-row"><div class="t"><b>{tr('Klucz API')}</b><span>{#if edP.key_from_env}{tr('Używany jest klucz ze zmiennej środowiskowej; ma pierwszeństwo przed zapisanym.')}{:else if storedKey}{tr('Klucz jest zapisany. Zostaw puste, aby go zachować.')}{:else}{tr('Zapisuje się prywatnie i nie jest pokazywany ponownie.')}{/if}</span></div>
               <div class="keyctl">
                 <Input class="fld" type="password" autocomplete="off" aria-label={tr('Klucz API')} placeholder={tr('Wklej klucz API')} bind:value={ed.key}/>
                 <div class="inline wrap">
@@ -462,7 +496,7 @@
                 </div>
               </div></div>
           {:else if ed.auth === 'chatgpt'}
-            <div class="p-row"><div class="t"><b>{tr('Konto ChatGPT')}</b><span>{aiLoading ? tr('Sprawdzam połączenie…') : gptOk ? tr('Sesja Codex aktywna na tym komputerze.') : tr(aiErr || aiStat?.message || 'Zaloguj Codex przez ChatGPT: codex login.')}</span></div>
+            <div class="p-row"><div class="t"><b>{tr('Konto ChatGPT')}</b><span>{aiLoading ? tr('Sprawdzam połączenie…') : gptOk ? tr('Zalogowano na tym komputerze.') : tr(aiErr || aiStat?.message || 'Zaloguj Codex przez ChatGPT: codex login.')}</span></div>
               <div class="inline wrap">
                 {#if gptOk}<StatusBadge kind="ok" text={aiStat?.plan ? tr('Połączono · konto ChatGPT {plan}', { plan: aiStat.plan }) : tr('Połączono · konto ChatGPT')}/>{/if}
                 <Button variant={gptOk ? 'outline' : 'default'} disabled={aiLoading} onclick={() => void refreshAi()}>{#if aiLoading}{@render spin('Sprawdzam…')}{:else}{tr('Sprawdź połączenie')}{/if}</Button>
@@ -470,18 +504,17 @@
           {/if}
 
           {#if ed.auth !== 'chatgpt'}
-            {#if edP.transport === 'openai'}<div class="p-row"><div class="t"><b>{tr('Adres serwera')}</b><span>{tr('Adres zgodny z API OpenAI.')}</span></div><Input class="fld" aria-label={tr('Adres serwera')} bind:value={ed.url}/></div>{/if}
-            <div class="p-row"><div class="t"><b>{tr('Model LLM')}</b><span>{tr(edP.supports_model_listing ? 'Nazwa modelu; „Pobierz listę modeli” podpowie dostępne.' : 'Nazwa modelu u tego dostawcy.')}</span></div><Input class="fld" aria-label={tr('Model LLM')} list="ai-models" bind:value={ed.model}/></div>
+            {#if edP.transport === 'openai'}<div class="p-row"><div class="t"><b>{tr('Adres serwera')}</b><span>{tr('Adres serwera zgodnego z API OpenAI.')}</span></div><Input class="fld" aria-label={tr('Adres serwera')} bind:value={ed.url}/></div>{/if}
+            <div class="p-row"><div class="t"><b>{tr('Model LLM')}</b><span>{tr(edP.supports_model_listing ? 'Nazwa modelu. „Pobierz listę modeli” pokaże dostępne.' : 'Nazwa modelu u tego dostawcy.')}</span></div><Input class="fld" aria-label={tr('Model LLM')} list="ai-models" bind:value={ed.model}/></div>
           {:else}
-            <div class="p-row"><div class="t"><b>{tr('Model LLM')}</b><span>{tr('Modele dostępne w planie ChatGPT.')}</span></div><Select ariaLabel={tr('Model LLM')} disabled={!gptOk} value={ed.model} options={[{ value: '', label: tr('Domyślny Codex') + (aiStat?.defaultModel ? ` · ${aiStat.defaultModel}` : '') }, ...(aiStat?.models ?? []).map(m => ({ value: m.id, label: m.name }))]} onchange={v => { if (ed) ed.model = String(v); }}/></div>
+            <div class="p-row"><div class="t"><b>{tr('Model LLM')}</b><span>{tr('Modele dostępne w Twoim planie.')}</span></div><Select ariaLabel={tr('Model LLM')} disabled={!gptOk} value={ed.model} options={[{ value: '', label: tr('Domyślny Codex') + (aiStat?.defaultModel ? ` · ${aiStat.defaultModel}` : '') }, ...(aiStat?.models ?? []).map(m => ({ value: m.id, label: m.name }))]} onchange={v => { if (ed) ed.model = String(v); }}/></div>
           {/if}
           {#if edP.needs_account && ed.auth !== 'chatgpt'}<div class="p-row"><div class="t"><b>{tr('Id konta dostawcy')}</b><span>{tr('Wymagane przez tego dostawcę.')}</span></div><Input class="fld" aria-label={tr('Id konta dostawcy')} bind:value={ed.account}/></div>{/if}
         </div>
-        {/if}
         {#if ed.auth === 'chatgpt'}<p class="p-sub">{tr('Korzysta z limitów twojej subskrypcji ChatGPT.')}</p>{/if}
         <datalist id="ai-models">{#each datalist as m (m)}<option value={m}></option>{/each}</datalist>
         <div class="p-actions">
-          <Button variant={otherPrimary ? 'outline' : 'default'} disabled={!!edHint || !!eBusy} onclick={saveEd}>{#if eBusy === 'save'}{@render spin('Zapisuję…')}{:else}<Save size={15}/>{tr(ed.auth === 'cli' ? 'Połącz dostawcę' : 'Zapisz dostawcę')}{/if}</Button>
+          <Button variant={otherPrimary ? 'outline' : 'default'} disabled={!!edHint || !!eBusy} onclick={saveEd}>{#if eBusy === 'save'}{@render spin('Zapisuję…')}{:else}<Save size={15}/>{tr('Zapisz dostawcę')}{/if}</Button>
           {#if (ed.auth === 'key' || ed.auth === 'local') && edP.supports_model_listing}<Button variant="outline" disabled={!!eBusy} onclick={fetchModels}>{#if eBusy === 'models'}{@render spin('Pobieram…')}{:else}{tr('Pobierz listę modeli')}{/if}</Button>{/if}
           <Button variant="outline" onclick={() => ed = null}>{tr('Anuluj')}</Button>
         </div>
@@ -501,10 +534,8 @@
 
   {#if !ready}
     <p class="p-notice warn">{tr('Silnik nie działa. Uruchom go, aby skonfigurować dostawców AI, tłumaczy i serwer rozpoznawania mowy.')}{#if onnavigate}<Button variant="ghost" onclick={() => onnavigate('engine')}>{tr('Przejdź do silnika')}</Button>{/if}</p>
-  {:else if !loaded}
-    <div class="p-progress" role="status"><progress class="p-bar" aria-label={tr('Wczytywanie ustawień AI')}></progress><span>{tr('Wczytuję ustawienia z silnika…')}</span></div>
   {:else}
-  {#if failed.length}<p class="p-notice bad" role="alert">{tr('Nie odczytano: {sections}.', { sections: failed.map(s => tr(s)).join(', ') })}<Button variant="ghost" disabled={loading} onclick={() => void load()}>{tr('Spróbuj ponownie')}</Button></p>{/if}
+  {#if failed.length && !loading}<p class="p-notice bad" role="alert">{tr('Nie odczytano: {sections}.', { sections: failed.map(s => tr(s)).join(', ') })}<Button variant="ghost" disabled={loading} onclick={() => void load()}>{tr('Spróbuj ponownie')}</Button></p>{/if}
 
   <div class="filter-tabs p-tabs" role="tablist" aria-label={tr('Sekcje AI i kluczy')}>
     {#each tabs as [id, label] (id)}<button role="tab" aria-selected={tab === id} class:chosen={tab === id} onclick={() => tab = id}>{tr(label)}</button>{/each}
@@ -513,14 +544,15 @@
   <div class="stack">
   {#if tab === 'llm'}
    <section class="p-card panel">
+    {#if !got.prov}{@render waiting('Wczytuję dostawców…')}{:else}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Dostawcy modeli językowych')}</h3><p>{tr(!rows.length && !ed ? 'Nie połączono żadnego dostawcy. Połącz dostawcę, aby używać tłumaczenia, redakcji tekstu i tagowania.' : 'Obsługują tłumaczenie i redakcję. Sam zapis nie wysyła tekstu do dostawcy.')}</p>
+      <header class="split"><div><h3>{tr('Dostawcy modeli językowych')}</h3><p>{tr(!rows.length && !ed ? 'Nie połączono żadnego dostawcy. Połącz dostawcę, aby używać tłumaczenia, redakcji tekstu i tagowania.' : 'Używani do tłumaczenia i poprawiania tekstu. Zapis niczego jeszcze nie wysyła.')}</p>
         {#if pinned}<p>{tr('Wybór aktywnego dostawcy jest narzucony przez zmienną środowiskową silnika.')}</p>{/if}</div>
         {#if rows.length && !(ed?.mode === 'add')}<Button variant={ed ? 'outline' : 'default'} onclick={openAdd}><Plus size={15}/>{tr('Dodaj dostawcę')}</Button>{/if}</header>
       {#if !rows.length && !ed}
         <div class="p-actions"><Button onclick={openAdd}><Plus size={15}/>{tr('Dodaj dostawcę')}</Button><Button variant="ghost" onclick={() => { openAdd(); if (ed && provById('openai')) { ed = edFor(provById('openai')!, 'chatgpt', 'add', ''); } }}>{tr('Zaloguj kontem ChatGPT')}</Button></div>
         <div class="starters" role="group" aria-label={tr('Szybki start')}>
-          {#each ['openai', 'anthropic', 'claude-code', 'google-ai', 'openrouter', 'ollama'].map(provById).filter(p => !!p) as p (p.id)}
+          {#each ['openai', 'anthropic', 'google-ai', 'openrouter', 'ollama'].map(provById).filter(p => !!p) as p (p.id)}
             <button type="button" class="pk" aria-label={tr('Dodaj dostawcę: {name}', { name: nameOf(p) })} onclick={() => { openAdd(); pickTpl(p.id); }}><ProviderIcon id={iconOf(p.id)} size={20}/><span class="pn">{nameOf(p)}</span></button>
           {/each}
         </div>
@@ -530,16 +562,11 @@
           {@const s = stOf(r)}
           <div class="prov">
             <ProviderIcon id={r.tpl} size={22}/>
-            <div class="nm"><b>{r.name}{#if r.local}<em>{tr('lokalny')}</em>{/if}{#if r.auth === 'cli'}<Tooltip content={tr(CC_TIP)}><StatusBadge kind="warn" text={tr('Do potwierdzenia')}/></Tooltip>{/if}</b><span>{subOf(r)}</span>{#if r.auth === 'cli'}<span>{tr(ccLine)}</span>{/if}</div>
+            <div class="nm"><b>{r.name}{#if r.local}<em>{tr('lokalny')}</em>{/if}</b><span>{subOf(r)}</span></div>
             <StatusBadge kind={s[0]} text={tr(s[1])}/>
             <div class="acts">
-              {#if r.auth === 'cli'}
-                <Button variant="outline" disabled={checking !== null || !isReady(r)} onclick={() => check(r)}>{#if checking === r.id}{@render spin('Sprawdzam…')}{:else}{tr(r.id === active ? 'Sprawdź ponownie' : 'Użyj')}{/if}</Button>
-                <Button variant={armed['d' + r.id] ? 'destructive' : 'ghost'} onclick={() => arm('d' + r.id, () => detach(r))}>{tr(armed['d' + r.id] ? 'Potwierdź odłączenie' : 'Odłącz')}</Button>
-              {:else}
-                <Button variant="outline" disabled={checking !== null || (r.auth !== 'chatgpt' && (!isReady(r) || !!r.p?.activation_blocked && r.id !== active))} onclick={() => check(r)}>{#if checking === r.id}{@render spin('Sprawdzam…')}{:else}{tr(r.auth === 'chatgpt' ? (gptOk ? 'Sprawdź ponownie' : 'Sprawdź połączenie') : r.id === active ? 'Sprawdź ponownie' : 'Sprawdź i aktywuj')}{/if}</Button>
-                <Button variant={ed?.row === r.id ? 'light' : 'ghost'} onclick={() => ed?.row === r.id ? ed = null : openEdit(r)}>{tr(ed?.row === r.id ? 'Zamknij' : 'Edytuj')}</Button>
-              {/if}
+              <Button variant="outline" disabled={checking !== null || (r.auth !== 'chatgpt' && (!isReady(r) || !!r.p?.activation_blocked && r.id !== active))} onclick={() => check(r)}>{#if checking === r.id}{@render spin('Sprawdzam…')}{:else}{tr(r.auth === 'chatgpt' ? (gptOk ? 'Sprawdź ponownie' : 'Sprawdź połączenie') : r.id === active ? 'Sprawdź ponownie' : 'Sprawdź i aktywuj')}{/if}</Button>
+              <Button variant={ed?.row === r.id ? 'light' : 'ghost'} onclick={() => ed?.row === r.id ? ed = null : openEdit(r)}>{tr(ed?.row === r.id ? 'Zamknij' : 'Edytuj')}</Button>
             </div>
             {#if ed?.mode === 'edit' && ed.row === r.id}<div class="prov-more">{@render editor()}</div>{/if}
           </div>
@@ -547,10 +574,12 @@
       </div>
       {#if ed?.mode === 'add'}{@render editor()}{/if}
     </div>
+    {/if}
    </section>
 
   {:else if tab === 'trans'}
    <section class="p-card panel">
+    {#if !got.creds}{@render waiting('Wczytuję tłumaczy…')}{:else}
     {#each SVC as s (s.id)}
       {@const dirty = s.fields.some(fieldDirty)}
       {@const anySet = s.fields.some(f => cred(f.key)?.set)}
@@ -559,7 +588,7 @@
         <div class="p-rows">
           {#each s.fields as f (f.key)}
             {@const c = cred(f.key)}
-            <div class="p-row"><div class="t"><b>{tr(f.label)}</b><span>{#if f.secret}{c?.set ? tr('Zapisany klucz: {mask}. Puste pole zachowuje go.', { mask: c.masked ?? '••••' }) : tr('Wklej klucz z panelu usługi.')}{:else}{tr(f.desc ?? '')}{/if}</span></div>
+            <div class="p-row"><div class="t"><b>{tr(f.label)}</b><span>{#if f.secret}{c?.set ? tr('Zapisany klucz: {mask}. Zostaw puste, aby go zachować.', { mask: c.masked ?? '••••' }) : tr('Wklej klucz z panelu usługi.')}{:else}{tr(f.desc ?? '')}{/if}</span></div>
               {#if f.secret}<Input class="fld" type="password" autocomplete="off" aria-label={`${tr(f.label)} ${s.name}`} placeholder={tr(c?.set ? 'Zostaw puste, aby zachować' : 'Nowy klucz API')} bind:value={svcIn[f.key]}/>
               {:else}<Input class="fld" aria-label={`${tr(f.label)} ${s.name}`} placeholder={f.ph} bind:value={svcIn[f.key]}/>{/if}</div>
           {/each}
@@ -571,13 +600,15 @@
         </div>
       </div>
     {/each}
+    {/if}
 
+    {#if !got.asr}{@render waiting('Wczytuję serwer ASR…')}{:else}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Serwer ASR zgodny z OpenAI')}</h3><p>{tr('Zewnętrzne rozpoznawanie mowy. Po zapisaniu wybierz ten silnik w katalogu modeli.')}</p></div><StatusBadge kind={asrBadge[0]} text={tr(asrBadge[1])}/></header>
+      <header class="split"><div><h3>{tr('Serwer ASR zgodny z OpenAI')}</h3><p>{tr('Rozpoznawanie mowy na zewnętrznym serwerze. Po zapisaniu wybierz go w sekcji Modele.')}</p></div><StatusBadge kind={asrBadge[0]} text={tr(asrBadge[1])}/></header>
       <div class="p-rows">
         <div class="p-row"><div class="t"><b>{tr('Adres serwera ASR')}</b><span>{tr('Zwykle kończy się na /v1.')}</span></div><Input class="fld" aria-label={tr('Adres serwera ASR')} placeholder="http://127.0.0.1:8000/v1" bind:value={asr.url}/></div>
         <div class="p-row"><div class="t"><b>{tr('Model transkrypcji')}</b><span>{tr('Nazwa modelu na tym serwerze.')}</span></div><Input class="fld" aria-label={tr('Model transkrypcji')} bind:value={asr.model}/></div>
-        <div class="p-row"><div class="t"><b>{tr('Nowy klucz ASR')}</b><span>{tr(asrSaved?.has_key ? 'Klucz jest zapisany. Puste pole zachowuje go.' : 'Opcjonalny; wiele serwerów lokalnych go nie wymaga.')}</span></div>
+        <div class="p-row"><div class="t"><b>{tr('Nowy klucz ASR')}</b><span>{tr(asrSaved?.has_key ? 'Klucz jest zapisany. Zostaw puste, aby go zachować.' : 'Opcjonalny. Wiele serwerów lokalnych go nie wymaga.')}</span></div>
           <Input class="fld" type="password" autocomplete="off" aria-label={tr('Nowy klucz ASR')} placeholder={tr(asrSaved?.has_key ? 'Zostaw puste, aby zachować' : 'Opcjonalny klucz serwera')} bind:value={asr.key}/></div>
       </div>
       {#if asrBad && (asr.url || asr.model)}<p class="p-field-err" role="alert">{tr(asrBad)}</p>{/if}
@@ -588,20 +619,22 @@
         {#if asrSaved?.has_key}<span class="grow"></span><Button variant={armed.asrClear ? 'destructive' : 'outline'} disabled={!!asrBusy} onclick={() => arm('asrClear', asrClear)}>{tr(armed.asrClear ? 'Potwierdź usunięcie klucza' : 'Wyczyść klucz')}</Button>{/if}
       </div>
     </div>
+    {/if}
    </section>
 
   {:else}
    <section class="p-card panel">
+    {#if !got.prov || !got.skills}{@render waiting('Wczytuję funkcje AI…')}{:else}
     <div class="p-section">
       <div class="p-row flat half">
-        <div class="t"><b class="tt">{tr('Domyślny model')}{#if blocked}<StatusBadge kind="warn" text={tr('Brak dostawcy')}/>{:else if attention}<StatusBadge kind="warn" text={tr('Dostawca niedostępny')}/>{:else if !defModel}<StatusBadge kind="warn" text={tr('Wybierz model')}/>{/if}</b>
-          <span>{tr(blocked ? 'Najpierw połącz dostawcę. Bez niego żadna funkcja AI nie ma modelu.' : 'Używany wszędzie, gdzie nie wybrano inaczej.')}</span></div>
-        <div class="ctl">{#if blocked}<Button onclick={startConnect}><Plus size={15}/>{tr('Połącz dostawcę')}</Button>{:else}{@render modelPick(active, defModel, tr('Domyślny model'), setDef, true, attention)}{/if}</div>
+        <div class="t"><b class="tt">{tr('Domyślny model')}{#if blocked}<StatusBadge kind="warn" text={tr(gptOk ? 'Tylko tagowanie' : 'Brak dostawcy')}/>{:else if attention}<StatusBadge kind="warn" text={tr('Dostawca niedostępny')}/>{:else if !defModel}<StatusBadge kind="warn" text={tr('Wybierz model')}/>{/if}</b>
+          <span>{tr(blocked ? (gptOk ? 'Konto ChatGPT obsługuje tylko tagowanie; funkcje wymagają dostawcy z kluczem API lub lokalnego.' : 'Najpierw połącz dostawcę. Bez niego żadna funkcja AI nie ma modelu.') : 'Używany wszędzie, gdzie nie wybrano inaczej.')}</span></div>
+        <div class="ctl">{#if blocked}<div class="inline wrap"><Button onclick={startConnect}><Plus size={15}/>{tr('Połącz dostawcę')}</Button>{#if gptOk}<Button variant="ghost" onclick={toTagging}>{tr('Przejdź do tagowania')}</Button>{/if}</div>{:else}{@render modelPick(active, defModel, tr('Domyślny model'), setDef, true, attention)}{/if}</div>
       </div>
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Funkcje')}</h3><p>{tr('Domyślnie wszystko używa modelu domyślnego. „Zmień” pozwala wskazać inny model dla jednej funkcji.')}</p></header>
+      <header><h3>{tr('Funkcje')}</h3><p>{tr('Wszystkie funkcje używają modelu domyślnego. „Zmień” pozwala wybrać inny dla jednej funkcji.')}</p></header>
       <div class="fns">
         {#each skills as sk (sk.id)}
           {@const t = target(sk)}
@@ -627,6 +660,7 @@
               <div class="fe">
                 <ButtonGroup label={tr('Model dla funkcji: {name}', { name: label })} mode="single" value={modeOf(sk)} disabled={working} onchange={v => setSkMode(sk, String(v))} items={[{ value: 'default', label: tr('Domyślny') }, { value: 'custom', label: tr('Własny') }]}/>
                 {#if sk.provider_override}{@render modelPick(sk.provider_override, t.model, tr('Model: {name}', { name: label }), (pid, m) => setSk(sk, pid, m))}{/if}
+                <p class="p-sub">{tr('Silnik przechowuje jeden model na dostawcę. Wybór zmienia model tego dostawcy dla wszystkich funkcji, które go używają.')}</p>
               </div>
             {/if}
           </div>
@@ -637,15 +671,16 @@
         <Button variant={armed.resetAll ? 'destructive' : 'ghost'} disabled={!anyOwn || working} onclick={() => arm('resetAll', resetAll)}>{tr(armed.resetAll ? 'Potwierdź przywrócenie' : 'Przywróć wszystkie do domyślnego')}</Button>
       </footer>
     </div>
+    {/if}
    </section>
 
-   <section class="p-card panel" aria-label={tr('Tagowanie w edytorze')}>
+   <section class="p-card panel" id="ai-tagging" aria-label={tr('Tagowanie w edytorze')}>
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Tagowanie w edytorze')}</h3><p>{tr('Model dodaje do narracji pauzy i reakcje, np. [pauza] albo [śmiech].')}</p></div>
+      <header class="split"><div><h3>{tr('Tagowanie w edytorze')}</h3><p>{tr('AI dodaje do narracji pauzy i reakcje, np. [pauza] albo [śmiech].')}</p></div>
         {#if aiSet?.enabled}<StatusBadge kind={tagBadge[0]} text={tr(tagBadge[1])}/>{/if}</header>
       <div class="p-rows">
-        <div class="p-row"><div class="t"><b>{tr('Automatyczne tagowanie AI')}</b><span>{tr('Dodaje pauzy i reakcje do narracji w edytorze.')}</span></div>
-          <div class="inline">{#if flashed.tagOn}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Tooltip content={tr('Zaloguj konto ChatGPT (Codex), aby włączyć')} disabled={gptOk}><Switch label={tr('Włącz: automatyczne tagowanie AI')} checked={!!aiSet?.enabled && gptOk} disabled={!gptOk || !aiSet || tagSaving || tagBusy} onchange={v => saveTag({ enabled: v }, 'tagOn')}/></Tooltip></div></div>
+        <div class="p-row"><div class="t"><b>{tr('Automatyczne tagowanie AI')}</b><span>{tr('Dodaje pauzy i reakcje do tekstu w edytorze.')}</span></div>
+          <div class="inline">{#if flashed.tagOn}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Tooltip content={tr('Zaloguj konto ChatGPT (Codex), aby włączyć')} disabled={gptOk || !!aiSet?.enabled}><Switch label={tr('Włącz: automatyczne tagowanie AI')} checked={!!aiSet?.enabled} disabled={!aiSet || tagSaving || tagBusy || (!gptOk && !aiSet.enabled)} onchange={v => saveTag({ enabled: v }, 'tagOn')}/></Tooltip></div></div>
         {#if aiSet?.enabled && gptOk}
         <div class="p-row"><div class="t"><b>{tr('Model językowy')}</b><span>{tr(tagMode === 'default' ? 'Domyślny model konta ChatGPT (Codex).' : 'Własny model tylko do tagowania.')}</span></div>
           <div class="tctl">
@@ -674,14 +709,14 @@
           <div class="tagprev" role="status"><p class="tp-text">{#each tagRes.parts as part, i (i)}{#if part.startsWith('[')}<span class="tg">{part}</span>{:else}{part}{/if}{/each}</p>
             <div class="tp-foot"><span class="p-sub">{tagRes.line}</span><Button variant="ghost" onclick={tagTest}>{tr('Spróbuj ponownie')}</Button></div></div>
         {/if}
-      {:else if !gptOk && !aiLoading}<p class="p-sub">{tr('Tagowanie działa tylko przez konto ChatGPT (Codex). Zaloguj Codex poleceniem codex login, a potem sprawdź połączenie w zakładce „Modele językowe”.')}</p>{/if}
+      {:else if !gptOk && !aiLoading}<p class="p-sub">{tr(aiSet?.enabled ? 'Włączone, ale Codex niezalogowany. Zaloguj Codex poleceniem codex login, a potem sprawdź połączenie w zakładce „Modele językowe”. Do tego czasu tagowanie nie działa.' : 'Tagowanie działa tylko przez konto ChatGPT (Codex). Zaloguj Codex poleceniem codex login, a potem sprawdź połączenie w zakładce „Modele językowe”.')}</p>{/if}
     </div>
    </section>
 
-   {#if refinement}
+   {#if refinement && got.prov}
    <section class="p-card panel" aria-label={tr('Redakcja dyktowania')}>
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Redakcja dyktowania')}</h3><p>{tr('Poprawia tekst rozpoznany z mikrofonu. Wymaga skonfigurowanego dostawcy LLM.')}</p>
+      <header class="split"><div><h3>{tr('Redakcja dyktowania')}</h3><p>{tr('Poprawia tekst z mikrofonu. Wymaga połączonego dostawcy modeli językowych.')}</p>
         {#if refinement.last_refine_status?.ok === false}<p>{tr('Ostatnia redakcja nie powiodła się; silnik zachował tekst rozpoznany przez ASR.')}</p>{/if}</div>
         <StatusBadge kind={refinement.llm_ready ? 'ok' : 'warn'} text={tr(refinement.llm_ready ? 'LLM skonfigurowany' : 'Brak LLM')}/></header>
       <div class="p-rows">
@@ -727,6 +762,7 @@
   .fr .t span{color:var(--muted);font-size:var(--ui-text-12);line-height:1.5}
   .fn.off .t b{color:var(--muted)}
   .fe>:global(.mp){flex:1 1 auto}
+  .fe>.p-sub{flex:1 0 100%;margin:0}
   .sumrow{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--border);padding-top:14px}
   .sum{margin:0;font-size:var(--ui-text-12);color:var(--muted)}
   .ai-page :global(.fld){width:300px;max-width:100%}

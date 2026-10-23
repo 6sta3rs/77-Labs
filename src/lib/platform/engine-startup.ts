@@ -52,3 +52,23 @@ export function startupFraction(rows: StartupRow[], model: ModelWarmup | null): 
   const done = rows.filter(row => row.state === 'done').length;
   return Math.min(1, (done + (model?.status === 'loading' ? (model.progress ?? 0) / 100 : 0)) / rows.length);
 }
+
+type WarmupFamily = { active: string; backends: Array<{ id: string; license_required?: boolean; license_accepted?: boolean }> };
+type WarmupWeight = { role: string; installed: boolean; engines?: string[] };
+export type WarmupNote = { text: string; detail?: string };
+
+/**
+ * Why the TTS model is not warming up. The engine only logs the reason, so it is derived here from the
+ * (idle or failed) warm-up plus the active TTS engine and the model catalogue: an idle model after the
+ * start-up wait means the engine skipped the preload. Returns undefined when nothing specific is known.
+ */
+export function warmupNote(model: ModelWarmup | null, family?: WarmupFamily, weights?: WarmupWeight[]): WarmupNote | undefined {
+  if (model?.status === 'error') return { text: 'Nie udało się załadować modelu głosowego', detail: model.error };
+  if (model?.status !== 'idle') return undefined;
+  const engine = family?.backends.find(item => item.id === family.active);
+  if (!engine) return undefined;
+  if (engine.license_required && !engine.license_accepted) return { text: 'Pominięto: brak akceptacji warunków modelu' };
+  const own = (weights || []).filter(weight => weight.role.toLowerCase() === 'tts' && weight.engines?.includes(engine.id));
+  if (own.length && !own.some(weight => weight.installed)) return { text: 'Pominięto: model nie jest pobrany' };
+  return undefined;
+}

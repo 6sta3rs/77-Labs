@@ -95,7 +95,7 @@
       {/if}
       {#if error}<p class="error" role="alert">{tr(error)}</p>{/if}
     </div>
-    <footer><Button variant="outline" onclick={onclose}>{tr("Anuluj")}</Button><Button type="submit">{kind === 'import' ? tr("Dodaj motyw") : 'Zapisz motyw'}</Button></footer>
+    <footer><Button variant="outline" onclick={onclose}>{tr("Anuluj")}</Button><Button type="submit">{kind === 'import' ? tr("Dodaj motyw") : tr("Zapisz motyw")}</Button></footer>
   </form>
 </dialog>
 

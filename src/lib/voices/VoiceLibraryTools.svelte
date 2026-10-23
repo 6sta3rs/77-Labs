@@ -101,7 +101,7 @@
       const result = await exportPersona(exportId, { license, tags, includeReference }, signal); signal.throwIfAborted();
       const url = URL.createObjectURL(result.blob), anchor = document.createElement('a');
       anchor.href = url; anchor.download = result.filename; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 30_000);
-      message = `Przygotowano lokalny plik ${result.filename}.`;
+      message = tr("Przygotowano lokalny plik {filename}.", { filename: result.filename });
     });
   }
   $effect(() => {

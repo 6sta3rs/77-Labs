@@ -117,7 +117,7 @@
     <p class="p-notice info">{tr('Synteza, rozpoznawanie mowy i statystyki działają lokalnie na tym komputerze. Dane wychodzą na zewnątrz tylko wtedy, gdy włączysz analitykę albo użyjesz zdalnego dostawcy tłumaczenia.')}</p>
     <div class="p-rows">
       {#if analytics}
-      <div class="p-row"><div class="t"><b>{tr('Zgoda na analitykę produktu')}</b><span>{analytics.available ? tr('Dobrowolne. Wysyła dozwolone metadane zdarzeń produktu, bez tekstów i nagrań. Niezależne od lokalnych statystyk.') : tr('Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.')}</span></div>
+      <div class="p-row"><div class="t"><b>{tr('Zgoda na analitykę produktu')}</b><span>{analytics.available ? tr('Dobrowolna. Wysyła tylko dane o użyciu programu, bez tekstów i nagrań.') : tr('Ta dystrybucja nie ma skonfigurowanego odbiorcy analityki.')}</span></div>
         <div class="pv-inline">{#if analyticsOk}<span class="saved on" role="status">{tr('Zapisano')}</span>{/if}<Switch label={tr('Zgoda na analitykę produktu')} bind:checked={analyticsOn} disabled={locked || !analytics.available} onchange={saveAnalytics}/></div></div>
       {/if}
       {#if info}
@@ -130,10 +130,10 @@
   {:else if tab === 'watermark'}
     {#if watermark}
     <div class="p-section">
-      <header class="split"><div><h3>{tr('Znak wodny')}</h3><p>{tr('Dotyczy nowych wyników i eksportów. Nie zmienia zapisanych wcześniej nagrań.')}</p></div>
+      <header class="split"><div><h3>{tr('Znak wodny')}</h3><p>{tr('Dotyczy nowych nagrań i eksportów. Nie zmienia zapisanych wcześniej.')}</p></div>
         <StatusBadge kind={watermark.audioseal_available ? 'ok' : 'warn'} text={watermark.audioseal_available ? tr('AudioSeal dostępny') : tr('AudioSeal niedostępny')}/></header>
       <div class="p-rows">
-        <div class="p-row"><div class="t"><b>{tr('Niewidoczny znak w nowych generacjach')}</b><span>{tr('Ukryta sygnatura AudioSeal, której nie słychać.')}</span></div><Switch label={tr('Niewidoczny znak wodny')} bind:checked={draft.invisible_enabled} disabled={locked}/></div>
+        <div class="p-row"><div class="t"><b>{tr('Niewidoczny znak w nowych generacjach')}</b><span>{tr('Ukryta sygnatura (AudioSeal), której nie słychać.')}</span></div><Switch label={tr('Niewidoczny znak wodny')} bind:checked={draft.invisible_enabled} disabled={locked}/></div>
         <div class="p-row"><div class="t"><b>{tr('Sygnał dźwiękowy w eksportach')}</b><span>{tr('Słyszalny znak dodawany do wyeksportowanego audio.')}</span></div><Switch label={tr('Słyszalny znak eksportu audio')} bind:checked={draft.visible_audio_enabled} disabled={locked}/></div>
         <div class="p-row"><div class="t"><b>{tr('Widoczny znak w eksporcie wideo')}</b><span>{tr('Napis na obrazie wyeksportowanego wideo.')}</span></div><Switch label={tr('Widoczny znak eksportu wideo')} bind:checked={draft.visible_video_enabled} disabled={locked}/></div>
       </div>
@@ -141,7 +141,7 @@
     </div>
 
     <div class="p-section">
-      <header><h3>{tr('Sprawdź nagranie')}</h3><p>{tr('WAV, MP3, FLAC, OGG, M4A, AAC lub OPUS, do 64 MB. Analiza zaczyna się po kliknięciu i może załadować lokalny model.')}</p></header>
+      <header><h3>{tr('Sprawdź nagranie')}</h3><p>{tr('Pliki WAV, MP3, FLAC, OGG, M4A, AAC lub OPUS do 64 MB. Analiza rusza po kliknięciu i może załadować model.')}</p></header>
       <div class="pv-pick"><FilePicker label={tr('Wybierz nagranie')} ariaLabel={tr('Nagranie do wykrywania znaku wodnego')} accept=".wav,.mp3,.flac,.ogg,.m4a,.aac,.opus" disabled={locked} showName={false} onchange={choose}/><span class="pv-file">{file?.name ?? tr('Nie wybrano nagrania')}</span></div>
       {#if fileErr}<p class="p-field-err" role="alert">{fileErr}</p>{/if}
       <div class="p-actions"><Button disabled={!file || !watermark.audioseal_available || locked} onclick={detect}>{#if busy === 'detect'}<LoaderCircle size={15} class="spin"/>{tr('Analizuję…')}{:else}<ShieldCheck size={14}/>{tr('Sprawdź znak wodny')}{/if}</Button></div>

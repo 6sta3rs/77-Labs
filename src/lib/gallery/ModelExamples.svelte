@@ -14,7 +14,7 @@
     { id:'example-missing',name:'Model niezainstalowany — przykład',description:'Pozycja wyłącznie do pokazania stanu niedostępności.',languages:['Polski'],installed:false,available:false,reason:'Model nie jest zainstalowany. Wybór nie uruchamia pobierania.' },
   ]
   const active = $derived(models.find(model=>model.id===selected)!)
-  async function choose(id: string) { selected=id;notice=`Wybrano w podglądzie: ${models.find(model=>model.id===id)?.name}.` }
+  async function choose(id: string) { selected=id;notice=tr("Wybrano w podglądzie: {name}.", { name: tr(models.find(model=>model.id===id)?.name ?? "") }) }
 </script>
 <section class="model-example" id="control-16">
   <header><span>16</span><h2>{tr("Wybór modeli")}</h2><code>{tr("ModelTrigger / ModelPicker")}</code></header>
@@ -25,7 +25,7 @@
     <p class="selection-copy">{tr("Wybrany:")} <strong>{active.name}</strong></p>
     <ModelTrigger label={tr("Przeglądarka modeli")} name="Otwórz pełne okno" popup="dialog" expanded={dialog} onclick={()=>dialog=true}/>
     <p class="hint">{tr("Sprawdź wyszukiwanie, filtry dostępności i języka, listę/karty oraz pozycje wyłączone.")}</p>
-    <p role="status">{notice}</p>
+    <p role="status">{tr(notice)}</p>
   </div><div class="picker-example">{#if panel}<ModelPicker {models} selectedId={selected} onselect={choose} onclose={()=>panel=false}/>{:else}<div class="picker-placeholder">{tr("Kliknij nazwę modelu, aby otworzyć panel wyboru.")}</div>{/if}</div></div>
 </section>
 {#if dialog}<ModelPicker {models} mode="dialog" selectedId={selected} onselect={choose} onclose={()=>dialog=false}/>{/if}

@@ -1,6 +1,6 @@
 # Project context
 
-**Seventy Seven Labs 0.2.0** is a local voice studio for Windows. The public source has a fresh history without private user data. Write the product name exactly as Seventy Seven Labs.
+**Seventy Seven Labs 0.2.2** is a local voice studio for Windows. The public source has a fresh history without private user data. Write the product name exactly as Seventy Seven Labs.
 
 The application interface is Polish. Public documentation is English; filenames and compatibility identifiers remain stable.
 
@@ -28,8 +28,8 @@ Run `npm ci`, then `npm run dev`: http://127.0.0.1:4310. `/?demo=tts` displays f
 
 Engine lifecycle:
 
-- **Idle stop:** the engine stops after a configurable period of confirmed inactivity. The default is 15 minutes; the choice is 5, 15, 30, or 60 minutes in **Ustawienia → Silnik → Stan** (Settings → Engine → Status), under **Utrzymuj silnik po bezczynności** (Keep the engine after inactivity).
-- **Start at launch:** `App.svelte` starts the engine when the desktop app opens (`bootRuntime`, silent in the browser demo) and the launcher sets `VOICESTUDIO_NEXT_PRELOAD_TTS=1`, so the TTS model loads in the background. `EngineStartup.svelte` shows the steps and the model warm-up.
+- **Idle stop:** the engine stops after a configurable period of confirmed inactivity. The default is 15 minutes; the choice is 5, 15, 30, or 60 minutes, or **Zawsze** (never stopped for inactivity; keeps about 1.9 GB of GPU memory in use), in **Ustawienia → Silnik → Uruchamianie i pamięć** (Settings → Engine → Startup and memory), under **Utrzymuj silnik i model po bezczynności** (Keep the engine and model after inactivity). The same value is pushed to the engine's own model idle clock.
+- **Start at launch:** `App.svelte` starts the engine when the desktop app opens (`bootRuntime`, silent in the browser demo) unless **Uruchamiaj silnik przy starcie aplikacji** (start the engine when the app opens) is off, and Rust sets `VOICESTUDIO_NEXT_PRELOAD_TTS=1` by default, so the TTS model loads in the background; **Ładuj model głosowy do pamięci po uruchomieniu** (load the voice model into memory at startup) turns that off, and **Załaduj model teraz** (load the model now) loads it on demand. The two switches are stored in `localStorage` and apply from the next launch / next engine start. `EngineStartup.svelte` shows the steps and the model warm-up.
 - **Startup budget:** a cold start may take up to 300 s when libraries and weights load from a slow disk; progress is shown and waiting ends when progress stalls.
 - **Graceful stop:** stdin is closed and the supervisor waits up to 15 s before ending only the process tree it owns.
 

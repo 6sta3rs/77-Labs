@@ -33,6 +33,7 @@ export const runtimeMonitorPaths = [
   '/next/preview-cache/state',
   '/next/settings/credentials',
   '/next/settings/proxy',
+  '/next/settings/added-llm-providers',
   '/next/settings/update-source',
   '/system/info',
   '/system/network/state',

@@ -18,6 +18,8 @@
   import { productionJson } from '../../tools/production/production';
   import { request } from '../../platform/api';
   import { canSelectEngine, engineReadinessLabel, needsEngineVerification } from '../../models/engine-readiness';
+  import { markEngineConfirmed } from '../../models/engine-catalog-state';
+  import { FASTER_WHISPER_ENGINES, isActiveAsrModel, isFasterWhisperModel } from '../../models/model-picker';
   import { downloadState, reportDownloads } from '../../models/download-monitor';
   import { rateText } from '../../models/download-eta';
   import { activeDownload, byteLabel, downloadPercent, engineLicenses, modelFamily, modelManagement, type ManagedModel, type ModelDownload, type ModelStorage } from '../../models/model-management';
@@ -41,7 +43,7 @@
   const tabs: Array<[Family, string]> = [['tts', 'Synteza mowy'], ['asr', 'Rozpoznawanie mowy'], ['llm', 'Modele językowe'], ['other', 'Pozostałe']];
   const famName = Object.fromEntries(tabs) as Record<Family, string>;
   const users: Record<string, string> = { tts: 'Studio, Audiobooki, Dubbing', asr: 'Transkrypcja, Dubbing', llm: 'Tłumaczenia, Tagowanie, Dyktowanie' };
-  const sourceText: Record<string, string> = { off: 'Pobieranie bezpośrednio z huggingface.co.', auto: 'Aplikacja wybiera działające źródło i ponawia test.', man: 'Pobieranie z własnego mirroru Hugging Face.' };
+  const sourceText: Record<string, string> = { off: 'Pobieranie prosto z huggingface.co.', auto: 'Program sam wybiera działające źródło.', man: 'Pobieranie z Twojej kopii (mirror) Hugging Face.' };
 
   let family = $state<Tab>('tts');
   let catalog = $state<EngineCatalog>(), models = $state<ManagedModel[]>([]), jobs = $state<ModelDownload[]>([]), storage = $state<ModelStorage>(), freeGb = $state<number>();
@@ -147,15 +149,20 @@
     } catch (cause) { if (!controller.signal.aborted) fail(cause); }
     finally { if (actionController === controller) { actionController = undefined; busy = false; } }
   }
-  async function select(tab: 'tts' | 'asr' | 'llm', engine: Engine) {
-    const previous = catalog?.[tab].backends.find(item => item.id === catalog?.[tab].active);
+  // `modelId` (ASR only): the CTranslate2 weights Faster-Whisper should load, sent as `model_id`.
+  const withModel = (engine: Engine, repo?: string) => repo ? `${engineName(engine)} · ${models.find(model => model.repo_id === repo)?.label || repo}` : engineName(engine);
+  async function select(tab: 'tts' | 'asr' | 'llm', engine: Engine, modelId?: string) {
+    const previousFamily = catalog?.[tab];
+    const previous = previousFamily?.backends.find(item => item.id === previousFamily.active);
+    const from = previous ? withModel(previous, tab === 'asr' ? previousFamily?.active_model : undefined) : '—';
     await action(async signal => {
-      const result = await selectEngine(tab, engine.id, signal);
+      const result = await selectEngine(tab, engine.id, signal, modelId);
       signal.throwIfAborted();
+      markEngineConfirmed(engine.id, tab); // the engine ran its own check before accepting the selection
       await refresh(signal); signal.throwIfAborted();
-      if (!result.env_override && catalog?.[tab].active !== engine.id) throw new Error(tr('Silnik nie potwierdził wybranego modelu. Odśwież katalog i spróbuj ponownie.'));
+      if (!result.env_override && (catalog?.[tab].active !== engine.id || (modelId && catalog?.[tab].active_model !== modelId))) throw new Error(tr('Silnik nie potwierdził wybranego modelu. Odśwież katalog i spróbuj ponownie.'));
       await onchange(); signal.throwIfAborted();
-    }, () => tr('Aktywny model ({family}): {from} → {to}. Dotyczy: {users}.', { family: tr(famName[tab]).toLowerCase(), from: previous ? engineName(previous) : '—', to: engineName(engine), users: tr(users[tab]) }));
+    }, () => tr('Aktywny model ({family}): {from} → {to}. Dotyczy: {users}.', { family: tr(famName[tab]).toLowerCase(), from, to: withModel(engine, modelId), users: tr(users[tab]) }));
   }
   function toggleLicense(row: Row) { deleteRepo = ''; agreed = false; registryRepo = ''; licenseKey = licenseKey === row.key ? '' : row.key; }
   function openDelete(repo: string) { deleteRepo = repo; licenseKey = ''; confirmation = ''; }
@@ -260,7 +267,7 @@
   {#if review}
     <section class="p-card" aria-label={tr('Warunki modeli')}>
       <div class="p-section">
-        <header class="split"><div><h3>{tr('Warunki modeli')}</h3><p>{licensedEngines.length || registryRepos.length ? tr('Każdy model ma osobną decyzję. Otwarcie przeglądu niczego nie akceptuje.') : tr('Żaden model w katalogu nie wymaga teraz akceptacji warunków.')}</p></div>
+        <header class="split"><div><h3>{tr('Warunki modeli')}</h3><p>{licensedEngines.length || registryRepos.length ? tr('Każdy model ma osobną decyzję. Samo otwarcie przeglądu niczego nie akceptuje.') : tr('Żaden model w katalogu nie wymaga teraz akceptacji warunków.')}</p></div>
           <Button variant="light" aria-label={tr('Zamknij przegląd warunków')} onclick={() => { review = false; if (registryHost === 'review') registryRepo = ''; }}>{tr('Zamknij')}</Button></header>
         {#if licensedEngines.length || registryRepos.length}
         <div class="p-rows">
@@ -292,7 +299,7 @@
     <section class="p-card" role="tabpanel">
       {#if tab === 'llm'}
         <div class="p-section">
-          <header class="split"><div><h3>{tr('Dostawcy w chmurze')}</h3><p>{providersFailed ? tr('Nie udało się odczytać dostawców. Konfiguracja jest w „AI i klucze”.') : !cloud.length ? tr('Nie połączono żadnego dostawcy. Połącz dostawcę, aby używać funkcji AI.') : tr('Zewnętrzne modele przez klucz API albo konto. Konfiguracja jest w „AI i klucze”.')}</p></div>
+          <header class="split"><div><h3>{tr('Dostawcy w chmurze')}</h3><p>{providersFailed ? tr('Nie udało się odczytać dostawców. Konfiguracja jest w „AI i klucze”.') : !cloud.length ? tr('Nie połączono żadnego dostawcy. Połącz dostawcę, aby używać funkcji AI.') : tr('Zewnętrzne modele przez klucz API albo konto. Ustawienia są w „AI i klucze”.')}</p></div>
             {#if cloud.length}<Button onclick={() => onnavigate('ai', 'add')}><Plus size={15}/>{tr('Dodaj dostawcę')}</Button>{/if}</header>
           {#if !cloud.length}
             <div class="p-actions"><Button onclick={() => onnavigate('ai', 'add')}><Plus size={15}/>{tr('Dodaj dostawcę')}</Button></div>
@@ -310,7 +317,7 @@
           <div class="p-actions"><Button variant="ghost" onclick={() => onnavigate('ai', 'funkcje')}>{defaultProvider ? tr('Domyślny model: {model} — zmienisz w AI i klucze › Funkcje AI', { model: [defaultProvider.display_name, defaultProvider.model].filter(Boolean).join(' · ') }) : tr('Domyślny model: nie wybrano — wybierz w AI i klucze › Funkcje AI')}</Button></div>
           {/if}
         </div>
-        <div class="p-section"><header><h3>{tr('Modele lokalne')}</h3><p>{visible.length ? tr('Pobrane na ten komputer; działają bez internetu.') : tr('Silnik nie udostępnia lokalnych modeli językowych.')}</p></header></div>
+        <div class="p-section"><header><h3>{tr('Modele lokalne')}</h3><p>{visible.length ? tr('Pobrane na ten komputer. Działają bez internetu.') : tr('Silnik nie udostępnia lokalnych modeli językowych.')}</p></header></div>
       {:else if !visible.length}
         <div class="p-section"><header><p>{loading && !catalog ? tr('Wczytywanie katalogu…') : tr('W katalogu nie ma modeli tej kategorii.')}</p></header></div>
       {/if}
@@ -321,7 +328,11 @@
         {@const job = weight ? jobFor(weight.repo_id) : undefined}
         {@const downloading = activeDownload(job)}
         {@const incomplete = !downloading && !!weight && !weight.installed && (!!weight.incomplete || ['interrupted', 'cancelled', 'failed'].includes(job?.state || ''))}
-        {@const isActive = !!engine && fam?.active === engine.id}
+        {@const fwWeight = tab === 'asr' && !!weight && isFasterWhisperModel(weight.repo_id)}
+        {@const useEngine = engine ?? (fwWeight ? (fam?.backends.find(item => FASTER_WHISPER_ENGINES.includes(item.id) && canSelectEngine(item)) ?? fam?.backends.find(item => item.id === FASTER_WHISPER_ENGINES[0])) : undefined)}
+        {@const modelId = fwWeight && weight && useEngine && FASTER_WHISPER_ENGINES.includes(useEngine.id) ? weight.repo_id : undefined}
+        {@const isActive = modelId && weight ? (engine ? fam?.active === engine.id : true) && isActiveAsrModel(fam, weight.repo_id) : !!engine && fam?.active === engine.id}
+        {@const tokenNeeded = !!weight && !weight.installed && !downloading && ((weight.gated && !tokenState?.set) || /token/i.test(job?.error || ''))}
         {@const blocked = !!engine?.license_required && !engine.license_accepted}
         {@const supported = weight?.supported !== false && engine?.availability_check !== 'platform_unsupported'}
         {@const otherDownload = transferring && !downloading}
@@ -341,6 +352,7 @@
                 {@const pct = downloadPercent(job)}
                 <div class="p-progress" role="status">{#if pct !== undefined}<progress class="p-bar" max="100" value={pct} aria-label={tr('Postęp pobierania {name}', { name: row.name })}></progress>{:else}<progress class="p-bar" aria-label={tr('Postęp pobierania {name}', { name: row.name })}></progress>{/if}<span>{progressText(job)}</span></div>
               {:else if job?.error && !weight?.installed}<span class="det err">{tr(job.error)}</span>{/if}
+              {#if tokenNeeded}<div class="tokline">{#if !job?.error}<span class="det">{tr('Model chroniony — może wymagać tokenu Hugging Face.')}</span>{/if}<Button variant="ghost" onclick={() => family = 'access'}>{tr('Ustaw token Hugging Face')}</Button></div>{/if}
             </div>
             <div class="mact">
               {#if weight && job && downloading}
@@ -351,9 +363,9 @@
                 <Tooltip content={otherDownload ? tr('Trwa inne pobieranie') : !supported ? tr('Niezgodny z tym komputerem') : storage?.restart_required ? tr('Nowy katalog modeli czeka na restart silnika') : ''} disabled={!otherDownload && supported && !storage?.restart_required}>
                   <Button disabled={busy || transferring || !supported || storage?.restart_required} onclick={() => action(signal => modelManagement.install(weight.repo_id, signal))}><Download size={14}/>{incomplete ? tr('Wznów') : tr('Pobierz')}</Button>
                 </Tooltip>
-              {:else if engine && fam && (fam.active !== engine.id || needsEngineVerification(engine))}
-                <Tooltip content={fam.env_override ? tr('Model jest ustawiony przez konfigurację uruchomienia') : tr(engineReadinessLabel(engine))} disabled={canSelectEngine(engine) && !fam.env_override}>
-                  <Button variant="outline" disabled={busy || !canSelectEngine(engine) || Boolean(fam.env_override) || Boolean(engine.license_required && !engine.license_accepted)} onclick={() => select(tab as 'tts' | 'asr' | 'llm', engine)}>{needsEngineVerification(engine) ? tr('Sprawdź i użyj') : tr('Użyj')}</Button>
+              {:else if useEngine && fam && (!isActive || needsEngineVerification(useEngine))}
+                <Tooltip content={fam.env_override ? tr('Model jest ustawiony przez konfigurację uruchomienia') : tr(engineReadinessLabel(useEngine))} disabled={canSelectEngine(useEngine) && !fam.env_override}>
+                  <Button variant="outline" disabled={busy || !canSelectEngine(useEngine) || Boolean(fam.env_override) || Boolean(useEngine.license_required && !useEngine.license_accepted)} onclick={() => select(tab as 'tts' | 'asr' | 'llm', useEngine, modelId)}>{needsEngineVerification(useEngine) ? tr('Sprawdź i użyj') : tr('Użyj')}</Button>
                 </Tooltip>
               {/if}
               {#if !blocked}
@@ -411,7 +423,7 @@
   {:else}
     <section class="p-card" role="tabpanel">
       <div class="p-section">
-        <header><h3>{tr('Pobieranie i dostęp')}</h3><p>{tr('Token, źródło modeli i katalog na dysku.')}</p></header>
+        <header><h3>{tr('Pobieranie i dostęp')}</h3><p>{tr('Token, źródło modeli i folder na dysku.')}</p></header>
         <div class="p-rows">
           <div class="p-row">
             <div class="t"><b>{tr('Token Hugging Face')}</b><span>{tr('Potrzebny tylko dla modeli chronionych. Nigdy nie jest wyświetlany.')}</span></div>
@@ -428,7 +440,7 @@
                 <ButtonGroup label={tr('Źródło pobierania')} mode="single" disabled={accessBusy} bind:value={source} onchange={value => saveSource(String(value))} items={[{ value: 'off', label: tr('Oficjalny') }, { value: 'auto', label: tr('Auto'), disabled: mirror.auto_opt_out }, { value: 'man', label: tr('Ręczny') }]}/></div>
             </div>
             {#if source === 'man'}
-              <div class="p-row"><div class="t"><b>{tr('Adres mirroru')}</b><span>{tr('Adres zgodny z Hugging Face.')}</span></div>
+              <div class="p-row"><div class="t"><b>{tr('Adres mirroru')}</b><span>{tr('Adres Twojej kopii zgodnej z Hugging Face.')}</span></div>
                 <div class="ctl col"><div class="ctl"><Input bind:value={mirrorUrl} placeholder="https://mirror.example/" aria-label={tr('Adres mirroru')} autocomplete="off" spellcheck={false} disabled={accessBusy}/><Button variant="outline" disabled={accessBusy || !mirrorUrl.trim()} onclick={saveMirror}>{tr('Zapisz')}</Button></div>
                   {#if mirrorError}<p class="p-field-err" role="alert">{tr(mirrorError)}</p>{/if}</div></div>
             {/if}
@@ -438,7 +450,7 @@
             {/if}
           {/if}
           <div class="p-row">
-            <div class="t"><b>{tr('Katalog modeli')}</b><span>{tr('Ścieżkę zmienisz w Przechowywaniu, razem z pozostałymi katalogami.')}</span></div>
+            <div class="t"><b>{tr('Katalog modeli')}</b><span>{tr('Folder zmienisz w Przechowywaniu.')}</span></div>
             <div class="ctl">{#if storage?.restart_required}<StatusBadge kind="wait" text={tr('Czeka na restart')}/>{/if}{#if storage}<code>{storage.effective}</code>{/if}<Button variant="outline" onclick={() => onnavigate('storage')}>{tr('Zmień w Przechowywaniu')}</Button></div>
           </div>
         </div>
@@ -465,6 +477,7 @@
   .desc{font-size:var(--ui-text-12);color:var(--muted);line-height:1.6;max-width:520px}
   .det{font-size:var(--ui-text-12);color:var(--muted);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
   .det.err{color:var(--danger)}
+  .tokline{display:flex;align-items:center;flex-wrap:wrap;gap:0 8px}
   .main .p-progress{margin-top:4px;max-width:460px}
   .mact{display:flex;align-items:center;gap:4px;min-height:32px;flex-shrink:0}
   .box{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0 0 0 34px}
