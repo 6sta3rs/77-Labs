@@ -1,5 +1,13 @@
 # Public project progress
 
+## 23 October 2026 — naming and index rules in `test:structure` (T-0038)
+
+`tools/dev/check-structure.mjs` now enforces: file names under `tools/`, `tests/` and `scripts/runtime/` are kebab-case for `.mjs`, `.ts`, `.js`, `.svelte`, `.html`, `.css` and snake_case for `.py`; every tracked file under `tools/` has a row (or a folder row ending in `/`) in `tools/README.md`, and every file under `tests/acceptance/` in `tests/acceptance/README.md`. A deliberately badly named, unlisted file made the check fail with both messages (tried and removed). Nine existing outliers were renamed with `git mv` and their references updated (only full file names were replaced, not tokens that merely look like them): `tests/acceptance/ai_runtime_smoke.py`, `feature_smoke.py`, `select_ui_check.py`, `slider_ui_check.py`, `wav_format_verify.py`, `stop-observer-check.mjs`; `tests/frontend/audit_upstream.py`, `speech_settings_backend_check.py`; `tools/preview/orb_product_preview.py`. The check reports 223 named files and 69 indexed tools.
+
+"No orphan scripts" is covered as: nothing can exist in `tools/` or `tests/acceptance/` without being described, and the "Called by" column says `nothing (manual)` where nothing references a script. A script nobody calls is still allowed; deleting such scripts is the owner's decision (T-0008, T-0009).
+
+Checks: `npm run check` 0/0, `build`, `test:ui` (71 checks), `test:structure` PASS. Not verified: the renamed acceptance scripts were not started (they need an engine, a browser or the EXE); `python -m py_compile` is implied by the unchanged contents.
+
 ## 23 October 2026 — English names for all documentation files (T-0015)
 
 27 files were renamed with `git mv` (history follows): `docs/postep.md` to `docs/progress.md`, `uwagi-ui.md` to `ui-feedback.md`, `publikacja.md` to `publishing.md`, `architecture/kontekst-projektu.md` to `project-context.md`, `architecture/struktura-projektu.md` to `project-structure.md`, `verification/weryfikacja.md` to `verification.md`, and 21 files in `docs/features/` (for example `zdalny-silnik` is `remote-engine`, `kopie-danych-runtime` is `runtime-backups`, `kula-plyn` is `orb-flow`, `motywy-t3-code` is `t3-code-themes`). `i18n.md`, `t3-controls.md` and `tts-demo.md` were already English. References were rewritten in 52 files (links, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, `check-structure.mjs`, the line-limit exceptions file, tests, the task board and specs). Old names inside this log's earlier entries are rewritten too, so the log's links are valid; its prose is otherwise unchanged. File names are the only thing that changed: titles and content are as before. Feature documents keep describing Polish UI labels.

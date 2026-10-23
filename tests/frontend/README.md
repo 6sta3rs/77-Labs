@@ -14,4 +14,4 @@ The eight `*-check.js` files that no script or page references are not Node test
 | `theme-check.js` | the Vite server, isolated profile |
 | `orb-ui-check.js` | an entry module for `tools/preview/orb-preview.svelte`; no page references it today |
 
-Python files in this folder (`audit-upstream.py`, `test_audit_upstream.py`, `speech-settings-backend-check.py`) are covered by the runtime test table of T-0029.
+Python files in this folder (`audit_upstream.py`, `test_audit_upstream.py`, `speech_settings_backend_check.py`) are covered by the runtime test table of T-0029.

@@ -1,4 +1,4 @@
-// Run only against tests/acceptance/feature-smoke.py --hold (disposable data).
+// Run only against tests/acceptance/feature_smoke.py --hold (disposable data).
 const checks = [];
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const wait = async predicate => { for (let i = 0; i < 400; i++) { if (predicate()) return; await delay(25); } throw new Error('UI check timeout'); };

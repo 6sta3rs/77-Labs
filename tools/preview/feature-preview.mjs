@@ -1,5 +1,5 @@
 // Stable production preview for feature acceptance while other sessions edit Vite.
-// Run npm run build first. Tests require feature-smoke.py --hold on 4312.
+// Run npm run build first. Tests require feature_smoke.py --hold on 4312.
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';

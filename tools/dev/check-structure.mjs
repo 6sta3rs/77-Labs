@@ -70,6 +70,24 @@ for (const file of documents) {
     quoted++;
   }
 }
+// Nazwy plików: .mjs/.ts/.js/.svelte/.html/.css w kebab-case, .py w snake_case (tools/, tests/, scripts/runtime/).
+const kebab = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+)*\.(?:mjs|ts|js|svelte|html|css)$/;
+const snake = /^[a-z0-9]+(?:_[a-z0-9]+)*\.py$/;
+let named = 0;
+for (const file of trackedAll.filter(path => /^(?:tools|tests|scripts\/runtime)\//.test(path))) {
+  const name = file.split('/').pop();
+  if (/\.(?:mjs|ts|js|svelte|html|css)$/.test(name)) { check(kebab.test(name), `${file}: nazwa pliku powinna być w kebab-case.`); named++; }
+  else if (name.endsWith('.py') && name !== '__init__.py') { check(snake.test(name), `${file}: nazwa pliku .py powinna być w snake_case.`); named++; }
+}
+// Każdy plik w tools/ ma wiersz w tools/README.md, a w tests/acceptance/ w tests/acceptance/README.md (folder wpisany z ukośnikiem obejmuje całą zawartość).
+let indexed = 0;
+for (const [folder, readme] of [['tools', 'tools/README.md'], ['tests/acceptance', 'tests/acceptance/README.md']]) {
+  const listed = [...read(readme).matchAll(/`((?:tools|tests)\/[^`\s]+)`/g)].map(match => match[1]);
+  for (const file of trackedAll.filter(path => path.startsWith(folder + '/') && path !== readme)) {
+    check(listed.some(entry => entry === file || (entry.endsWith('/') && file.startsWith(entry))), `${file}: brak wiersza w ${readme}.`);
+    indexed++;
+  }
+}
 // Limit długości plików kodu: nowe pliki ponad limit nie przechodzą, a istniejące wyjątki (z powodem) nie mogą rosnąć.
 const lineLimit = Number(process.env.LINE_LIMIT) || 600;
 const exceptions = JSON.parse(read('tools/dev/line-limit-exceptions.json'));
@@ -86,4 +104,4 @@ for (const file of sourceFiles) {
 for (const file of Object.keys(exceptions)) check(sourceFiles.includes(file), `line-limit-exceptions.json: brak śledzonego pliku ${file}`);
 for (const failure of failures) console.error(failure);
 assert.equal(failures.length, 0, `Struktura projektu: ${failures.length} błędów`);
-console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji, ${quoted} ścieżek w dokumentach i limit ${lineLimit} linii (${oversized} wyjątków).`);
+console.log(`Struktura PASS: ${embedded} zasobów osadzanych, SHA silnika, skrypty npm, ${links} odnośników dokumentacji, ${quoted} ścieżek w dokumentach, ${named} nazw plików, ${indexed} narzędzi w indeksach i limit ${lineLimit} linii (${oversized} wyjątków).`);

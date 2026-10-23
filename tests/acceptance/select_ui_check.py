@@ -1,4 +1,4 @@
-"""Select animation and native keyboard acceptance: python tests/acceptance/select-ui-check.py."""
+"""Select animation and native keyboard acceptance: python tests/acceptance/select_ui_check.py."""
 
 # Repository source paths; deployed runtime still uses a flat, self-contained directory.
 from pathlib import Path as _SourcePath

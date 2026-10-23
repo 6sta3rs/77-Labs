@@ -1,6 +1,6 @@
 # Task board
 
-The 31 tasks of the 22 October audit (implemented in 0.2.2) are in `audit-2026-10-22.md` with files and test steps; their open leftovers are T-0021 to T-0024.
+The 31 tasks of the 22 October audit (implemented in 0.2.2) are in `audits/audit-2026-10-22.md` (the original findings, translated, in `audits/app-audit-2026-10-22.md`) with files and test steps; their open leftovers are T-0021 to T-0024.
 
 The path from 6/10 to about 8/10 (T-0028 to T-0052 and the re-scoped older rows) is in `specs/ROADMAP-to-8.md`.
 
@@ -17,8 +17,8 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0014 | Clean `.tmp` | blocked | Owner confirms the delete list first (about 28k files, mostly repo copies, `*-dist`, a 2 GB cargo target). Keep `qa/`, `release/` and the pinned checkouts. | filemap map |
 | T-0017 | Move the audit and task lists out of `.tmp/qa` | open | Review `.tmp/qa/zadania-audyt-2026-10-22.md` and `audyt-aplikacji-2026-10-22.md` for private data, then add them to `tasks/audits/` (planned) in English or as a summary. | |
 | T-0019 | Remove the local `refs/t3` | blocked | Owner: 273 local refs today (growing; the T3 tool recreates them), not four. Delete them (`git update-ref -d`), acceptance is zero refs matching `refs/t3/`. CI clones are already green. | `publication_check.py:236` |
-| T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audit-2026-10-22.md`. | audit list |
-| T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/progress.md` |
+| T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audits/audit-2026-10-22.md`. | audit list |
+| T-0022 | Check in the running app what was only checked in code | open | A-06, A-07, A-09 (incl. migration of `voicestudio.ai.providers.v1`), A-11, A-13, A-18, A-21, A-22 and the English window for A-23, A-25, A-28 ("Zapisano" in English). Steps per task in `audits/audit-2026-10-22.md`; evidence into `.tmp/qa/T-0022/`. | verification notes in `docs/progress.md` |
 | T-0023 | Pixel comparison of the "Wydajność i limity" report with the prototype (A-31) | open | Screenshots at 1280 and 900 px next to `.tmp/settings-redesign/real/ustawienia-prototyp.html` (needs T-0013 first, the prototype lives in the ignored `.tmp`). | known limitation of 0.2.2 |
 | T-0024 | Test the update from 0.2.1 to 0.2.2 | open | Install 0.2.1 (installer in the ignored `.tmp/release/v0.2.1`, the tag `v0.2.1` does not exist) on isolated data and update from the REAL GitHub feed (0.2.2 is current). A local feed is unreachable: the endpoint is fixed at build time (`build-update.mjs:15,26`). Gate for T-0033. | `docs/progress.md` (0.2.2) |
 | T-0025 | Locale-aware formatting and plurals for new languages | open | 32 fixed Polish locale uses outside `i18n/` (display formatting, `Intl.DisplayNames('pl')`, `'pl-PL'` defaults, `toLocaleLowerCase('pl')`); a test with an allow-list for `languages.ts` and `i18n/index.ts`; `Intl.PluralRules` plurals. Size M-L. See `docs/features/i18n.md`. | i18n audit |
@@ -66,7 +66,7 @@ Last updated: 23 October 2026. Source: the over-engineering audit reviewed by a 
 | T-0007 | Triage the 36 checks that never run | 87cf207 |
 | T-0010 | Run `test:structure` in CI | f79cbaf |
 | T-0012 | Create `tools/` with an index of what each tool is for | 887fa1e |
-| T-0015 | English names for docs | (see log) |
+| T-0015 | English names for docs | bf62bdb |
 
 ## Rejected (do not propose again without new evidence)
 

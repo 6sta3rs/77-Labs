@@ -1,6 +1,6 @@
 """Real slider acceptance in an isolated Chromium context; requires Python Playwright.
 
-Run against the dev gallery: python tests/acceptance/slider-ui-check.py
+Run against the dev gallery: python tests/acceptance/slider_ui_check.py
 """
 
 # Repository source paths; deployed runtime still uses a flat, self-contained directory.

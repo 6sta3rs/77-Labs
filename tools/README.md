@@ -13,7 +13,7 @@ Folders: `tools/dev` (checks and generators run before commits), `tools/preview`
 
 - `tools/preview/voice-audit-preview.mjs` and `voice-picker-preview.mjs` resolve their root one folder too high and serve check scripts from `scripts/<name>.js`, which does not exist; there is no runner for `voice-audit-build.mjs`. Owner decision T-0008 (keep or delete).
 - `tools/preview/feature-preview.mjs`, `tools-workspace-preview.mjs` and `ui-performance-preview.mjs` serve check scripts from paths that do not exist (`tools-workspace-check.js` is missing from the repository), so `npm run qa:ui` does not work as documented. Manual previews are part of the owner decision T-0009.
-- `tools/preview/orb-product-preview.py` computes the repository root one level too high.
+- `tools/preview/orb_product_preview.py` computes the repository root one level too high.
 
 ## Tools
 
@@ -35,11 +35,11 @@ Folders: `tools/dev` (checks and generators run before commits), `tools/preview`
 | `tools/preview/editor-performance-preview.mjs` | Stable memory-only build and server of the isolated editor performance harness. | Manually when changing the speech editor (npm run qa:editor). Needs: browser. | `package.json` |
 | `tools/preview/editor-performance-preview.svelte` | Svelte harness component for the editor performance check. | Loaded by the editor preview build. Needs: browser. | `tools/preview/editor-performance.html` |
 | `tools/preview/editor-performance.html` | HTML shell mounting the editor performance harness. | Loaded by the editor preview. Needs: browser. | `tools/preview/editor-performance-preview.mjs`, `tests/frontend/editor-performance-check.js` |
-| `tools/preview/feature-preview.mjs` | Stable production preview server for feature acceptance (needs npm run build and feature-smoke.py --hold on 4312). | Manually when verifying features in the built UI. Needs: engine (disposable backend), browser. | nothing (manual) |
+| `tools/preview/feature-preview.mjs` | Stable production preview server for feature acceptance (needs npm run build and feature_smoke.py --hold on 4312). | Manually when verifying features in the built UI. Needs: engine (disposable backend), browser. | nothing (manual) |
 | `tools/preview/inline-preview.mjs` | Builds a separate App entry into one self-contained document for UI preview. | Manually when previewing the app as a single document. Needs: browser. | documentation only |
 | `tools/preview/motion-preview.svelte` | Svelte page exercising motion states of UI components. | Loaded by tests/frontend/motion-ui-check.js. Needs: browser. | `tests/frontend/motion-ui-check.js` |
 | `tools/preview/orb-preview.svelte` | Svelte page exercising the orb with playback activity and recording. | Loaded by orb UI checks. Needs: browser. | `tests/frontend/README.md`, `tests/frontend/orb-ui-check.js` |
-| `tools/preview/orb-product-preview.py` | Serves the built UI with read-only voice/audio fixtures on an isolated origin. | Manually when checking the orb in the built UI. Needs: browser. | nothing (manual) |
+| `tools/preview/orb_product_preview.py` | Serves the built UI with read-only voice/audio fixtures on an isolated origin. | Manually when checking the orb in the built UI. Needs: browser. | nothing (manual) |
 | `tools/preview/orb-reactivity-gpu.html` | Standalone page comparing four orb styles with identical clock and different frequency bands on GPU. | Manually when tuning orb shader reactivity. Needs: browser. | documentation only |
 | `tools/preview/tools-workspace-preview.mjs` | Isolated UI preview for the tools workspace; every /backend request is answered by an explicit fixture. | Manually when changing the tools workspace. Needs: browser. | nothing (manual) |
 | `tools/preview/ui-performance-preview.mjs` | Isolated receiver of the built UI for performance/playback/dashboard checks; no requests reach the private engine. | Manually (npm run qa:ui) after npm run build. Needs: browser. | `package.json`, `tests/frontend/ui-performance-check.js` |
