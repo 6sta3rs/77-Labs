@@ -1,5 +1,9 @@
 # Public project progress
 
+## 23 October 2026 — board hashes and T-0039 status
+
+The board now carries the real commit hashes for T-0030/T-0044 (64eb989), T-0042 (d014260, 81c21ef), T-0047/T-0049 (87beb6f) and T-0052 (3295c79, 3251508), and T-0039 is `doing` with what is done (two splits and the ratchets) and what is open (the `App.svelte` long lines need a component split first; other long-line files; further splits). No code change.
+
 ## 23 October 2026 — audit items checked in the built interface (T-0022, part)
 
 Method: the built interface (`vite preview`) in Chromium with a mocked runtime API of the real response shapes (`tests/e2e/mock-runtime.mjs`; the first mock returned `{}` for `/next/remote/state`, which makes the app refuse to route requests, so a truthful `{ active: false }` and the settings reads were added), English interface language. New `tests/e2e/english-and-ai.spec.mjs` (5 tests, 11 browser tests in total, all pass): **A-23 and A-25**: the home screen, Text to speech, Speech to text, Dubbing, Audiobooks, Projects, six settings pages and the component gallery contain no Polish text outside an allow-list (the theme name Róża, a demo person's name, two Spanish-origin CLDR language names); **A-09**: with `voicestudio.ai.providers.v1 = ["ollama"]` in `localStorage`, opening AI i klucze sends one `PUT /next/settings/added-llm-providers {"ids":["ollama"]}` and removes the old key (the migration the audit listed as untested in a window); **A-21**: with Codex signed out and `enabled: true` the tagging switch is on and the notice "Turned on, but Codex is not signed in" shows; **A-28** (mechanism): "Saved" appears in the row of the clicked switch ("Start the engine when the app opens"); the RAM switch itself needs real GPU data and was not rendered by the mock; **A-06**: "Enter model manually" is offered next to the default-model picker (presence only, the typed id was not entered).
