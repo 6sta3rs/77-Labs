@@ -1,7 +1,7 @@
 {
   "desktop/src/runtime.rs": { "max": 935, "reason": "Supervisor; split planned (see docs/architecture/project-structure.md)." },
   "frontend/src/i18n/en/studio.ts": { "max": 1119, "reason": "Translation table (data), not logic.", "data": true },
-  "frontend/src/i18n/en/additions.ts": { "max": 1069, "reason": "Translation table (data), not logic.", "data": true },
+  "frontend/src/i18n/en/additions.ts": { "max": 1070, "reason": "Translation table (data), not logic.", "data": true },
   "frontend/src/i18n/en/tools.ts": { "max": 1061, "reason": "Translation table (data), not logic.", "data": true },
   "frontend/src/settings/pages/EnginePage.svelte": { "max": 974, "reason": "Large settings page; split into sections later." },
   "frontend/src/themes/t3-palettes.ts": { "max": 910, "reason": "Colour palette table (data), not logic.", "data": true },

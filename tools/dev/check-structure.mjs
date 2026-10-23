@@ -108,8 +108,15 @@ for (const [folder, readme] of [['tools', 'tools/README.md'], ['tests/acceptance
     indexed++;
   }
 }
+// Ciche błędy: pusty blok catch (bez instrukcji) musi mieć komentarz z powodem.
+const silentCatch = /catch\s*(?:\([^)]*\))?\s*\{\s*\}/g;
+let silent = 0;
+for (const file of trackedAll.filter(path => /\.(svelte|ts|mjs|js)$/.test(path) && existsSync(resolve(root, path)))) {
+  const matches = read(file).match(silentCatch);
+  if (matches) { silent += matches.length; failures.push(`${file}: ${matches.length} pusty(ch) catch bez komentarza z powodem (np. catch { /* powód */ }).`); }
+}
 // Limit długości plików kodu (ratchet): plik ponad limit wymaga wpisu z powodem; wpis ma dokładnie bieżący rozmiar
-// (rośnie → błąd, maleje → trzeba obniżyć wpis: `node tools/dev/check-structure.mjs --write-baselines`); plik niebędący danymi
+// (tabele danych, "data": true, mogą rosnąć; rośnie → błąd, maleje → trzeba obniżyć wpis: `node tools/dev/check-structure.mjs --write-baselines`); plik niebędący danymi
 // nie przekracza 1000 linii; to samo dla najdłuższej linii (linie ponad 200 i 400 znaków oraz najdłuższa) w każdym pliku.
 const lineLimit = Number(process.env.LINE_LIMIT) || 600;
 const hardLimit = 1000;
@@ -129,8 +136,9 @@ for (const file of sourceFiles) {
   const exception = exceptions[file];
   if (lines > lineLimit && !exception) failures.push(`${file}: ${lines} linii (limit ${lineLimit}); podziel plik albo dopisz wyjątek z powodem w ${exceptionsPath}.`);
   else if (exception && lines <= lineLimit) failures.push(`${file}: ${lines} linii mieści się w limicie ${lineLimit}; usuń wyjątek.`);
-  else if (exception && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
-  else if (exception && lines < exception.max) failures.push(`${file}: ${lines} linii, wyjątek wynosi ${exception.max}; obniż go (node tools/dev/check-structure.mjs --write-baselines).`);
+  else if (exception && !exception.data && lines > exception.max) failures.push(`${file}: ${lines} linii przekracza wyjątek (${exception.max}); wyjątki nie mogą rosnąć.`);
+  else if (exception && !exception.data && lines < exception.max) failures.push(
+    `${file}: ${lines} linii, wyjątek wynosi ${exception.max}; obniż go (node tools/dev/check-structure.mjs --write-baselines).`);
   if (lines > hardLimit && !(exception?.data)) failures.push(`${file}: ${lines} linii; plik niebędący danymi nie może mieć więcej niż ${hardLimit}.`);
   if (exception) oversized++;
 }

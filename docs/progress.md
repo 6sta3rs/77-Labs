@@ -1,5 +1,11 @@
 # Public project progress
 
+## 23 October 2026 — silent-error rule and the appearance save toast (T-0040)
+
+`check-structure.mjs` fails on an empty `catch` block (also `catch (e) {}`) in any tracked `.svelte`, `.ts`, `.mjs` or `.js` file; a comment inside the block (`catch { /* reason */ }`) is the required explanation. Only `frontend/src/App.svelte` violated it (two blocks around the optional project backup in `localStorage`; both now carry a reason). `App.svelte` also now shows a toast when `saveAppearance` returns false (it returns a boolean: the browser storage write failed): "Nie udało się zapisać wyglądu. Zmiana działa do zamknięcia aplikacji." with its English key. Data tables marked `"data": true` in the line-limit exceptions may now grow (new English strings are legitimate growth); code files remain ratcheted.
+
+Checks: a temporary `catch {}` in a tracked file failed the check and was removed; `npm run check` 0/0, `build`, `test:ui` (i18n coverage includes the new key), `test:structure` exit 0, the long-line baseline is unchanged. Not verified: the toast in the running app (a failing `localStorage` was not simulated).
+
 ## 23 October 2026 — ratchets on file size and line length (T-0039, step 2)
 
 `tools/dev/check-structure.mjs` now: requires every line-limit exception to equal the file's current size (growth fails as before; shrinking fails until `node tools/dev/check-structure.mjs --write-baselines` lowers the entry); forbids a file that is not marked `"data": true` (the three English tables and the palette table) from exceeding 1000 lines; and keeps `tools/dev/line-length-baseline.json` (302 files with a line over 200 characters: lines over 200, over 400 and the longest per file). None of the three numbers may grow, a new file may have no line over 200, and a shrinking number must be recorded. `App.svelte` is frozen at 85 lines over 200 characters (30 over 400, longest 2,139). Tried: an appended 250-character line in a tracked file and a changed `App.svelte` size both fail the check as intended, and both were reverted.

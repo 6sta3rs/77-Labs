@@ -161,7 +161,10 @@
   let currentRecordings=$derived(history.filter(item=>item.projectId===projectId||(!item.projectId&&item.blocks?.some(block=>blocks.some(current=>current.id===block.id)))).slice(0,4));
 
   function notify(message:string,kind:'info'|'bad'='info'){toast[kind](tr(message));}
-  function changeAppearance(value:AppearanceSettings){appearance=value;applyAppearance(value);saveAppearance(value);}
+  function changeAppearance(value:AppearanceSettings){
+    appearance=value;applyAppearance(value);
+    if(!saveAppearance(value))notify('Nie udało się zapisać wyglądu. Zmiana działa do zamknięcia aplikacji.','bad');
+  }
   let projectSaveTimer:ReturnType<typeof setTimeout>|undefined;
   let projectSaveDeadline:ReturnType<typeof setTimeout>|undefined;
   function persistProject(){
@@ -179,7 +182,7 @@
   function scheduleProjectSave(){clearTimeout(projectSaveTimer);projectSaveTimer=setTimeout(persistProject,250);projectSaveDeadline??=setTimeout(persistProject,1500);}
   function changeBlocks(value:SpeechBlock[]){blocks=value;scheduleProjectSave();}
   function changeSpeechSettings(value:SpeechSettings){speechSettings=value;scheduleProjectSave();}
-  function openProject(project:Project){persistProject();const saved=projects.find(item=>item.id===project.id)||project;projectId=saved.id;projectName=saved.name;blocks=saved.blocks.map(block=>({...block}));speechSettings=readStoredSpeechSettings(saved.speechSettings);goToPage('studio');if(saved.generationEngine&&generationEngine&&saved.generationEngine!==generationEngine)notify(`Projekt używał silnika ${saved.generationEngine}. Bieżący silnik pozostaje wybrany; sprawdź jego głos i ustawienia przed generowaniem.`);if(demoMode)return;try{localStorage.setItem('voicestudio.activeProject.v2',projectId);}catch{}}
+  function openProject(project:Project){persistProject();const saved=projects.find(item=>item.id===project.id)||project;projectId=saved.id;projectName=saved.name;blocks=saved.blocks.map(block=>({...block}));speechSettings=readStoredSpeechSettings(saved.speechSettings);goToPage('studio');if(saved.generationEngine&&generationEngine&&saved.generationEngine!==generationEngine)notify(`Projekt używał silnika ${saved.generationEngine}. Bieżący silnik pozostaje wybrany; sprawdź jego głos i ustawienia przed generowaniem.`);if(demoMode)return;try{localStorage.setItem('voicestudio.activeProject.v2',projectId);}catch{/* the backup copy is optional */}}
   function newProject(){if(running){notify('Poczekaj na zakończenie generowania.');return;}persistProject();projectId=crypto.randomUUID();projectName='Nowa narracja';blocks=[{id:crypto.randomUUID(),voiceId:voices[0].id,text:''}];speechSettings=resetPresetForEngine(defaultSpeechSettings(),generationBackend,generationCapabilities.preset_voice);goToPage('studio');persistProject();}
   function chooseVoice(voice:Voice){cancelVoicePreview();linkedVoiceId='';const id=voiceBlockId||blocks[0]?.id;changeBlocks(blocks.map(block=>block.id===id?{...block,voiceId:voice.id}:block));modal=null;query='';voiceFilter='all';}
   async function refreshVoices(){
@@ -408,7 +411,7 @@
     }
     const raw=localStorage.getItem('voicestudio.projects.v2')||'';let lost=false;
     try{const stored=JSON.parse(raw||'[]');if(Array.isArray(stored)){projects=stored.filter(item=>typeof item.id==='string'&&typeof item.name==='string'&&Array.isArray(item.blocks)&&item.blocks.length&&item.blocks.every((block:SpeechBlock)=>typeof block.text==='string'&&typeof block.voiceId==='string'&&typeof block.id==='string'));lost=projects.length!==stored.length;}else lost=true;const current=projects.find(item=>item.id===localStorage.getItem('voicestudio.activeProject.v2'))||projects[0];if(current){projectId=current.id;projectName=current.name;blocks=current.blocks;speechSettings=readStoredSpeechSettings(current.speechSettings);}}catch{lost=true;/* Retain an empty project. */}
-    if(lost&&raw){let kept=false;try{localStorage.setItem('voicestudio.projects.v2.backup',raw);kept=true;}catch{}notify(kept?'Część zapisanych projektów była uszkodzona i została pominięta. Kopię surowych danych zachowano w pamięci przeglądarki.':'Część zapisanych projektów była uszkodzona i została pominięta. Nie udało się zachować ich kopii.');}
+    if(lost&&raw){let kept=false;try{localStorage.setItem('voicestudio.projects.v2.backup',raw);kept=true;}catch{/* the backup copy is optional */}notify(kept?'Część zapisanych projektów była uszkodzona i została pominięta. Kopię surowych danych zachowano w pamięci przeglądarki.':'Część zapisanych projektów była uszkodzona i została pominięta. Nie udało się zachować ich kopii.');}
     loaded=true;persistProject();
     const flushHidden=()=>{if(document.hidden)flushProjectSave();};
     window.addEventListener('pagehide',flushProjectSave);

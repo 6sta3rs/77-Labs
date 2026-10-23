@@ -1066,4 +1066,5 @@ export const enAdditions: Record<string, string> = {
   ": dodaj filtr": ": add filter",
   "Upload / wyszukiwarka / modal / komunikat": "Upload / search / modal / message",
   "Wybrano w podglądzie: {name}.": "Selected in preview: {name}.",
+  "Nie udało się zapisać wyglądu. Zmiana działa do zamknięcia aplikacji.": "Could not save the appearance. The change lasts until the app is closed.",
 }
