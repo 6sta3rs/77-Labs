@@ -120,7 +120,8 @@ fn header_valid(name: &str, bytes: &[u8]) -> bool {
 fn open_audio(path: &Path, root: &Path) -> Result<File, String> {
     no_links(path)?;
     let mut options = OpenOptions::new(); options.read(true);
-    #[cfg(windows)] { use std::os::windows::fs::OpenOptionsExt; options.share_mode(0).custom_flags(0x00200000); }
+    // FILE_SHARE_READ: other readers (DAW, sync client) may open the file; a writer still holding it makes this open fail.
+    #[cfg(windows)] { use std::os::windows::fs::OpenOptionsExt; options.share_mode(1).custom_flags(0x00200000); }
     let file = options.open(path).map_err(|e| format!("Plik jest nadal zapisywany lub niedostępny: {e}"))?;
     #[cfg(windows)] {
         use std::{ffi::c_void, os::windows::io::AsRawHandle};
@@ -150,7 +151,7 @@ fn can_queue(candidate: &Candidate, root: &Path) -> bool {
 fn read_candidate(candidate: &Candidate, root: &Path) -> Result<Vec<u8>, String> {
     let before = describe(&candidate.path, root)?.ok_or("Plik nie spełnia ograniczeń audio do 64 MB.")?;
     if before.public.key != candidate.public.key { return Err("Plik zmienił się przed odczytem; zaczekaj na zakończenie zapisu.".into()); }
-    // Windows rejects files still held by writers. The handle remains exclusive
+    // Windows rejects files still held by writers. The handle blocks new writers
     // until the complete bounded copy and metadata recheck are finished.
     let mut file = open_audio(&candidate.path, root)?;
     let mut bytes = Vec::with_capacity(candidate.public.size as usize);

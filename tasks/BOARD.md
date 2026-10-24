@@ -36,16 +36,16 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 | T-0113 | Installer: remaining robustness items | open | Done: panic guard, redirect cap, antivirus messages, dead `prepare.py`. Open: single-instance guard (new plugin), `activate` vs engine-start lock, cancel waits 2 s for a stdin it never reads, unpinned PATH `uv` in `prepare_tts.py`. | audit 24 Oct |
 | T-0115 | Engine: ownership token doubles as an authorization secret | open | Constant-time compare is done (`3c13086`). Still open: a separate, never-echoed secret for `/next/settings/media-tool` and `/next/activity?threads=1` (supervisor and engine must agree on it). | audit 24 Oct |
 | T-0118 | Engine: remaining smaller items | open | Done (`b01ed65`): damaged state files, 401-only session drop, Fish health shape, CUDA cache after OOM. Open: GPU→CPU fallback, backup pruning and token copies in backups, request-body buffering, phantom "installing" state, `audiobook_streaming.py:167` and fixed-port reuse (both unverified). | audit 24 Oct |
-| T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | open | `EngineStartup.svelte` cleanup should reset `finished`/`seen`; `aria-hidden` on `.time`. | audit 24 Oct |
-| T-0120 | Frontend: one bad stored run/recipe breaks Automation and watch-folder | open | `automation.ts` `initialize`: per-item try/catch, mark `failed`. Also `watch-folder.ts` `tick` stops on any exception; a changed file is queued twice. | audit 24 Oct |
-| T-0121 | Watch folder opens sources with exclusive sharing | open | `watch_folder.rs:123,230`: use `FILE_SHARE_READ \| FILE_SHARE_WRITE` for the probe. | audit 24 Oct |
-| T-0122 | Projects: no delete, no cap, empty projects saved, repeating save toast | open | `App.svelte:175-177,413-415`: skip empty, add delete/trim, throttle toast, restore from `.backup`; one `null` row drops all. Also `importText` size limit, `importAudio` try/catch, search ignores English labels, `loadRecordings` race. | audit 24 Oct |
-| T-0123 | Tauri hardening | open | Minimal capability for `dictation-widget` (no updater/restart); CSP add `base-uri 'none'; form-action 'none'; object-src 'none'`; flush the project save on window close; stale "185 s" comment in `api.ts`. | audit 24 Oct |
+| T-0120 | Automation: one bad stored run/recipe locked the queue | open | Initialization is fixed. Left as designed: the watch folder stops on any error (fail-safe). Nothing more to do unless the owner wants retry on transient errors. | audit 24 Oct |
+| T-0122 | Projects: no delete, no cap, empty drafts saved | open | Done: null-row guard, one warning per session, import fixes, search labels, history race. Open (needs UI and an owner decision on what may be deleted): delete a project, a cap on their number, not saving empty drafts, restore from `voicestudio.projects.v2.backup`. | audit 24 Oct |
+| T-0123 | Tauri hardening: flush the project save on window close | open | Done: widget capability, CSP directives, stale comment. Open: `main.rs` closes with `app.exit(0)` right after `prevent_close`; add a close handshake (emit an event, wait for the page, then exit) so the last 250 ms of typing is saved. | audit 24 Oct |
 
 ## Done
 
 | ID | Title | Commit |
 | --- | --- | --- |
+| T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | HASH |
+| T-0121 | Watch folder opens sources with exclusive sharing | HASH |
 | T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | d535464 |
 | T-0116 | Engine: finished download can be reported failed; delete leaves stale job | 18f7caf |
 | T-0117 | Engine: "clear temporary" deletes the live process TEMP; AI settings ignore DATA | 001e5ce |

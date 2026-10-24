@@ -73,7 +73,7 @@
       }
     };
     void poll();
-    return () => { stop = true; clearTimeout(timer); clearTimeout(hide); };
+    return () => { stop = true; clearTimeout(timer); if (hide) { clearTimeout(hide); finished = false; seen = false; } };
   });
 
   const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
@@ -85,7 +85,7 @@
     <header>
       {#if finished}<Check size={15}/>{:else}<LoaderCircle size={15} class="spin"/>{/if}
       <strong>{tr(title)}</strong>
-      {#if working}<span class="time">{clock(elapsed)}</span>{/if}
+      {#if working}<span class="time" aria-hidden="true">{clock(elapsed)}</span>{/if}
       <button type="button" class="fold" aria-expanded={expanded} aria-label={tr("Pokaż szczegóły uruchamiania")} onclick={() => expanded = !expanded}><ChevronDown size={15} class={expanded ? '' : 'flip'}/></button>
     </header>
     <progress max="1" value={startupFraction(rows, shownModel)} aria-label={tr(title)}></progress>

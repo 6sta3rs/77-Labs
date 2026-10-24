@@ -962,6 +962,7 @@ export const enTools: Record<string, string> = {
   "Silnik nie zwrócił tekstu końcowego.": "The engine did not return the final text.",
   "Silnik nie zwrócił wyniku próby połączenia.": "The engine did not return the connection test result.",
   "Silnik odrzucił operację audio ({arg0}). {arg1}": "The engine rejected the audio operation ({arg0}). {arg1}",
+  "Zapisane zadanie nie spełnia bieżących reguł: {arg0}": "The saved task no longer meets the current rules: {arg0}",
   "Silnik odrzucił połączenie. Sprawdź lokalny adres i dozwolony Origin aplikacji.": "The engine rejected the connection. Check the local address and allowed application Origin.",
   "Silnik potwierdził gotowość modelu.": "The engine confirmed model readiness.",
   "Silnik potwierdził wyłączenie udostępniania LAN.": "The engine confirmed LAN sharing is disabled.",

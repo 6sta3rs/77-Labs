@@ -102,6 +102,17 @@ test('Recovery preserves inputs and marks unfinished work interrupted without re
   assert.equal(calls, 0); assert.equal(service.snapshot().runs[0].status, 'interrupted'); assert((await store.runs())[0].input.blob instanceof Blob);
 });
 
+test('One damaged stored run or recipe does not lock the queue', async () => {
+  const api = await load();
+  const broken = { id: 'broken', recipe: { id: 'x', steps: 'not an array' }, input: audio(), status: 'queued', stepIndex: 0, completedSteps: 0, error: '', createdAt: 1, updatedAt: 1, attempt: 1 };
+  const store = memoryStore({ runs: [broken], recipes: [{ id: 'bad-recipe' }] });
+  const service = api.createAutomationService({ store, operations: operations({}) });
+  await service.initialize();
+  assert.equal(service.snapshot().runs[0].status, 'failed'); assert.match(service.snapshot().runs[0].error, /reguł/);
+  await service.saveRecipe(recipe()); await service.removeRun('broken');
+  assert.equal(service.snapshot().runs.length, 0); assert.equal(service.snapshot().recipes.length, 1);
+});
+
 test('Storage failures never start untracked processing', async () => {
   const api = await load(); let calls = 0; const store = memoryStore(); store.putRun = async () => { throw Error('Fixture quota'); };
   const service = api.createAutomationService({ store, operations: operations({ transcribe: async () => { calls++; return { kind: 'text', text: 'Wrong' }; } }) });

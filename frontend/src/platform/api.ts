@@ -66,7 +66,7 @@ export function isRuntimeMonitor(path: string, method = 'GET') {
   return method.toUpperCase() === 'GET' && (runtimeMonitorPaths as readonly string[]).includes(path.split('?')[0]);
 }
 export async function prepareRequest(path: string, signal?: AbortSignal, method = 'GET') {
-  // Cold startup has its own 185 s deadline. A read timeout starts only once
+  // Cold startup has its own 305 s deadline (STARTUP_BUDGET_MS in runtime.ts). A read timeout starts only once
   // the server is ready; caller cancellation still applies to both stages.
   if (isDesktop() && !isRuntimeMonitor(path, method)) await ensureRuntime(signal);
 }

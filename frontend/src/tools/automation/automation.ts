@@ -220,9 +220,13 @@ export function createAutomationService({ store = automationStore, operations = 
   async function initialize() {
     initialized ??= (async () => {
       const [savedRecipes, savedRuns] = await Promise.all([store.recipes(), store.runs()]);
-      for (const recipe of savedRecipes) recipes.set(recipe.id, validateRecipe(recipe));
+      // One damaged or outdated record must not lock the whole queue: a recipe is skipped, a run is kept as failed so it can be removed.
+      for (const recipe of savedRecipes) { try { recipes.set(recipe.id, validateRecipe(recipe)); } catch { /* skipped: stays in storage, hidden */ } }
       for (const run of savedRuns) {
-        validateRecipe(run.recipe); validateAutomationInput(run.input, run.recipe);
+        try { validateRecipe(run.recipe); validateAutomationInput(run.input, run.recipe); } catch (cause) {
+          run.status = 'failed'; run.error = translateUi("Zapisane zadanie nie spełnia bieżących reguł: {arg0}", { arg0: cause instanceof Error ? cause.message : String(cause) });
+          runs.set(run.id, run); continue;
+        }
         if (activeAutomationRun(run)) { run.status = 'interrupted'; run.error = translateUi("Aplikację zamknięto przed potwierdzeniem wyniku. Sprawdź silnik przed ręcznym ponowieniem; żadne zadanie nie zostało uruchomione automatycznie."); await store.putRun(run); }
         runs.set(run.id, run);
       }

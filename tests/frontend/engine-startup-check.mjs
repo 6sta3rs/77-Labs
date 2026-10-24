@@ -41,3 +41,8 @@ assert.equal(warmupNote(idle, { active: 'gone', backends: [] }, weights(false)),
 assert.equal(warmupNote({ status: 'loading' }, tts(), weights(false)), undefined, 'a loading model needs no note');
 assert.deepEqual(warmupNote({ status: 'error', error: 'boom' }), { text: 'Nie udało się załadować modelu głosowego', detail: 'boom' });
 console.log('PASS engine startup checklist');
+
+// The success card must not outlive an engine that stops inside its 3 s window; the running clock stays out of the live region.
+const card = await readFile(new URL('../../frontend/src/platform/EngineStartup.svelte', import.meta.url), 'utf8');
+assert.match(card, /if \(hide\) \{ clearTimeout\(hide\); finished = false; seen = false; \}/, 'cleanup must reset the finished card');
+assert.match(card, /<span class="time" aria-hidden="true">/, 'timer must not be announced every second');
