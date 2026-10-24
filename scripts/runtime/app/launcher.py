@@ -355,7 +355,7 @@ def main():
     from integration_settings import configure_local_mcp_origin
     configure_local_mcp_origin(backend.app)
     from ai_tagging import create_router
-    backend.app.include_router(create_router())
+    backend.app.include_router(create_router(DATA))
     from model_management import create_router as create_model_router
     backend.app.include_router(create_model_router(ROOT, DATA, engine_path=PROJECT))
     from storage_settings import create_router as create_storage_router

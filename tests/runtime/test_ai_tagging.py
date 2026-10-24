@@ -101,6 +101,19 @@ class TaggingTests(unittest.TestCase):
                 saved = Path(directory) / "VoiceStudioNext/data/ai-tagging.json"
                 self.assertNotIn("token", saved.read_text(encoding="utf-8"))
 
+    def test_settings_follow_the_engine_data_dir_and_read_the_legacy_copy_as_fallback(self):
+        import ai_tagging
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"LOCALAPPDATA": directory}), patch.object(ai_tagging, "_DATA", None):
+            legacy = Path(directory) / "VoiceStudioNext/data"
+            legacy.mkdir(parents=True)
+            (legacy / "ai-tagging.json").write_text(Settings(intensity="subtle").model_dump_json(), encoding="utf-8")
+            real = Path(directory) / "real-data"
+            create_router(real)
+            self.assertEqual(read_settings().intensity, "subtle")
+            save_settings(Settings(intensity="expressive"))
+            self.assertTrue((real / "ai-tagging.json").is_file())
+            self.assertEqual(read_settings().intensity, "expressive")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -20,7 +20,11 @@ from pathlib import Path
 import re
 import stat
 import threading
+import time
 import sys
+
+# Files this young in the temporary folders may belong to work that is still running.
+TEMPORARY_MIN_AGE_SECONDS = 600
 
 
 class PreviewCache:
@@ -46,12 +50,17 @@ class PreviewCache:
                 continue
             candidates = root.rglob("*") if temporary else root.iterdir()
             for file in candidates:
-                self._safe(file)
-                info = file.lstat()
+                try:
+                    self._safe(file)
+                    info = file.lstat()
+                except (OSError, RuntimeError):
+                    continue  # unreadable or linked entry: never touched, never fatal
                 if stat.S_ISDIR(info.st_mode):
                     continue
                 if not stat.S_ISREG(info.st_mode):
-                    raise ValueError("Cache zawiera plik specjalny. Czyszczenie nie zostało rozpoczęte.")
+                    continue
+                if temporary and time.time() - info.st_mtime < TEMPORARY_MIN_AGE_SECONDS:
+                    continue  # the engine's live TEMP: in-flight work may still be writing here
                 if not temporary and not re.fullmatch(r"[0-9a-f]{16}\.(wav|mp3)", file.name):
                     continue
                 # Check the extension against the actual upstream owner.

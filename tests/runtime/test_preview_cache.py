@@ -15,6 +15,7 @@ import sys
 import tempfile
 import types
 import unittest
+import unittest.mock
 import zipfile
 from unittest.mock import patch
 
@@ -70,6 +71,8 @@ class PreviewTests(unittest.TestCase):
         (self.base / "old-app/omnivoice-temp.wav").write_bytes(b"legacy")
         (self.data / "tmp/work.tmp").write_bytes(b"temporary data")
         (self.runtime / "temp/nested/work.tmp").write_bytes(b"runtime temporary data")
+        for old in (self.data / "tmp/work.tmp", self.runtime / "temp/nested/work.tmp"):
+            os.utime(old, (1_000_000_000, 1_000_000_000))  # idle long enough to be cleanable
         self.items = [{"id": "fixture_one", "name": "Pierwszy głos", "key": "a" * 16}, {"id": "fixture_two", "name": "Drugi głos", "key": "c" * 16}]
         self.enabled, self.checks, self.fetches, self.renders, self.work_busy, self.reject_license = False, 0, 0, [], False, False
         def status():
@@ -177,6 +180,17 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(result.json()["state"]["cache"]["count"], 2)
         self.assertTrue((self.runtime / "temp/nested").is_dir())
         self.assertTrue((self.base / "old-app/omnivoice-temp.wav").is_file())
+
+    def test_temporary_audit_skips_fresh_live_files_and_unreadable_entries(self):
+        (self.runtime / "temp/in-flight.tmp").write_bytes(b"still being written")
+        real = preview_cache.PreviewCache._safe
+        def flaky(path):
+            if Path(path) == self.data / "tmp/work.tmp":
+                raise PermissionError("locked")
+            real(path)
+        with unittest.mock.patch.object(preview_cache.PreviewCache, "_safe", staticmethod(flaky)):
+            self.assertEqual(self.state()["temporary"]["count"], 1)  # only the old nested file
+        self.assertEqual(self.state()["temporary"]["count"], 2)  # fresh in-flight file is never listed
 
     def test_hardlink_cleanup_preserves_other_name_contents(self):
         original = self.data / "voices/reference.wav"

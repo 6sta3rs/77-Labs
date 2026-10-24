@@ -93,13 +93,26 @@ class EnhanceInput(BaseModel):
     dialogue_blocks: list[str] = Field(min_length=1, max_length=30)
 
 
-def data_root() -> Path:
+_DATA: Path | None = None  # the engine's real DATA directory, set by create_router
+
+
+def legacy_data_root() -> Path:
     return Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "VoiceStudioNext" / "data"
+
+
+def data_root() -> Path:
+    return _DATA or legacy_data_root()
 
 
 def read_settings() -> Settings:
     try:
-        return Settings.model_validate_json((data_root() / "ai-tagging.json").read_text(encoding="utf-8"))
+        try:
+            body = (data_root() / "ai-tagging.json").read_text(encoding="utf-8")
+        except FileNotFoundError:
+            if _DATA is None:
+                raise
+            body = (legacy_data_root() / "ai-tagging.json").read_text(encoding="utf-8")  # settings saved before DATA was honoured
+        return Settings.model_validate_json(body)
     except FileNotFoundError:
         return Settings()
     except (ValueError, OSError) as error:
@@ -380,7 +393,10 @@ def enhance(blocks: list[str], settings: Settings) -> dict:
         BUSY.release()
 
 
-def create_router() -> APIRouter:
+def create_router(data: Path | None = None) -> APIRouter:
+    global _DATA
+    if data is not None:
+        _DATA = Path(data)
     router = APIRouter(prefix="/ai", tags=["VoiceStudio AI"])
 
     def guard(request: Request):
