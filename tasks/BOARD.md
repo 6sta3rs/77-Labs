@@ -4,7 +4,7 @@ The 31 tasks of the 22 October audit (implemented in 0.2.2) are in `audits/audit
 
 The path from 6/10 to about 8/10 (T-0028 to T-0052 and the re-scoped older rows) is in `specs/ROADMAP-to-8.md`.
 
-Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engineering audit reviewed by a three-model council (reports in the ignored `.tmp/qa/council/`), the project-structure review and `specs/ROADMAP-to-8.md`.
+Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source: the over-engineering audit reviewed by a three-model council (reports in the ignored `.tmp/qa/council/`), the project-structure review and `specs/ROADMAP-to-8.md`.
 
 ## Open and blocked
 
@@ -32,11 +32,30 @@ Last updated: 23 October 2026 (end of the roadmap series). Source: the over-engi
 | T-0046 | Bundle budget and lazy `en` | doing | Budget enforced (test:bundle). Lazy `en` and component lazy imports evaluated and NOT done: see docs/verification/performance.md. Needs the T-0039 component split. |  |
 | T-0051 | Branch protection | blocked | Owner: required checks on `main` (Windows job, structure, publication), so the gates are not advisory. | |
 | T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
+| T-0107 | Installer: any provenance change invalidates a working environment | open | `installer.rs:336` compares the whole certificate. Compare only runtime-relevant fields, fall back to the previous pointer. | audit 24 Oct, code-verified |
+| T-0109 | Installer: CUDA default without GPU preflight; disk size never shown | open | Detect NVIDIA (nvidia-smi/NVML) before the download, default CPU if absent; show the 20/35 GB requirement in the panel. | audit 24 Oct |
+| T-0110 | Installer: activation drops `storage-location.json` and the model-cache pointer | open | `installer.rs:370-377`: copy the relocated-data pointer; read the active id without `validate_ready`. | audit 24 Oct |
+| T-0111 | Installer: retries re-download everything, failed attempts leak disk | open | Shared build cache across candidates; "clean up failed attempts" action (`runtime_*`, `ssb-*`). | audit 24 Oct |
+| T-0112 | Installer: proxy/cert env vars stripped, health probe may use system proxy | open | `clean_command` `env_clear()` drops `HTTP(S)_PROXY`, `SSL_CERT_FILE`; `probe_health` needs `ProxyHandler({})`. Proxy part unverified. | audit 24 Oct |
+| T-0113 | Installer: smaller robustness items | open | Panic guard on the installer thread; single-instance guard; `activate` vs engine-start lock; cancel waits 2 s for a stdin it never reads; unbounded redirects; raw AV/access-denied errors; `prepare_tts.py` uses an unpinned PATH `uv`; dead `prepare.py`. | audit 24 Oct |
+| T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | open | `storage_settings.py:106-113,216`, `runtime_backup.py:182-213,251`, `launcher.py:310,317`: catch in `main()`, readable error, "use default data" / re-backup action. | audit 24 Oct, code-read |
+| T-0115 | Engine: ownership token doubles as an authorization secret | open | `launcher.py:295`, `system_settings.py:237`, `activity.py:477`: separate never-echoed secret, `hmac.compare_digest`. Check what `/next/settings/media-tool` validates. | audit 24 Oct |
+| T-0116 | Engine: finished download can be reported failed; delete leaves stale job | open | `model_management.py:355-372` (`wait(timeout=5)` after `complete`), `:454-486`. | audit 24 Oct |
+| T-0117 | Engine: "clear temporary" deletes the live process TEMP; AI settings ignore DATA | open | `preview_cache.py:42-47` (use a dedicated cache folder, skip bad entries), `ai_tagging.py:96` (pass `DATA`). | audit 24 Oct |
+| T-0118 | Engine: smaller items | open | Phantom "installing" state after a crash (`tts_extensions.py:307`); any 403 drops the remote session; corrupt `model-cache.json`/`environment` crashes startup; no GPU→CPU fallback or CUDA OOM cleanup (`tts_worker.py`); Fish health list → 500; backups copy tokens and are never pruned; unbounded `/generate` buffering; `audiobook_streaming.py:167` non-`data:` frame (unverified); fixed port reuse (unverified). | audit 24 Oct |
+| T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | open | `EngineStartup.svelte` cleanup should reset `finished`/`seen`; `aria-hidden` on `.time`. | audit 24 Oct |
+| T-0120 | Frontend: one bad stored run/recipe breaks Automation and watch-folder | open | `automation.ts` `initialize`: per-item try/catch, mark `failed`. Also `watch-folder.ts` `tick` stops on any exception; a changed file is queued twice. | audit 24 Oct |
+| T-0121 | Watch folder opens sources with exclusive sharing | open | `watch_folder.rs:123,230`: use `FILE_SHARE_READ \| FILE_SHARE_WRITE` for the probe. | audit 24 Oct |
+| T-0122 | Projects: no delete, no cap, empty projects saved, repeating save toast | open | `App.svelte:175-177,413-415`: skip empty, add delete/trim, throttle toast, restore from `.backup`; one `null` row drops all. Also `importText` size limit, `importAudio` try/catch, search ignores English labels, `loadRecordings` race. | audit 24 Oct |
+| T-0123 | Tauri hardening | open | Minimal capability for `dictation-widget` (no updater/restart); CSP add `base-uri 'none'; form-action 'none'; object-src 'none'`; flush the project save on window close; stale "185 s" comment in `api.ts`. | audit 24 Oct |
 
 ## Done
 
 | ID | Title | Commit |
 | --- | --- | --- |
+| T-0105 | Installer: activation blocked after a failed engine start | HASH |
+| T-0106 | Installer: real failure reason replaced by "Etap failed zakończył się kodem…" | HASH |
+| T-0108 | Environments tab shows green "Aktywne" when no environment exists | HASH |
 | T-0100 | `filemap` Rust file-tree scanner | c367daa |
 | T-0101 | 600-line limit with an exceptions list | 9a8cd6f |
 | T-0018 | Commit the pending working tree (the three untracked tests are in git, `test:ui` no longer depends on untracked files) | 71043fc, c111710 |

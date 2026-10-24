@@ -398,8 +398,8 @@
   const emProfile = (p?: string) => p === 'cuda' ? 'NVIDIA CUDA 12.8' : p === 'cpu' ? 'CPU' : '';
   const EM_PHASES: Record<string, string> = { preflight: 'Przygotowanie katalogu', uv: 'Pobieranie menedżera pakietów', python: 'Instalacja CPython', engine: 'Źródła silnika', lock: 'Przypięte wymagania', venv: 'Osobne środowisko', dependencies: 'Instalacja zależności', doctor: 'Kontrola bibliotek', health: 'Kontrola uruchomienia', ready: 'Gotowe do aktywacji', idle: 'Nie rozpoczęto' };
   const emName = $derived(em && emProfile(em.profile) && ['activated', 'ready'].includes(em.state) ? `Python · ${emProfile(em.profile)}` : ({ 'private-python': tr('Prywatne środowisko Python'), 'shared-python': tr('Wspólne środowisko Python'), 'configured-python': tr('Wskazany interpreter Python') } as Record<string, string>)[runtime.source ?? ''] ?? tr('Środowisko Python'));
-  const emBadge = $derived<[BadgeKind, string]>(!em ? ['neutral', 'Nieodczytane'] : emActive ? ['wait', 'Instalowanie…'] : em.state === 'ready' ? ['warn', 'Gotowe — nieaktywne'] : em.state === 'failed' ? ['bad', 'Błąd instalacji'] : ['cancelled', 'interrupted'].includes(em.state) ? ['neutral', 'Przerwano'] : ['ok', 'Aktywne']);
-  const emShowMore = $derived(emOpen || emActive || (!!em && ['ready', 'failed', 'cancelled', 'interrupted'].includes(em.state)));
+  const emBadge = $derived<[BadgeKind, string]>(!em ? ['neutral', 'Nieodczytane'] : emActive ? ['wait', 'Instalowanie…'] : em.state === 'ready' ? ['warn', 'Gotowe — nieaktywne'] : em.state === 'failed' ? ['bad', 'Błąd instalacji'] : ['cancelled', 'interrupted'].includes(em.state) ? ['neutral', 'Przerwano'] : em.environmentPresent === false ? ['neutral', 'Brak środowiska'] : ['ok', 'Aktywne']);
+  const emShowMore = $derived(emOpen || emActive || (!!em && (em.environmentPresent === false || ['ready', 'failed', 'cancelled', 'interrupted'].includes(em.state))));
   async function emAct(fn: () => Promise<RuntimeInstallStatus>, done?: string) {
     await act('em', async () => { em = await fn(); if (done) toast.ok(tr(done)); });
   }

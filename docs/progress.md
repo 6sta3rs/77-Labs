@@ -1,5 +1,17 @@
 # Public project progress
 
+## 24 October 2026 — installer fixes from the independent audit (T-0105 to T-0108)
+
+An independent three-reviewer audit (installer, engine, frontend and release; read-only) produced T-0105 to T-0123 in `tasks/BOARD.md`. The first four are the installer bugs; they were reproduced on a real 0.2.0 EXE in an isolated profile (own `LOCALAPPDATA`, `APPDATA` and WebView2 folder under the ignored `.tmp/qa/exe-audit`) and then fixed.
+
+- **T-0105:** after a failed engine start the state stays `error`, which blocked `installer_activate` ("Zatrzymaj silnik przed przełączeniem środowiska") and the app had to be restarted. Activation now stops the failed start first.
+- **T-0106:** a failed bootstrap stage showed "Etap failed zakończył się kodem exit code: 1". `read_log` now keeps the stage name and returns the reason of the `failed` event, which becomes the error message (disk space, missing CUDA, hash mismatch); an unknown exit code is worded plainly.
+- **T-0108:** the Środowiska tab showed a green "Aktywne" with no environment installed. `installer_status` now carries `environmentPresent`; without an environment the badge reads "Brak środowiska" and the install panel opens by itself.
+- **T-0053 (part):** the message of `runtime.rs` now names Ustawienia → Silnik → Środowiska. Five messages in the Python catalogue files remain (the catalogue hash must change with them).
+- Installer unit tests moved to `desktop/src/installer/tests.rs` (installer.rs is 515 lines, below the 600 limit, so its exception was removed); new test `failed_event_gives_the_reason_and_keeps_the_stage`.
+
+Checks: `cargo check`, `cargo test` 52 passed (2 ignored), `cargo clippy` clean, `npm run check` 0/0, `npm run build`, `npm run test:ui` 76/76, `npm run test:structure` PASS. Real EXE (release build of this tree, isolated profile, no Python environment): `installer_status` reports `environmentPresent=false`; `runtime_start` fails with the new path; `installer_activate` now answers "Kandydat nie jest gotowy do aktywacji" instead of the stop-the-engine refusal, and the engine state returns to `stopped`; the tab shows "Brak środowiska" and the install panel. Not verified: a real install end to end (downloads several GB), the T-0106 message on a real failed stage (covered by the unit test only), and the update flow on the real installation (T-0024 is still blocked on the owner's decision).
+
 ## 23 October 2026 — one start-up card until the model is ready (T-0104)
 
 Reported by the owner: the bottom-right start-up card closed as soon as the engine answered and opened again a moment later for the voice-model warm-up. Cause: `EngineStartup.svelte` showed the card only while the engine was `starting` or `/model/status` said `loading`; between "engine ready" and the warm-up's first `loading` status the model is `idle`, so the card disappeared. Now, when the card was shown for this start and the warm-up is expected (the same rule as `runtime.ts`: preload and autostart on), it stays open, with the model row active and "Oczekiwanie na start modelu", until the warm-up reports a status, the engine explains a skip (licence, missing weights), or 3 minutes pass (it was 90 s of polling; the warm-up can start ~1.5 min after the engine answers on a slow disk). A failed status read keeps waiting instead of closing the card. The timer no longer restarts between the two phases.

@@ -1,7 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { isDesktop } from './runtime';
 
-export type RuntimeInstallStatus = { state: 'idle' | 'running' | 'cancelling' | 'interrupted' | 'cancelled' | 'failed' | 'ready' | 'activated'; phase: string; message: string; profile: string; candidate: string | null; downloadedBytes: number; totalBytes: number | null; logs: string[] };
+export type RuntimeInstallStatus = { state: 'idle' | 'running' | 'cancelling' | 'interrupted' | 'cancelled' | 'failed' | 'ready' | 'activated'; phase: string; message: string; profile: string; candidate: string | null; downloadedBytes: number; totalBytes: number | null; logs: string[];
+  environmentPresent?: boolean };
 export const installingRuntime = (status?: RuntimeInstallStatus) => !!status && ['running', 'cancelling'].includes(status.state);
 export const runtimeInstaller = {
   available: isDesktop,

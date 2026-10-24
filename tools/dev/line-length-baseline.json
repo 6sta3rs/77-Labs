@@ -1,6 +1,6 @@
 {
   "desktop/src/dictation_desktop.rs": { "over200": 1, "over400": 0, "longest": 217 },
-  "desktop/src/installer.rs": { "over200": 11, "over400": 0, "longest": 310 },
+  "desktop/src/installer.rs": { "over200": 9, "over400": 0, "longest": 286 },
   "desktop/src/runtime.rs": { "over200": 3, "over400": 0, "longest": 319 },
   "desktop/src/runtime/tests.rs": { "over200": 3, "over400": 0, "longest": 205 },
   "desktop/src/watch_folder.rs": { "over200": 3, "over400": 0, "longest": 246 },
@@ -44,7 +44,7 @@
   "frontend/src/platform/EngineStartup.svelte": { "over200": 2, "over400": 0, "longest": 302 },
   "frontend/src/platform/integrations.ts": { "over200": 8, "over400": 0, "longest": 358 },
   "frontend/src/platform/runtime-diagnostics.ts": { "over200": 9, "over400": 0, "longest": 359 },
-  "frontend/src/platform/runtime-installer.ts": { "over200": 1, "over400": 0, "longest": 288 },
+  "frontend/src/platform/runtime-installer.ts": { "over200": 1, "over400": 0, "longest": 286 },
   "frontend/src/platform/user-message.ts": { "over200": 1, "over400": 0, "longest": 202 },
   "frontend/src/playback/audio.ts": { "over200": 4, "over400": 1, "longest": 421 },
   "frontend/src/playback/audiobook-playback.ts": { "over200": 2, "over400": 0, "longest": 257 },

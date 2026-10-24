@@ -365,7 +365,7 @@ impl Default for Runtime {
     }
 }
 
-fn runtime_root() -> Result<PathBuf, String> {
+pub(crate) fn runtime_root() -> Result<PathBuf, String> {
     let local = std::env::var_os("LOCALAPPDATA").ok_or("Brak katalogu LOCALAPPDATA")?;
     let base = PathBuf::from(local).join("VoiceStudioNext");
     let root = crate::installer::selected_runtime_root(&base)?.unwrap_or_else(|| base.join("runtime"));
@@ -378,7 +378,7 @@ pub(crate) fn active_data_dir() -> Result<PathBuf, String> {
     crate::settings_native::data_dir(&runtime_root()?)
 }
 
-fn python(root: &Path) -> Result<(PathBuf, &'static str), String> {
+pub(crate) fn python(root: &Path) -> Result<(PathBuf, &'static str), String> {
     if let Some(custom) = std::env::var_os("VOICESTUDIO_NEXT_PYTHON") {
         let path = PathBuf::from(custom);
         if path.is_absolute() && path.is_file() {
@@ -391,7 +391,7 @@ fn python(root: &Path) -> Result<(PathBuf, &'static str), String> {
         return Ok((private, "private-python"));
     }
     Err(
-        "Brak prywatnego środowiska Python. Otwórz Ustawienia → Modele i silnik → Samodzielne środowisko Python i pobierz runtime."
+        "Brak prywatnego środowiska Python. Otwórz Ustawienia → Silnik → Środowiska → Samodzielne środowisko Python i pobierz runtime."
             .into(),
     )
 }

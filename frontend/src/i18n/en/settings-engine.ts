@@ -76,6 +76,7 @@ export const enSettingsEngine: Record<string, string> = {
   "Środowisko Python": "Python environment",
   "Nieodczytane": "Not read",
   "Gotowe — nieaktywne": "Ready — inactive",
+  "Brak środowiska": "No environment",
   "Błąd instalacji": "Installation error",
   "Przerwano": "Interrupted",
   "Aktywne": "Active",
