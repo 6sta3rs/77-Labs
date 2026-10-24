@@ -1,5 +1,18 @@
 # Public project progress
 
+## 24 October 2026 — engine fixes from the audit (T-0114 to T-0118)
+
+Written by a delegated worker in a worktree, cherry-picked and reviewed here. In review, one defect of the worker's was found and fixed: `launcher.main()` imported `backup_with_recovery` from `runtime_backup` although it is defined in `launcher.py`, which would have stopped the engine at every start. A new test (`LauncherImportsTests`) now checks that every `from <engine module> import name` in `launcher.py` names something the module defines; it fails with the bad import and passes without it.
+
+- **T-0114:** a damaged data-location pointer falls back to the default data folder (the file is kept); a stale backup receipt is moved aside (never deleted) and the backup redone.
+- **T-0115 (part):** the activity token is compared in constant time. Not done: the token still doubles as the authorization secret for `/next/settings/media-tool`; a separate, never-echoed secret needs the supervisor and the engine to agree on it.
+- **T-0116:** a finished download is a success even when the helper process outlives the 5 s wait; deleting a model drops the stale job and reports files that could not be removed.
+- **T-0117:** clearing temporary files skips unreadable entries and files younger than 10 minutes (the live TEMP); AI settings use the real data folder, with the old location as a fallback for settings saved before.
+- **T-0118 (part):** damaged `model-cache.json`/`environment`/`model-downloads.json` no longer crash start-up; only a 401 clears the remote session; a non-object Fish health answer no longer gives a 500; CUDA cache is freed after an out-of-memory error. Not done: GPU-to-CPU fallback, backup pruning and token copies in backups, request-body buffering, phantom "installing" state, the unverified items.
+- `model_management.py` exception raised from 840 to 868 lines for these fixes (reason noted in `tools/dev/line-limit-exceptions.json`); to be won back with the T-0039 split.
+
+Checks: runtime tests 28/28 (10 skipped), `test:structure` PASS, `test:ui` 76/76. Not run: the engine itself (no environment on this machine in the isolated profile), so the start-up path is covered by unit tests only.
+
 ## 24 October 2026 — installer robustness from the audit (T-0107, T-0109 to T-0113)
 
 - **T-0107:** the installed environment is now valid when only build-time fields of `bootstrap-provenance.json` change (uv pin, URLs, policy text); `engine`, `python`, `cpuWheels` and `platform` must still match. Before, any edit of the file made a working multi-GB environment unusable after an app update.

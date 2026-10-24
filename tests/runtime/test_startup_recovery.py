@@ -79,5 +79,18 @@ class StartupRecoveryTests(unittest.TestCase):
         tts_extensions._fish_probe.clear()
 
 
+class LauncherImportsTests(unittest.TestCase):
+    def test_local_imports_of_launcher_name_existing_functions(self):
+        """`from <engine module> import name` inside launcher.py must name something that module defines (a wrong module breaks every start)."""
+        import ast, importlib
+        launcher = Path(__file__).resolve().parents[2] / "scripts/runtime/app/launcher.py"
+        app = launcher.parent
+        for node in ast.walk(ast.parse(launcher.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.ImportFrom) and node.module and (app / f"{node.module}.py").is_file():
+                module = importlib.import_module(node.module)
+                for alias in node.names:
+                    self.assertTrue(hasattr(module, alias.name), f"{node.module} has no {alias.name}")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -34,11 +34,8 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 | T-0053 | Stale page name in engine messages | open | Six user-facing messages still send the user to "Modele i silnik", a page that no longer exists (Settings → Silnik and Modele are separate pages): `desktop/src/runtime.rs:393`, `scripts/runtime/app/engine_catalogue_metadata.py:260`, `tts_catalog.py:67`, `tts_extensions.py:104,106,187`. `tts_catalog.py` is covered by the pinned catalogue hash in `engine_catalogue_metadata.py`, so the hash must be updated with it, and the English catalog keys must follow. Found in the T-0011 smoke run. | screenshot of Settings → Silnik in `.tmp/qa/T-0011/` |
 | T-0111 | Installer: retries re-download everything | open | Cleanup of failed attempts is done (`installer_cleanup`). Still open: a build cache shared between attempts (`bootstrap.py` ties the `ssb-*` workspace to one candidate). | audit 24 Oct |
 | T-0113 | Installer: remaining robustness items | open | Done: panic guard, redirect cap, antivirus messages, dead `prepare.py`. Open: single-instance guard (new plugin), `activate` vs engine-start lock, cancel waits 2 s for a stdin it never reads, unpinned PATH `uv` in `prepare_tts.py`. | audit 24 Oct |
-| T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | open | `storage_settings.py:106-113,216`, `runtime_backup.py:182-213,251`, `launcher.py:310,317`: catch in `main()`, readable error, "use default data" / re-backup action. | audit 24 Oct, code-read |
-| T-0115 | Engine: ownership token doubles as an authorization secret | open | `launcher.py:295`, `system_settings.py:237`, `activity.py:477`: separate never-echoed secret, `hmac.compare_digest`. Check what `/next/settings/media-tool` validates. | audit 24 Oct |
-| T-0116 | Engine: finished download can be reported failed; delete leaves stale job | open | `model_management.py:355-372` (`wait(timeout=5)` after `complete`), `:454-486`. | audit 24 Oct |
-| T-0117 | Engine: "clear temporary" deletes the live process TEMP; AI settings ignore DATA | open | `preview_cache.py:42-47` (use a dedicated cache folder, skip bad entries), `ai_tagging.py:96` (pass `DATA`). | audit 24 Oct |
-| T-0118 | Engine: smaller items | open | Phantom "installing" state after a crash (`tts_extensions.py:307`); any 403 drops the remote session; corrupt `model-cache.json`/`environment` crashes startup; no GPU→CPU fallback or CUDA OOM cleanup (`tts_worker.py`); Fish health list → 500; backups copy tokens and are never pruned; unbounded `/generate` buffering; `audiobook_streaming.py:167` non-`data:` frame (unverified); fixed port reuse (unverified). | audit 24 Oct |
+| T-0115 | Engine: ownership token doubles as an authorization secret | open | Constant-time compare is done (`3c13086`). Still open: a separate, never-echoed secret for `/next/settings/media-tool` and `/next/activity?threads=1` (supervisor and engine must agree on it). | audit 24 Oct |
+| T-0118 | Engine: remaining smaller items | open | Done (`b01ed65`): damaged state files, 401-only session drop, Fish health shape, CUDA cache after OOM. Open: GPU→CPU fallback, backup pruning and token copies in backups, request-body buffering, phantom "installing" state, `audiobook_streaming.py:167` and fixed-port reuse (both unverified). | audit 24 Oct |
 | T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | open | `EngineStartup.svelte` cleanup should reset `finished`/`seen`; `aria-hidden` on `.time`. | audit 24 Oct |
 | T-0120 | Frontend: one bad stored run/recipe breaks Automation and watch-folder | open | `automation.ts` `initialize`: per-item try/catch, mark `failed`. Also `watch-folder.ts` `tick` stops on any exception; a changed file is queued twice. | audit 24 Oct |
 | T-0121 | Watch folder opens sources with exclusive sharing | open | `watch_folder.rs:123,230`: use `FILE_SHARE_READ \| FILE_SHARE_WRITE` for the probe. | audit 24 Oct |
@@ -49,6 +46,9 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
+| T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | d535464 |
+| T-0116 | Engine: finished download can be reported failed; delete leaves stale job | 18f7caf |
+| T-0117 | Engine: "clear temporary" deletes the live process TEMP; AI settings ignore DATA | 001e5ce |
 | T-0107 | Installer: any provenance change invalidates a working environment | caa1cca |
 | T-0109 | Installer: CUDA default without GPU preflight; disk size never shown | caa1cca |
 | T-0110 | Installer: activation drops `storage-location.json` and the model-cache pointer | caa1cca |

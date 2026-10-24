@@ -223,7 +223,8 @@ def _read_existing_marker(data, marker, archive_sha):
             raise ValueError("database checksum mismatch")
         return {"status": "already_backed_up", "archive_sha256": archive_sha, "backup_id": identifier, "backup_dir": str(backup), "files": len(details["files"])}
     except (OSError, ValueError, KeyError, TypeError) as exc:
-        raise StaleMarkerError("Znacznik istniejącej kopii danych jest uszkodzony lub kopia jest niekompletna. Zachowano ją bez nadpisania. Zweryfikuj DATA/backups przed uruchomieniem migracji.") from exc
+        raise StaleMarkerError("Znacznik istniejącej kopii danych jest uszkodzony lub kopia jest niekompletna. Zachowano ją bez nadpisania. "
+                               "Zweryfikuj DATA/backups przed uruchomieniem migracji.") from exc
 
 
 def backup_before_upgrade(data: Path, archive_sha256: str, *, previous_archive_sha256: str | None = None,

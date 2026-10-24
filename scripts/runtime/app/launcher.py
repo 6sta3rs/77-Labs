@@ -331,7 +331,6 @@ def main():
     stage("engine_files")
     prepare_engine()
     configure_environment()
-    from runtime_backup import backup_with_recovery
     stage("backup")
     source_manifest = json.loads((PROJECT / ".engine-ready.json").read_text(encoding="utf-8"))
     backup_with_recovery(DATA, source_manifest["archiveSha256"])

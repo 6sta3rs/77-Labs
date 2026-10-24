@@ -6,7 +6,7 @@
   "frontend/src/settings/pages/EnginePage.svelte": { "max": 974, "reason": "Large settings page; split into sections later." },
   "frontend/src/themes/t3-palettes.ts": { "max": 910, "reason": "Colour palette table (data), not logic.", "data": true },
   "desktop/src/dictation_desktop.rs": { "max": 862, "reason": "Windows dictation integration; split needs a native test pass." },
-  "scripts/runtime/app/model_management.py": { "max": 840, "reason": "Large legacy backend module; split needs behaviour tests." },
+  "scripts/runtime/app/model_management.py": { "max": 868, "reason": "Large legacy backend module; split needs behaviour tests. Raised from 840 for the audit fixes T-0116 and T-0118; win it back with the T-0039 split." },
   "frontend/src/settings/pages/AiPage.svelte": { "max": 797, "reason": "Large settings page; split into sections later." },
   "scripts/runtime/install/engine_installation.py": { "max": 793, "reason": "Large legacy backend module; split needs behaviour tests." },
   "tests/runtime/test_engine_catalogue_metadata.py": { "max": 756, "reason": "Test module mirroring the large catalogue module." },

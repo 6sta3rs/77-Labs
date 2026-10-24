@@ -508,7 +508,9 @@ class ModelManager:
             from api.routers.setup.models import invalidate_cache
             invalidate_cache()
             if failures:
-                raise ValueError(f"Nie udało się usunąć {len(failures)} plików modelu (np. {Path(failures[0][0]).name}: {failures[0][1]}). Zamknij programy używające tych plików i spróbuj ponownie; model jest niekompletny.")
+                first = failures[0]
+                raise ValueError(f"Nie udało się usunąć {len(failures)} plików modelu (np. {Path(first[0]).name}: {first[1]}). "
+                                 "Zamknij programy używające tych plików i spróbuj ponownie; model jest niekompletny.")
             return {"deleted": True, "repo_id": repo_id}
 
 

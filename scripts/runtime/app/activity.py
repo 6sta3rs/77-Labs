@@ -10,8 +10,7 @@ if (_source_layout / "app/launcher.py").is_file() and (_source_layout / "install
 import asyncio
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-import functools
-import hmac
+import functools, hmac
 import json
 import logging
 import os
@@ -475,8 +474,7 @@ class Activity:
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
         if path == "/next/activity":
-            supplied = dict(scope.get("headers", [])).get(b"x-voicestudio-next", b"")
-            authorized = bool(self.token) and hmac.compare_digest(supplied, self.token.encode("utf-8"))
+            authorized = bool(self.token) and hmac.compare_digest(dict(scope.get("headers", [])).get(b"x-voicestudio-next", b""), self.token.encode("utf-8"))
             result = self.snapshot() if authorized else {"detail": "Brak dostępu"}
             if authorized and scope.get("method", "GET") == "GET" and scope.get("query_string", b"") == b"threads=1":
                 result["diagnostics"] = self.diagnostic_snapshot()
