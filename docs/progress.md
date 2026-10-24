@@ -1,5 +1,11 @@
 # Public project progress
 
+## 24 October 2026 — local `refs/t3` removed, publication check passes (T-0019)
+
+With the owner's approval, the 307 local `refs/t3/orchestration-v2/checkpoints/*` refs (created by the T3 tool, not part of the project history) were deleted with `git update-ref -d`, then `git reflog expire --expire-unreachable=now --all` and `git gc --prune=now` removed the objects nothing references any more. `main`, `origin/main` and the tags `v0.2.0` to `v0.2.3` are untouched (`git log` identical, `git fsck --connectivity-only` clean). The leftover local branch `worktree-agent-a7cbccc8a834bf7fd` is a delegated worker's branch whose commits were cherry-picked onto `main`; it was kept.
+
+Check: `python tools/dev/publication_check.py --deny-file <private list>` now reports PASS, 0 findings (706 files, 3144 Git objects, 1 pinned archive); before it had 5 findings, all objects reachable only from those refs. The T3 tool may create such refs again; the check will then fail again and the same cleanup applies.
+
 ## 24 October 2026 — frontend, watch folder and Tauri hardening from the audit (T-0119 to T-0123)
 
 - **T-0119:** the green "Silnik i model są gotowe" card no longer stays when the engine stops inside its 3 s window (the effect cleanup resets `finished`/`seen`); the running clock is `aria-hidden`, so screen readers are not told "0:01, 0:02…" for minutes.

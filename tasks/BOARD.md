@@ -14,7 +14,6 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 | T-0009 | Decide on manual previews and the orb-music demo | blocked | Owner: delete `tools/preview/{audiobook,orb-product,tools-workspace}-preview*`, `orb-reactivity-gpu.html`, and `orb-demo.html` + `frontend/src/orb-music-demo.ts` + `frontend/src/OrbMusicDemo.svelte` + `tools/dev/generate_demo_music.py`? Keep `inline-preview`, `capture_screenshots`, `controls-preview`, the performance previews (documented or used). | nothing references the candidates |
 | T-0013 | Create `prototypes/` | blocked | Deferred by `specs/ROADMAP-to-8.md`: needs a privacy review of what leaves `.tmp`, nothing depends on it. | |
 | T-0014 | Clean `.tmp` | blocked | Owner confirms the delete list first (about 28k files, mostly repo copies, `*-dist`, a 2 GB cargo target). Keep `qa/`, `release/` and the pinned checkouts. | filemap map |
-| T-0019 | Remove the local `refs/t3` | blocked | Owner: 273 local refs today (growing; the T3 tool recreates them), not four. Delete them (`git update-ref -d`), acceptance is zero refs matching `refs/t3/`. CI clones are already green. | `publication_check.py:236` |
 | T-0021 | Codex bridge for AI functions (audit task A-02, target step) | blocked | `launcher.py` sets `VOICESTUDIO_LLM_AGENTS=["codex"]` and serves a local `/complete` through `codex exec` (like `ai_tagging.run_codex`). Needs a real ChatGPT login to test; the minimum step (message "ChatGPT account supports tagging only") is done. Steps in `audits/audit-2026-10-22.md`. | audit list |
 | T-0022 | Check in the running app what was only checked in code | doing | Browser checks added in tests/e2e/english-and-ai.spec.mjs (A-09 migration, A-21, A-23, A-25, A-28 mechanism, A-06 button present). Still only code-checked: A-07, A-11 (needs a cold engine), A-13, A-18, A-22, the RAM switch of A-28. Evidence: .tmp/qa/T-0022/. | verification notes in `docs/progress.md` |
 | T-0023 | Pixel comparison of the "Wydajność i limity" report with the prototype (A-31) | open | Screenshots at 1280 and 900 px next to `.tmp/settings-redesign/real/ustawienia-prototyp.html` (needs T-0013 first, the prototype lives in the ignored `.tmp`). | known limitation of 0.2.2 |
@@ -44,6 +43,7 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
+| T-0019 | Remove the local `refs/t3` (307 refs deleted with the owner's approval; publication check PASS) | HASH |
 | T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | a6ad01b |
 | T-0121 | Watch folder opens sources with exclusive sharing | a6ad01b |
 | T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | d535464 |
