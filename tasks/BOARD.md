@@ -49,10 +49,10 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
-| T-0107 | Installer: any provenance change invalidates a working environment | HASH |
-| T-0109 | Installer: CUDA default without GPU preflight; disk size never shown | HASH |
-| T-0110 | Installer: activation drops `storage-location.json` and the model-cache pointer | HASH |
-| T-0112 | Installer: proxy/cert env vars stripped, health probe may use system proxy | HASH |
+| T-0107 | Installer: any provenance change invalidates a working environment | caa1cca |
+| T-0109 | Installer: CUDA default without GPU preflight; disk size never shown | caa1cca |
+| T-0110 | Installer: activation drops `storage-location.json` and the model-cache pointer | caa1cca |
+| T-0112 | Installer: proxy/cert env vars stripped, health probe may use system proxy | caa1cca |
 | T-0105 | Installer: activation blocked after a failed engine start | ace00ff |
 | T-0106 | Installer: real failure reason replaced by "Etap failed zakończył się kodem…" | ace00ff |
 | T-0108 | Environments tab shows green "Aktywne" when no environment exists | ace00ff |
