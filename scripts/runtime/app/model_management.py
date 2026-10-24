@@ -46,6 +46,15 @@ def _read_json(path: Path, fallback):
         return fallback
 
 
+def read_cache_manifest(runtime: Path) -> dict:
+    """model-cache.json as {str: str}; a missing, damaged or wrong-typed file reads as empty."""
+    try:
+        value = _read_json(Path(runtime) / "model-cache.json", {})
+    except (OSError, ValueError):
+        return {}
+    return {key: item for key, item in value.items() if isinstance(item, str)} if isinstance(value, dict) else {}
+
+
 def _atomic_json(path: Path, value):
     _atomic_text(path, json.dumps(value, ensure_ascii=False, indent=2) + "\n")
 
@@ -66,14 +75,14 @@ def selected_model_cache(runtime: Path, data: Path | None = None) -> Path:
     data = data or runtime.parent / "data"
     try:
         lines = (data / "environment").read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
+    except (OSError, ValueError):  # missing, locked or not UTF-8: fall back to the default cache
         lines = []
     for line in lines:
         if line.startswith("OMNIVOICE_CACHE_DIR="):
             raw = line.partition("=")[2].strip()
             if raw:
                 return Path(raw).expanduser().resolve()
-    manifest = _read_json(runtime / "model-cache.json", {})
+    manifest = read_cache_manifest(runtime)
     return Path(manifest["path"]).resolve() if manifest.get("path") else (runtime.parent / "models").resolve()
 
 
@@ -212,6 +221,8 @@ class ModelManager:
         self.jobs_path = data / "model-downloads.json"
         try:
             self.jobs: dict[str, dict] = _read_json(self.jobs_path, {})
+            if not isinstance(self.jobs, dict) or not all(isinstance(job, dict) for job in self.jobs.values()):
+                raise ValueError("oczekiwano obiektu z zadaniami pobierania")
         except ValueError as error:  # JSONDecodeError/UnicodeDecodeError, e.g. after power loss
             # Keep the damaged file for inspection instead of blocking engine start.
             try:
@@ -268,7 +279,7 @@ class ModelManager:
             raise ValueError("Podaj pełną, bezwzględną ścieżkę katalogu.")
         _no_link_ancestors(candidate)
         path = candidate.resolve()
-        manifest = _read_json(self.runtime / "model-cache.json", {})
+        manifest = read_cache_manifest(self.runtime)
         forbidden = [self.runtime, self.data]
         if manifest.get("source"):
             forbidden.append(Path(manifest["source"]).resolve())

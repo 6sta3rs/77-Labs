@@ -70,7 +70,8 @@ def _protected(runtime):
         if os.environ.get(key):
             base = Path(os.environ[key]).resolve()
             result.extend((base / "OmniVoice", base / "Programs/VoiceStudio"))
-    manifest = _json(Path(runtime) / "model-cache.json", {})
+    from model_management import read_cache_manifest
+    manifest = read_cache_manifest(runtime)
     result.extend(Path(manifest[key]).resolve() for key in ("source", "path") if manifest.get(key))
     return result
 

@@ -13,8 +13,13 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import io
+import json
+
 import launcher
+import model_management
 import runtime_backup
+import tts_extensions
 
 SHA = "a" * 64
 
@@ -47,6 +52,31 @@ class StartupRecoveryTests(unittest.TestCase):
         self.assertNotEqual(result["backup_id"], first["backup_id"])
         self.assertEqual(len(list((data / "backups").glob(marker.name + ".stale-*"))), 1)
         self.assertTrue(Path(first["backup_dir"]).is_dir())
+
+    def test_damaged_model_state_files_do_not_stop_the_start(self):
+        runtime, data = self.base / "runtime", self.base / "data"
+        runtime.mkdir(); data.mkdir()
+        default = (self.base / "models").resolve()
+        for body in (b"[1, 2]", b'{"path": 5}', b"\xff\xfe{", b"null"):
+            (runtime / "model-cache.json").write_bytes(body)
+            (data / "environment").write_bytes(b"\xff\xfe\x00")
+            self.assertEqual(model_management.selected_model_cache(runtime, data), default)
+        (data / "model-downloads.json").write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+        self.assertEqual(model_management.ModelManager(runtime, data, catalog=[]).jobs, {})
+        (data / "model-downloads.json").write_text(json.dumps({"repo": "text"}), encoding="utf-8")
+        self.assertEqual(model_management.ModelManager(runtime, data, catalog=[]).jobs, {})
+
+    def test_fish_health_that_is_not_an_object_means_not_ready(self):
+        class Response(io.BytesIO):
+            __enter__ = lambda self: self
+            __exit__ = lambda self, *args: None
+        class Opener:
+            def open(self, *_args, **_kwargs):
+                return Response(b'["ok"]')
+        tts_extensions._fish_probe.clear()
+        with patch("urllib.request.build_opener", return_value=Opener()):
+            self.assertFalse(tts_extensions.fish_transport_ready({"url": "http://127.0.0.1:8080"}))
+        tts_extensions._fish_probe.clear()
 
 
 if __name__ == "__main__":

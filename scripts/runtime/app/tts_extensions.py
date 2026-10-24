@@ -32,7 +32,8 @@ def fish_transport_ready(config):
                 return None
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}),NoRedirect)
         with opener.open(config["url"]+"/v1/health",timeout=.4) as response:
-            ready = json.loads(response.read(4096)).get("status") == "ok"
+            health = json.loads(response.read(4096))
+            ready = isinstance(health, dict) and health.get("status") == "ok"
     except (OSError, ValueError):
         ready = False
     _fish_probe[config["url"]] = (time.monotonic(),ready)

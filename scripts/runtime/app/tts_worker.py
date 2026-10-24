@@ -285,5 +285,9 @@ def serve(engine_id):
             _send(output, {"op": "audio", "audio_pcm_b64": base64.b64encode(pcm.tobytes()).decode(), "sample_rate": ENGINES[engine_id]["sample_rate"], "n_samples": len(pcm)})
         except Exception as exc:
             done.set(); thread.join()
+            if "out of memory" in str(exc).lower():
+                torch = sys.modules.get("torch")
+                if torch is not None and torch.cuda.is_available():
+                    torch.cuda.empty_cache()  # return the failed request's blocks so the next one can run
             traceback.print_exc(file=sys.stderr)
             _send(output, {"op": "error", "stage": "synthesis", "message": str(exc)[:1000]})

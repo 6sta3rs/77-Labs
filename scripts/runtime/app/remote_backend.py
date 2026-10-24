@@ -360,7 +360,7 @@ def create_router(data: Path):
             if 300 <= response.status_code < 400 and response.status_code != 304:
                 await response.aclose(); await client.aclose()
                 raise RemoteError("Zdalny silnik przekierował żądanie. Podaj jego docelowy adres w ustawieniach.", status=502, kind="http")
-            if response.status_code in {401, 403} and session:
+            if response.status_code == 401 and session:  # 403 is a permission answer, not an expired session
                 manager.blocked = True; manager.session = None
                 manager.error = "Serwer unieważnił sesję. Połącz się ponownie; wybrany tryb zdalny pozostaje aktywny."
                 manager.store.set_secret(SECRET, "")
