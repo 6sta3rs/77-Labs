@@ -44,8 +44,8 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
-| T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | HASH |
-| T-0121 | Watch folder opens sources with exclusive sharing | HASH |
+| T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | a6ad01b |
+| T-0121 | Watch folder opens sources with exclusive sharing | a6ad01b |
 | T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | d535464 |
 | T-0116 | Engine: finished download can be reported failed; delete leaves stale job | 18f7caf |
 | T-0117 | Engine: "clear temporary" deletes the live process TEMP; AI settings ignore DATA | 001e5ce |
