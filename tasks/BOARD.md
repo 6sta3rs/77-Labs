@@ -53,9 +53,9 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
-| T-0105 | Installer: activation blocked after a failed engine start | HASH |
-| T-0106 | Installer: real failure reason replaced by "Etap failed zakończył się kodem…" | HASH |
-| T-0108 | Environments tab shows green "Aktywne" when no environment exists | HASH |
+| T-0105 | Installer: activation blocked after a failed engine start | ace00ff |
+| T-0106 | Installer: real failure reason replaced by "Etap failed zakończył się kodem…" | ace00ff |
+| T-0108 | Environments tab shows green "Aktywne" when no environment exists | ace00ff |
 | T-0100 | `filemap` Rust file-tree scanner | c367daa |
 | T-0101 | 600-line limit with an exceptions list | 9a8cd6f |
 | T-0018 | Commit the pending working tree (the three untracked tests are in git, `test:ui` no longer depends on untracked files) | 71043fc, c111710 |
