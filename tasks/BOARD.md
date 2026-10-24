@@ -43,7 +43,7 @@ Last updated: 24 October 2026 (independent audit added T-0105 to T-0123). Source
 
 | ID | Title | Commit |
 | --- | --- | --- |
-| T-0019 | Remove the local `refs/t3` (307 refs deleted with the owner's approval; publication check PASS) | HASH |
+| T-0019 | Remove the local `refs/t3` (307 refs deleted with the owner's approval; publication check PASS) | b40b43c |
 | T-0119 | Frontend: start-up card stuck after engine stops within 3 s; timer in live region | a6ad01b |
 | T-0121 | Watch folder opens sources with exclusive sharing | a6ad01b |
 | T-0114 | Engine: bad data pointer or stale backup marker blocks start forever | d535464 |
