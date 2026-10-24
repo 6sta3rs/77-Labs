@@ -39,6 +39,19 @@ class BackupError(RuntimeError):
     pass
 
 
+class StaleMarkerError(BackupError):
+    """The receipt of an earlier backup is unreadable; the marker can be moved aside."""
+
+
+def move_marker_aside(data, archive_sha256):
+    """Rename a stale marker (never delete it) so the next call makes a fresh backup."""
+    marker = Path(data) / "backups" / (MARKER_PREFIX + archive_sha256 + ".json")
+    _no_links(marker)
+    aside = marker.with_name(marker.name + ".stale-" + time.strftime("%Y%m%dT%H%M%S", time.gmtime()))
+    os.replace(marker, aside)
+    return aside
+
+
 def emit(event):
     print(EVENT + json.dumps(event, ensure_ascii=False), flush=True)
 
@@ -210,7 +223,7 @@ def _read_existing_marker(data, marker, archive_sha):
             raise ValueError("database checksum mismatch")
         return {"status": "already_backed_up", "archive_sha256": archive_sha, "backup_id": identifier, "backup_dir": str(backup), "files": len(details["files"])}
     except (OSError, ValueError, KeyError, TypeError) as exc:
-        raise BackupError("Znacznik istniejącej kopii danych jest uszkodzony lub kopia jest niekompletna. Zachowano ją bez nadpisania. Zweryfikuj DATA/backups przed uruchomieniem migracji.") from exc
+        raise StaleMarkerError("Znacznik istniejącej kopii danych jest uszkodzony lub kopia jest niekompletna. Zachowano ją bez nadpisania. Zweryfikuj DATA/backups przed uruchomieniem migracji.") from exc
 
 
 def backup_before_upgrade(data: Path, archive_sha256: str, *, previous_archive_sha256: str | None = None,

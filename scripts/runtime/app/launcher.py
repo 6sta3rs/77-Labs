@@ -304,17 +304,37 @@ def owned_backend(app, token):
     return OwnedBackend()
 
 
+def resolve_data_or_default():
+    from storage_settings import apply_pending_data_relocation
+    try:
+        return apply_pending_data_relocation(ROOT)
+    except (ValueError, OSError, RuntimeError) as error:
+        # A damaged pointer file must not block the engine for good; it is left untouched.
+        print(f"Nie udało się odczytać wybranej lokalizacji danych ({error}). Uruchamiam z domyślnym katalogiem danych; plik wyboru zachowano bez zmian.", flush=True)
+        return ROOT.parent / "data"
+
+
+def backup_with_recovery(data, archive_sha256):
+    """Back up; an unreadable receipt of an earlier backup is moved aside and the backup redone."""
+    from runtime_backup import StaleMarkerError, backup_before_upgrade, move_marker_aside
+    try:
+        return backup_before_upgrade(data, archive_sha256)
+    except StaleMarkerError as error:
+        aside = move_marker_aside(data, archive_sha256)
+        print(f"{error} Znacznik przeniesiono do {aside.name}; tworzę nową kopię.", flush=True)
+        return backup_before_upgrade(data, archive_sha256)
+
+
 def main():
     global DATA
-    from storage_settings import apply_pending_data_relocation
-    DATA = apply_pending_data_relocation(ROOT)
+    DATA = resolve_data_or_default()
     stage("engine_files")
     prepare_engine()
     configure_environment()
-    from runtime_backup import backup_before_upgrade
+    from runtime_backup import backup_with_recovery
     stage("backup")
     source_manifest = json.loads((PROJECT / ".engine-ready.json").read_text(encoding="utf-8"))
-    backup_before_upgrade(DATA, source_manifest["archiveSha256"])
+    backup_with_recovery(DATA, source_manifest["archiveSha256"])
     stage("modules")
     from windows_runtime_paths import configure_windows_runtime_paths
     configure_windows_runtime_paths()

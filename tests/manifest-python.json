@@ -21,6 +21,7 @@
     "runtime/test_release_cpu_smoke.py",
     "runtime/test_remote_backend.py",
     "runtime/test_runtime_backup.py",
+    "runtime/test_startup_recovery.py",
     "runtime/test_storage_settings.py",
     "runtime/test_tts_extensions.py",
     "runtime/test_watch_folder_acceptance.py",
