@@ -11,6 +11,7 @@ import asyncio
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 import functools
+import hmac
 import json
 import logging
 import os
@@ -474,7 +475,8 @@ class Activity:
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
         if path == "/next/activity":
-            authorized = dict(scope.get("headers", [])).get(b"x-voicestudio-next", b"").decode("ascii", errors="replace") == self.token and bool(self.token)
+            supplied = dict(scope.get("headers", [])).get(b"x-voicestudio-next", b"")
+            authorized = bool(self.token) and hmac.compare_digest(supplied, self.token.encode("utf-8"))
             result = self.snapshot() if authorized else {"detail": "Brak dostępu"}
             if authorized and scope.get("method", "GET") == "GET" and scope.get("query_string", b"") == b"threads=1":
                 result["diagnostics"] = self.diagnostic_snapshot()

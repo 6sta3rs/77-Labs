@@ -50,6 +50,7 @@ class LauncherContractTests(unittest.TestCase):
         denied = client.get("/next/activity")
         self.assertEqual(denied.status_code, 403)
         self.assertEqual(client.get("/next/activity", headers={"X-VoiceStudio-Next": "wrong"}).status_code, 403)
+        self.assertEqual(client.get("/next/activity", headers={"X-VoiceStudio-Next": TOKEN[:-1]}).status_code, 403)
         allowed = client.get("/next/activity", headers={"X-VoiceStudio-Next": TOKEN})
         self.assertEqual(allowed.status_code, 200)
         self.assertIn("busy", allowed.json())
