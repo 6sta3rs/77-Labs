@@ -346,6 +346,7 @@ class ModelManager:
     def _watch(self, repo_id, process):
         failure = "Pobieranie nie zostało ukończone. Sprawdź połączenie, miejsce na dysku i dostęp do modelu."
         succeeded = False
+        leftover = False
         code = None
         try:
             for line in process.stdout:
@@ -357,7 +358,12 @@ class ModelManager:
                     # Waiting through the retained owner also drains helpers
                     # that inherited stdout, so EOF cannot be held by a child
                     # after the successful direct process has exited.
-                    process.wait(timeout=5)
+                    # The child verified the snapshot before reporting complete, so a
+                    # helper that outlives the wait is killed below, not a failure.
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        leftover = True
                     continue
                 if event.get("error"):
                     failure = str(event["error"])[:800]
@@ -368,6 +374,9 @@ class ModelManager:
                             values.pop("state", None)
                         self._update(repo_id, values)
             code = process.wait(timeout=5)
+        except subprocess.TimeoutExpired as exc:
+            if not succeeded:
+                failure = f"Nie można odczytać postępu pobierania: {exc}"
         except Exception as exc:
             failure = f"Nie można odczytać postępu pobierania: {exc}"
         finally:
@@ -390,7 +399,7 @@ class ModelManager:
                 pass
             with self.lock:
                 cancelled = self.jobs[repo_id]["state"] == "cancelling"
-                state = "cancelled" if cancelled else "complete" if code == 0 and succeeded else "failed"
+                state = "cancelled" if cancelled else "complete" if succeeded and (code == 0 or leftover) else "failed"
                 self._update(repo_id, {"state": state, "error": "" if state in {"complete", "cancelled"} else failure}, force=True)
                 self.processes.pop(repo_id, None)
                 self._stopping.discard(id(process))
@@ -480,9 +489,15 @@ class ModelManager:
                         raise ValueError("Model zawiera dowiązanie katalogu. Nie usunięto żadnych plików.")
             # rmtree unlinks file symlinks and hardlinks; it never changes the
             # physical bytes referenced by another app's immutable hardlink.
-            shutil.rmtree(target)
+            failures = []
+            shutil.rmtree(target, onexc=lambda _function, path, error: failures.append((path, error)))
+            # A stale "complete" job would keep advertising the removed (or half-removed) model.
+            if self.jobs.pop(repo_id, None) is not None:
+                self._persist()
             from api.routers.setup.models import invalidate_cache
             invalidate_cache()
+            if failures:
+                raise ValueError(f"Nie udało się usunąć {len(failures)} plików modelu (np. {Path(failures[0][0]).name}: {failures[0][1]}). Zamknij programy używające tych plików i spróbuj ponownie; model jest niekompletny.")
             return {"deleted": True, "repo_id": repo_id}
 
 

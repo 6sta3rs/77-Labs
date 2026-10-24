@@ -121,6 +121,40 @@ class ModelManagementTests(unittest.TestCase):
         self.assertFalse(repository.exists())
         self.assertEqual(external.read_bytes(), b"shared immutable model")
 
+    def test_delete_drops_stale_job_and_reports_partial_failure(self):
+        repository = self.cache / models._repo_name(REPO)
+        repository.mkdir(); (repository / "weight.bin").write_bytes(b"x")
+        self.manager.jobs[REPO] = {"repo_id": REPO, "state": "complete"}
+        self.manager.delete(REPO, REPO)
+        self.assertNotIn(REPO, self.manager.jobs)
+        self.assertNotIn(REPO, json.loads((self.data / "model-downloads.json").read_text()))
+        repository.mkdir(); (repository / "weight.bin").write_bytes(b"x")
+        self.manager.jobs[REPO] = {"repo_id": REPO, "state": "complete"}
+        def failing(_path, onexc=None, **_kw):
+            onexc(os.unlink, str(repository / "weight.bin"), PermissionError("locked"))
+        with patch.object(models.shutil, "rmtree", failing), self.assertRaisesRegex(ValueError, "niekompletny"):
+            self.manager.delete(REPO, REPO)
+        self.assertNotIn(REPO, self.manager.jobs)
+
+    def test_complete_event_with_lingering_helper_is_success(self):
+        class Lingering:
+            stdin = None
+            stdout = io.StringIO(models.PREFIX + json.dumps({"state": "complete"}) + "\n")
+            killed = False
+            def wait(self, timeout=None):
+                if not self.killed:
+                    raise subprocess.TimeoutExpired("worker", timeout)
+                return 1
+            def kill(self):
+                self.killed = True
+        process = Lingering()
+        self.manager.jobs[REPO] = {"repo_id": REPO, "state": "downloading"}
+        self.manager.processes[REPO] = process
+        self.manager._done_events[id(process)] = threading.Event()
+        self.manager._watch(REPO, process)
+        self.assertTrue(process.killed)
+        self.assertEqual(self.manager.jobs[REPO]["state"], "complete")
+
     def test_delete_rejects_busy_and_resident_model(self):
         repository = self.cache / models._repo_name(REPO)
         repository.mkdir()
