@@ -1,6 +1,6 @@
 [package]
 name = "seventy-seven-labs"
-version = "0.2.3"
+version = "0.2.4"
 description = "Seventy Seven Labs — lokalne studio produkcji głosu"
 edition = "2021"
 license = "AGPL-3.0-only"

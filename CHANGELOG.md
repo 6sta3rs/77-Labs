@@ -2,6 +2,18 @@
 
 User-visible changes per release, newest first. Each version has a heading `## <version> - <date>`; an optional line starting with `Update notes (Polish):` is the text the in-app updater shows (the interface is Polish), and when it is missing the whole section is used. Engineering detail, checks and limitations of every change are in [docs/progress.md](docs/progress.md).
 
+## 0.2.4 - 2026-10-24
+
+Update notes (Polish): Poprawki instalatora środowiska (aktywacja po nieudanym starcie silnika, prawdziwe komunikaty błędów, wariant CPU bez sterownika NVIDIA, usuwanie nieudanych prób), odporniejszy start silnika, jedno okno uruchamiania od silnika do gotowego modelu i mniej uprawnień okna dyktowania.
+
+- Environment installer: activation works after a failed engine start, a failed stage reports its real reason, "Brak środowiska" is shown when none is installed, CPU is the default without an NVIDIA driver (CUDA is refused before any download), the disk requirement is shown, failed attempts can be removed, proxy and certificate variables are passed through, and an app update that only changes build-time details no longer invalidates a working environment.
+- Activating a new environment keeps the relocated data folder.
+- Engine: a damaged data-location pointer, backup receipt or model state file no longer stops start-up; a finished model download is no longer reported as failed; clearing temporary files spares files of work in progress.
+- The engine start-up card stays open from engine start until the voice model is ready, instead of closing and reopening before the model warm-up.
+- Automation and the watch folder survive one damaged stored run; the watch folder lets other programs read files it is waiting for.
+- The dictation window no longer holds update and restart permissions; a stricter content security policy.
+- Project storage and import fixes (one damaged project row no longer hides all projects, one save warning per session, text files over 2 MB refused).
+
 ## 0.2.3 - 2026-10-23
 
 Update notes (Polish): Nowa ikona 77, liczby i odmiana zgodne z językiem interfejsu, analityka produktu zawsze wyłączona, poprawki tłumaczeń i dostępności.
