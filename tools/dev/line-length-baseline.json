@@ -166,7 +166,6 @@
   "scripts/runtime/install/bootstrap.py": { "over200": 1, "over400": 0, "longest": 304 },
   "scripts/runtime/install/engine_installation.py": { "over200": 2, "over400": 0, "longest": 257 },
   "scripts/runtime/install/prepare_tts.py": { "over200": 3, "over400": 0, "longest": 309 },
-  "scripts/runtime/install/prepare.py": { "over200": 3, "over400": 0, "longest": 226 },
   "tests/acceptance/accept_tts_extension.py": { "over200": 1, "over400": 0, "longest": 300 },
   "tests/acceptance/audio_cpp_install_acceptance.py": { "over200": 2, "over400": 0, "longest": 239 },
   "tests/acceptance/audio-diagnostics-smoke.mjs": { "over200": 10, "over400": 1, "longest": 574 },

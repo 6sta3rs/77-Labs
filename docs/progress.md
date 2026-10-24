@@ -1,5 +1,16 @@
 # Public project progress
 
+## 24 October 2026 — installer robustness from the audit (T-0107, T-0109 to T-0113)
+
+- **T-0107:** the installed environment is now valid when only build-time fields of `bootstrap-provenance.json` change (uv pin, URLs, policy text); `engine`, `python`, `cpuWheels` and `platform` must still match. Before, any edit of the file made a working multi-GB environment unusable after an app update.
+- **T-0109:** `installer_status` reports `cudaDriver` (System32 `nvcuda.dll`); without it the variant starts as CPU and starting CUDA is refused before any download. The panel states the disk requirement (about 20 GB CPU / 35 GB CUDA, as enforced by `bootstrap.py`).
+- **T-0110:** activation copies `storage-location.json` (relocated data folder) next to `model-cache.json` and reads the previous environment from `active-runtime.json` without validating it, so a broken old environment still hands over its settings.
+- **T-0111 (part):** new `installer_cleanup` command and "Usuń nieudane próby" button remove failed or cancelled candidates that this installer owns, never complete or active ones, together with their retained `ssb-*` build workspace. Not done: a build cache shared between attempts (each retry still downloads again).
+- **T-0112:** proxy and certificate variables survive the cleared installer environment; the health probe bypasses the system proxy for loopback.
+- **T-0113 (part):** panic guard on the installer thread, redirect limit of 5, plain messages for antivirus (225) and access-denied (5) errors, dead `prepare.py` removed. Not done: single-instance guard (new plugin), activate-versus-start lock, 2 s cancel wait, unpinned PATH `uv` in `prepare_tts.py`.
+
+Checks: `cargo test` 54 passed (2 ignored), `cargo clippy`, `npm run check` 0/0, `npm run build`, `npm run test:ui` 76/76, `npm run test:structure` PASS (installer.rs exception removed, EnginePage.svelte stays at its 974-line limit through the new `EnvironmentExtras.svelte`), runtime tests 27/27 (10 skipped). New unit tests: build-time provenance changes, cleanup safety. Not verified on a real EXE yet in this step: the CPU default, the cleanup button and the proxy pass-through; no real install was run.
+
 ## 24 October 2026 — installer fixes from the independent audit (T-0105 to T-0108)
 
 An independent three-reviewer audit (installer, engine, frontend and release; read-only) produced T-0105 to T-0123 in `tasks/BOARD.md`. The first four are the installer bugs; they were reproduced on a real 0.2.0 EXE in an isolated profile (own `LOCALAPPDATA`, `APPDATA` and WebView2 folder under the ignored `.tmp/qa/exe-audit`) and then fixed.

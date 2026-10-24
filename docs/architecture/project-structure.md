@@ -30,7 +30,7 @@ Sources are split by application feature. When changing voices, start in
 | Interface build configuration | `frontend/` | `vite.config.ts`, `tsconfig.json`, `index.html`, `inputy.html` (the npm scripts pass `--config frontend/vite.config.ts`; the build goes to the root `dist/`) |
 | Native Windows app | `desktop/src/` | `main.rs`, `runtime.rs`, `installer.rs`; configuration in `desktop/tauri.conf.json` |
 | Backend adapter | `scripts/runtime/app/` | `launcher.py`, `model_management.py` |
-| Environment installation | `scripts/runtime/install/` | `bootstrap.py`, `prepare.py` |
+| Environment installation | `scripts/runtime/install/` | `bootstrap.py`, `prepare_tts.py` |
 | Pinned sources and provenance | `scripts/runtime/vendor/` | `engine.zip`, `engine-provenance.json` |
 | Release builders | `tools/release/` | `build-update.mjs` (installer and feed), `bundle.py` (engine archive) |
 | Developer tools | `tools/dev/` | `check-structure.mjs`, `run-checks.mjs`, `publication_check.py`, `test_runtime.py`, `filemap/` (Rust file-tree scanner) |

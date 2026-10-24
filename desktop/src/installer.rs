@@ -31,11 +31,14 @@ pub struct InstallerStatus {
     /// Set when the status is read: a runnable environment exists (the state above only describes the installer).
     #[serde(default)]
     pub environment_present: bool,
+    /// Set when the status is read: the NVIDIA driver library is installed (CUDA cannot work without it).
+    #[serde(default)]
+    pub cuda_driver: bool,
 }
 
 impl Default for InstallerStatus {
     fn default() -> Self {
-        Self { state: "idle".into(), phase: "idle".into(), message: "Instalacja uruchamia się wyłącznie po wybraniu przycisku.".into(), profile: "cpu".into(), candidate: None, downloaded_bytes: 0, total_bytes: None, logs: vec![], environment_present: false }
+        Self { state: "idle".into(), phase: "idle".into(), message: "Instalacja uruchamia się wyłącznie po wybraniu przycisku.".into(), profile: "cpu".into(), candidate: None, downloaded_bytes: 0, total_bytes: None, logs: vec![], environment_present: false, cuda_driver: false }
     }
 }
 
@@ -85,6 +88,7 @@ impl Installer {
     fn start(&self, profile: String) -> Result<InstallerStatus, String> {
         if !cfg!(all(windows, target_arch = "x86_64")) { return Err("Instalator obsługuje obecnie Windows x64.".into()); }
         if !matches!(profile.as_str(), "cpu" | "cuda") { return Err("Wybierz CPU albo NVIDIA CUDA.".into()); }
+        if profile == "cuda" && !cuda_driver_present() { return Err("Nie wykryto sterownika NVIDIA (brak nvcuda.dll). Wybierz wariant CPU albo zainstaluj sterownik.".into()); }
         let mut status = self.status.lock().unwrap_or_else(|e| e.into_inner());
         if active(&status.state) { return Err("Instalacja już trwa.".into()); }
         let id = format!("runtime_{:x}", SystemTime::now().duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos());
@@ -94,7 +98,8 @@ impl Installer {
         self.update(|_| {}, true);
         let installer = self.clone();
         thread::spawn(move || {
-            let result = installer.install(&id, &profile);
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| installer.install(&id, &profile)))
+                .unwrap_or_else(|_| Err("Instalator zatrzymał się z nieoczekiwanym błędem. Szczegóły są w dzienniku instalacji.".into()));
             installer.update(|status| match result {
                 Ok(()) => { status.state = "ready".into(); status.phase = "ready".into(); status.message = "Nowy runtime przeszedł doctor i /health. Zatrzymaj silnik i wybierz Użyj tego środowiska.".into(); },
                 Err(error) => { status.state = if installer.cancel.load(Ordering::SeqCst) { "cancelled" } else { "failed" }.into(); status.message = error; },
@@ -142,7 +147,10 @@ impl Installer {
         use tauri_plugin_http::reqwest;
         let client = reqwest::Client::builder().user_agent("SeventySevenLabs/0.2 runtime-installer")
             .connect_timeout(Duration::from_secs(15)).read_timeout(Duration::from_secs(5)).timeout(Duration::from_secs(600))
-            .redirect(reqwest::redirect::Policy::custom(|attempt| if attempt.url().scheme() == "https" { attempt.follow() } else { attempt.error("Wymagane HTTPS") }))
+            .redirect(reqwest::redirect::Policy::custom(|attempt| {
+                if attempt.previous().len() >= 5 { attempt.error("Zbyt wiele przekierowań") }
+                else if attempt.url().scheme() == "https" { attempt.follow() } else { attempt.error("Wymagane HTTPS") }
+            }))
             .build().map_err(|e| e.to_string())?;
         let mut response = client.get(url).send().await.map_err(|e| format!("Pobieranie uv: {e}"))?.error_for_status().map_err(|e| e.to_string())?;
         let total = response.content_length();
@@ -217,7 +225,8 @@ impl Installer {
 fn clean_command(program: &Path, root: &Path) -> Result<Command, String> {
     let mut command = Command::new(program);
     command.env_clear().current_dir(root);
-    for key in ["SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LOCALAPPDATA", "APPDATA", "USERPROFILE", "COMSPEC", "NUMBER_OF_PROCESSORS"] {
+    for key in ["SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LOCALAPPDATA", "APPDATA", "USERPROFILE", "COMSPEC", "NUMBER_OF_PROCESSORS",
+        "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "ALL_PROXY", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"] {
         if let Some(value) = std::env::var_os(key) { command.env(key, value); }
     }
     let windows = std::env::var_os("SYSTEMROOT").ok_or("Brak katalogu Windows")?;
@@ -226,6 +235,15 @@ fn clean_command(program: &Path, root: &Path) -> Result<Command, String> {
     command.env("TEMP", root.join("tmp")).env("TMP", root.join("tmp")).env("TORCH_HOME", root.join("doctor-models/torch")).env("MPLCONFIGDIR", root.join("doctor-cache/matplotlib")).env("NUMBA_CACHE_DIR", root.join("doctor-cache/numba")).env("XDG_CACHE_HOME", root.join("doctor-cache"));
     command.env("HF_HUB_OFFLINE", "1").env("TRANSFORMERS_OFFLINE", "1").env("PYTHONUTF8", "1").env("PYTHONIOENCODING", "utf-8").env("PYTHONDONTWRITEBYTECODE", "1");
     Ok(command)
+}
+
+/// Explains the two errors a virus scanner or a locked file produces on Windows instead of showing the raw code.
+fn io_hint(error: &std::io::Error) -> String {
+    match error.raw_os_error() {
+        Some(225) => "Program antywirusowy zablokował plik instalatora. Dodaj wyjątek dla katalogu VoiceStudioNext i ponów.".into(),
+        Some(5) => "Odmowa dostępu do pliku instalatora (blokada antywirusa lub otwarty plik). Zamknij inne programy i ponów.".into(),
+        _ => error.to_string(),
+    }
 }
 
 fn atomic_json(path: &Path, value: &impl Serialize) -> Result<(), String> {
@@ -273,7 +291,7 @@ fn extract_uv(archive: &Path, destination: &Path) -> Result<(), String> {
         if enclosed.components().any(|component| !matches!(component, Component::Normal(_))) || entry.unix_mode().is_some_and(|mode| mode & 0o170000 == 0o120000) { return Err("Archiwum uv zawiera dowiązanie lub niebezpieczną ścieżkę.".into()); }
         if enclosed.file_name().is_some_and(|name| name == "uv.exe") {
             if found || entry.size() > 256 * 1024 * 1024 { return Err("Nieprawidłowy plik uv.exe w archiwum.".into()); }
-            let mut output = OpenOptions::new().create_new(true).write(true).open(destination).map_err(|e| e.to_string())?;
+            let mut output = OpenOptions::new().create_new(true).write(true).open(destination).map_err(|e| io_hint(&e))?;
             std::io::copy(&mut entry, &mut output).map_err(|e| e.to_string())?;
             found = true;
         }
@@ -347,7 +365,8 @@ fn validate_ready_against(root: &Path, current: &serde_json::Value) -> Result<()
     if certificate["engine"] != current["engine"] {
         return Err("Wybrane środowisko przygotowano dla innej wersji aplikacji. Zachowano je bez zmian. Pobierz i aktywuj nowe środowisko w instalatorze.".into());
     }
-    if certificate != *current {
+    // Only what defines the installed environment must match; the uv pin, download URLs and policy text are build-time details.
+    if ["platform", "python", "cpuWheels"].iter().any(|key| certificate[*key] != current[*key]) {
         return Err("Certyfikat instalacji nie odpowiada bieżącej dystrybucji aplikacji. Zachowano środowisko bez zmian. Przygotuj i aktywuj nowego kandydata.".into());
     }
     Ok(())
@@ -362,12 +381,24 @@ pub fn selected_runtime_root(base: &Path) -> Result<Option<PathBuf>, String> {
     Ok(Some(root))
 }
 
+/// The active environment's folder, read from the pointer without validating it: a broken one must still hand over its settings.
+fn previous_runtime_root(base: &Path) -> PathBuf {
+    fs::read(base.join("active-runtime.json")).ok().and_then(|raw| serde_json::from_slice::<serde_json::Value>(&raw).ok())
+        .and_then(|value| value["id"].as_str().and_then(|id| candidate_path(base, id).ok()))
+        .unwrap_or_else(|| base.join("runtime"))
+}
+
+fn cuda_driver_present() -> bool {
+    std::env::var_os("SYSTEMROOT").is_some_and(|windows| PathBuf::from(windows).join("System32").join("nvcuda.dll").is_file())
+}
+
 /// True when a private (or explicitly configured) Python environment can start the engine.
 fn environment_present() -> bool { crate::runtime::runtime_root().and_then(|root| crate::runtime::python(&root)).is_ok() }
 #[tauri::command]
 pub fn installer_status(installer: tauri::State<'_, Installer>) -> InstallerStatus {
     let mut status = installer.snapshot();
     status.environment_present = environment_present();
+    status.cuda_driver = cuda_driver_present();
     status
 }
 #[tauri::command]
@@ -389,7 +420,7 @@ pub fn installer_activate(installer: tauri::State<'_, Installer>, runtime: tauri
     // Preserve only the private cache pointer when upgrading. Model bytes,
     // database rows, and the old dependency environment are never copied or
     // modified. A clean machine simply has no pointer to preserve.
-    let previous = selected_runtime_root(&base).ok().flatten().unwrap_or_else(|| base.join("runtime"));
+    let previous = previous_runtime_root(&base);
     let previous_cache = previous.join("model-cache.json");
     if previous != root && previous_cache.is_file() && !root.join("model-cache.json").exists() {
         no_links(&previous_cache)?;
@@ -397,9 +428,49 @@ pub fn installer_activate(installer: tauri::State<'_, Installer>, runtime: tauri
         if !cache["path"].as_str().is_some_and(|path| Path::new(path).is_absolute()) { return Err("Dotychczasowy wskaźnik katalogu modeli jest nieprawidłowy.".into()); }
         atomic_json(&root.join("model-cache.json"), &cache)?;
     }
+    // The relocated-data pointer lives in the runtime root too; without it the new environment would open an empty default data folder.
+    let previous_storage = previous.join("storage-location.json");
+    if previous != root && previous_storage.is_file() && !root.join("storage-location.json").exists() {
+        no_links(&previous_storage)?;
+        let pointer: serde_json::Value = serde_json::from_slice(&fs::read(previous_storage).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+        atomic_json(&root.join("storage-location.json"), &pointer)?;
+    }
     atomic_json(&base.join("active-runtime.json"), &serde_json::json!({"id": id, "schema": 1}))?;
     installer.update(|status| { status.state = "activated".into(); status.message = "Wybrano nowe środowisko. Uruchom silnik i pobierz wymagane modele.".into(); }, true);
     Ok(installer.snapshot())
+}
+
+/// Removes failed or cancelled candidates (owned by this installer, never complete ones) and their retained build workspaces.
+fn cleanup_failed(base: &Path, keep: &[String], temp: &Path) -> Result<u64, String> {
+    no_links(base)?;
+    let mut removed = 0;
+    for entry in fs::read_dir(base).map_err(|e| e.to_string())?.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !safe_id(&name) || keep.contains(&name) { continue; }
+        let root = candidate_path(base, &name)?;
+        let owned = fs::read(root.join(".installer-owner.json")).ok().and_then(|raw| serde_json::from_slice::<serde_json::Value>(&raw).ok())
+            .is_some_and(|marker| marker["owner"] == OWNER && marker["id"] == name.as_str());
+        if !owned || root.join("installation-ready.json").exists() { continue; }
+        let receipt = fs::read(root.join("build-workspace.json")).ok().and_then(|raw| serde_json::from_slice::<serde_json::Value>(&raw).ok());
+        if let Some(workspace) = receipt.as_ref().and_then(|value| value["path"].as_str()).map(PathBuf::from) {
+            let plain = workspace.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.strip_prefix("ssb-").is_some_and(|tail| tail.len() == 12 && tail.bytes().all(|b| b.is_ascii_hexdigit())));
+            if plain && workspace.parent() == Some(temp) && workspace.join(".runtime-build-owner.json").is_file() && no_links(&workspace).is_ok() {
+                fs::remove_dir_all(&workspace).map_err(|e| format!("Nie udało się usunąć cache budowania: {e}"))?;
+            }
+        }
+        fs::remove_dir_all(&root).map_err(|e| format!("Nie udało się usunąć {name}: {}", io_hint(&e)))?;
+        removed += 1;
+    }
+    Ok(removed)
+}
+#[tauri::command]
+pub fn installer_cleanup(installer: tauri::State<'_, Installer>) -> Result<u64, String> {
+    let status = installer.snapshot();
+    if active(&status.state) { return Err("Trwa instalacja. Anuluj ją przed czyszczeniem.".into()); }
+    let base = base_dir()?;
+    let mut keep: Vec<String> = status.candidate.into_iter().filter(|_| status.state == "ready").collect();
+    keep.extend(previous_runtime_root(&base).file_name().map(|n| n.to_string_lossy().into_owned()));
+    cleanup_failed(&base, &keep, &std::env::temp_dir())
 }
 
 struct OwnedChild { child: Child, #[cfg(windows)] job: windows_job::Job }
@@ -410,7 +481,7 @@ impl OwnedChild {
             use std::os::windows::{io::AsRawHandle, process::CommandExt};
             command.creation_flags(0x08000000 | 0x00000004);
             let job = windows_job::Job::new()?;
-            let mut child = command.spawn().map_err(|e| e.to_string())?;
+            let mut child = command.spawn().map_err(|e| io_hint(&e))?;
             if let Err(error) = job.assign_and_resume(child.as_raw_handle(), child.id()) { let _ = child.kill(); let _ = child.wait(); return Err(error); }
             Ok(Self { child, job })
         }

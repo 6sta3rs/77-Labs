@@ -324,6 +324,7 @@ def probe_health(root, timeout=300):
     owner = importlib.util.module_from_spec(definition)
     definition.loader.exec_module(owner)
     log = root / "doctor-health.log"
+    direct = urllib.request.build_opener(urllib.request.ProxyHandler({}))  # loopback must never go through a system proxy
     with log.open("w", encoding="utf-8") as output:
         process = owner.spawn_owned([str(root / ".venv/Scripts/python.exe"), str(root / "bootstrap.py"), "--doctor-server", "--root", str(root), "--port", str(port), "--token", token],
                                     stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, env=doctor_environment(root), cwd=root)
@@ -333,9 +334,9 @@ def probe_health(root, timeout=300):
                 if process.poll() is not None:
                     raise RuntimeError("Silnik kandydata zakończył się przed /health. Szczegóły: doctor-health.log.")
                 try:
-                    with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as response:
+                    with direct.open(f"http://127.0.0.1:{port}/health", timeout=2) as response:
                         if response.status == 200 and response.headers.get("x-seventy-seven-doctor") == token:
-                            with urllib.request.urlopen(f"http://127.0.0.1:{port}/model/status", timeout=3) as model_response:
+                            with direct.open(f"http://127.0.0.1:{port}/model/status", timeout=3) as model_response:
                                 if model_response.headers.get("x-seventy-seven-doctor") != token:
                                     raise RuntimeError("Brak znacznika własności statusu modeli.")
                                 model_state = json.load(model_response)

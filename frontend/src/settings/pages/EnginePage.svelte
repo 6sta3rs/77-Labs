@@ -28,7 +28,7 @@
   import { get } from 'svelte/store';
   import { engineCatalog, modelsCatalog } from '../../tools/studio-tools';
   import { engineCatalogSnapshot } from '../../models/engine-catalog-state';
-  import { runtimeInstaller, installingRuntime, type RuntimeInstallStatus } from '../../platform/runtime-installer';
+  import { runtimeInstaller, installingRuntime, type RuntimeInstallStatus } from '../../platform/runtime-installer'; import EnvironmentExtras from './EnvironmentExtras.svelte';
   import { engineInstallation, runtimeInstallActive, runtimeInstallLabels, runtimePhaseLabels, runtimeSize, runtimeTransfer,
     type EngineRuntimeCatalog, type EngineRuntimeJob, type EngineRuntimeRecipe } from '../../models/engine-installation';
   import { openLicenseSource, validateLicenseSource } from '../../models/license-sources';
@@ -393,8 +393,8 @@
   function gpuCheck() { void act('gpu', async signal => { gpuReport = await productionJson<GpuReport>('/api/settings/gpu-report', { signal, timeoutMs: 120_000 }); }); }
 
   /* ---------- Środowiska: standalone Python environment (desktop; works without the engine) ---------- */
-  let em = $state<RuntimeInstallStatus>(), emOpen = $state(false), emVar = $state<'cpu' | 'cuda'>('cuda');
-  const emActive = $derived(installingRuntime(em));
+  let em = $state<RuntimeInstallStatus>(), emOpen = $state(false), emPick = $state<'cpu' | 'cuda'>();
+  const emActive = $derived(installingRuntime(em)), emVar = $derived(emPick ?? (em?.cudaDriver === false ? 'cpu' : 'cuda')); // no NVIDIA driver: CPU by default
   const emProfile = (p?: string) => p === 'cuda' ? 'NVIDIA CUDA 12.8' : p === 'cpu' ? 'CPU' : '';
   const EM_PHASES: Record<string, string> = { preflight: 'Przygotowanie katalogu', uv: 'Pobieranie menedżera pakietów', python: 'Instalacja CPython', engine: 'Źródła silnika', lock: 'Przypięte wymagania', venv: 'Osobne środowisko', dependencies: 'Instalacja zależności', doctor: 'Kontrola bibliotek', health: 'Kontrola uruchomienia', ready: 'Gotowe do aktywacji', idle: 'Nie rozpoczęto' };
   const emName = $derived(em && emProfile(em.profile) && ['activated', 'ready'].includes(em.state) ? `Python · ${emProfile(em.profile)}` : ({ 'private-python': tr('Prywatne środowisko Python'), 'shared-python': tr('Wspólne środowisko Python'), 'configured-python': tr('Wskazany interpreter Python') } as Record<string, string>)[runtime.source ?? ''] ?? tr('Środowisko Python'));
@@ -757,9 +757,9 @@
           {#if emShowMore && em}
             <div class="env-more">
               <div class="p-row flat"><div class="t"><b>{tr('Wariant środowiska')}</b><span>{tr('CUDA działa tylko z kartą NVIDIA. Wariant CPU jest mniejszy, ale wolniejszy.')}</span></div>
-                <Select ariaLabel={tr('Wariant środowiska')} bind:value={emVar} disabled={emActive || working.em} options={[{ value: 'cpu', label: tr('CPU — bez karty NVIDIA') }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]}/></div>
+                <Select ariaLabel={tr('Wariant środowiska')} value={emVar} onchange={(v) => emPick = v as 'cpu' | 'cuda'} disabled={emActive || working.em} options={[{ value: 'cpu', label: tr('CPU — bez karty NVIDIA') }, { value: 'cuda', label: 'NVIDIA CUDA 12.8' }]}/></div>
               {#if emActive}<div class="p-progress" role="status">{#if em.phase === 'uv' && em.totalBytes}<progress class="p-bar" max={em.totalBytes} value={em.downloadedBytes} aria-label={tr('Instalacja środowiska')}></progress><span>{byteLabel(em.downloadedBytes)} / {byteLabel(em.totalBytes)} · {tr(EM_PHASES[em.phase] ?? em.phase)}</span>{:else}<progress class="p-bar" aria-label={tr('Instalacja środowiska')}></progress><span>{tr(EM_PHASES[em.phase] ?? em.phase)}</span>{/if}</div>{/if}
-              {#if em.message && !emActive}<p class="p-sub">{tr(em.message)}</p>{/if}
+              {#if em.message && !emActive}<p class="p-sub">{tr(em.message)}</p>{/if}<EnvironmentExtras state={em.state} busy={working.em} onrun={(job) => act('em', job)}/>
               <div class="p-actions">
                 {#if emActive}<Button variant="outline" disabled={working.em || em.state === 'cancelling'} onclick={() => emAct(runtimeInstaller.cancel, 'Instalację anulowano')}><X size={15}/>{tr('Anuluj instalację')}</Button>
                 {:else if em.state === 'ready'}<Button disabled={!stopped || working.em} onclick={() => emAct(async () => { const r = await runtimeInstaller.activate(); await onrefresh(); return r; }, 'Przełączono środowisko')}><Check size={15}/>{tr('Użyj tego środowiska')}</Button>

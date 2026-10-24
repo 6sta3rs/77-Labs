@@ -32,7 +32,10 @@ impl ReadyFixture {
 impl Drop for ReadyFixture {
     fn drop(&mut self) {
         // Known fixture files only; no recursive deletion of computed paths.
-        for name in [".installer-owner.json", "bootstrap-provenance.json", "python-ready.json", "installation-ready.json", "engine.zip", "engine/uv.lock", "engine/pyproject.toml", ".venv/Scripts/python.exe"] { let _ = fs::remove_file(self.root.join(name)); }
+        for name in [".installer-owner.json", "bootstrap-provenance.json", "python-ready.json", "installation-ready.json",
+                     "engine.zip", "engine/uv.lock", "engine/pyproject.toml", ".venv/Scripts/python.exe"] {
+            let _ = fs::remove_file(self.root.join(name));
+        }
         for name in [".venv/Scripts", ".venv", "engine"] { let _ = fs::remove_dir(self.root.join(name)); }
         let _ = fs::remove_dir(&self.root); let _ = fs::remove_dir(&self.base);
     }
@@ -50,9 +53,14 @@ impl Drop for ReadyFixture {
 }
 #[test] fn changed_installation_certificate_cannot_pass_same_engine_lock() {
     let fixture = ReadyFixture::new();
-    let mut changed = fixture.manifest.clone(); changed["uv"]["version"] = "modified".into();
+    let mut changed = fixture.manifest.clone(); changed["python"]["version"] = "modified".into();
     atomic_json(&fixture.root.join("bootstrap-provenance.json"), &changed).unwrap();
     assert!(validate_ready_against(&fixture.root, &fixture.manifest).unwrap_err().contains("Certyfikat instalacji"));
+}
+#[test] fn build_time_changes_of_the_distribution_keep_a_working_environment() {
+    let fixture = ReadyFixture::new();
+    let mut updated_app = fixture.manifest.clone(); updated_app["uv"]["version"] = "0.99.0".into(); updated_app["dependencyPolicy"] = "reworded".into();
+    validate_ready_against(&fixture.root, &updated_app).unwrap();
 }
 #[test] fn older_valid_sources_get_compatibility_error_even_when_lock_is_unchanged() {
     let fixture = ReadyFixture::new();
@@ -148,7 +156,12 @@ impl Drop for ReadyFixture {
     fs::create_dir(&root).unwrap();
     let script = root.join("fixture.ps1");
     let pids = root.join("helper-pid.txt");
-    fs::write(&script, "param([string]$PidPath)\n$child=Start-Process -FilePath ($PSHOME+'\\powershell.exe') -ArgumentList '-NoProfile','-NonInteractive','-Command','Start-Sleep -Seconds 60' -WindowStyle Hidden -PassThru\n$child.Id | Set-Content -LiteralPath $PidPath\nStart-Sleep -Seconds 60\n").unwrap();
+    let script_text = concat!(
+        "param([string]$PidPath)\n",
+        "$child=Start-Process -FilePath ($PSHOME+'\\powershell.exe') -ArgumentList '-NoProfile','-NonInteractive',",
+        "'-Command','Start-Sleep -Seconds 60' -WindowStyle Hidden -PassThru\n",
+        "$child.Id | Set-Content -LiteralPath $PidPath\nStart-Sleep -Seconds 60\n");
+    fs::write(&script, script_text).unwrap();
     let powershell = PathBuf::from(std::env::var_os("SYSTEMROOT").unwrap()).join("System32/WindowsPowerShell/v1.0/powershell.exe");
     let mut command = Command::new(&powershell);
     command.arg("-NoProfile").arg("-NonInteractive").args(["-ExecutionPolicy", "Bypass"]).arg("-File").arg(&script).arg(&pids).stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::null());
@@ -175,10 +188,36 @@ impl Drop for ReadyFixture {
 #[test]
 fn failed_event_gives_the_reason_and_keeps_the_stage() {
     let path = std::env::temp_dir().join(format!("seventy-seven-failed-event-{}.log", std::process::id()));
-    std::fs::write(&path, "NEXT_BOOTSTRAP_EVENT {\"phase\":\"dependencies\",\"message\":\"Instalacja zależności\"}\nNEXT_BOOTSTRAP_EVENT {\"phase\":\"failed\",\"message\":\"Brak miejsca na dysku\"}\n").unwrap();
+    let log = concat!(
+        "NEXT_BOOTSTRAP_EVENT {\"phase\":\"dependencies\",\"message\":\"Instalacja zależności\"}\n",
+        "NEXT_BOOTSTRAP_EVENT {\"phase\":\"failed\",\"message\":\"Brak miejsca na dysku\"}\n");
+    std::fs::write(&path, log).unwrap();
     let installer = Installer::default();
     let reason = installer.read_log(&path);
     let _ = std::fs::remove_file(&path);
     assert_eq!(reason.as_deref(), Some("Brak miejsca na dysku"));
     assert_eq!(installer.snapshot().phase, "dependencies");
+}
+
+#[test]
+fn cleanup_removes_only_owned_incomplete_candidates_and_their_workspace() {
+    let tmp = std::env::temp_dir().join(format!("seventy-seven-cleanup-{}", std::process::id()));
+    let (base, temp) = (tmp.join("base"), tmp.join("temp"));
+    fs::create_dir_all(&base).unwrap(); fs::create_dir_all(&temp).unwrap();
+    let make = |name: &str, ready: bool| {
+        let root = base.join(name); fs::create_dir_all(root.join("python")).unwrap();
+        atomic_json(&root.join(".installer-owner.json"), &serde_json::json!({"owner": OWNER, "id": name})).unwrap();
+        if ready { fs::write(root.join("installation-ready.json"), b"{}").unwrap(); }
+        root
+    };
+    let failed = make("runtime_aa", false);
+    let workspace = temp.join("ssb-0123456789ab"); fs::create_dir_all(&workspace).unwrap(); fs::write(workspace.join(".runtime-build-owner.json"), b"{}").unwrap();
+    atomic_json(&failed.join("build-workspace.json"), &serde_json::json!({"path": workspace.to_string_lossy()})).unwrap();
+    let complete = make("runtime_bb", true);
+    let active = make("runtime_cc", false);
+    let foreign = base.join("runtime_dd"); fs::create_dir_all(&foreign).unwrap();
+    assert_eq!(cleanup_failed(&base, &["runtime_cc".into()], &temp).unwrap(), 1);
+    assert!(!failed.exists() && !workspace.exists());
+    assert!(complete.exists() && active.exists() && foreign.exists());
+    let _ = fs::remove_dir_all(&tmp);
 }

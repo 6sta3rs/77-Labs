@@ -44,6 +44,7 @@ fn main() {
             installer::installer_start,
             installer::installer_cancel,
             installer::installer_activate,
+            installer::installer_cleanup,
             dictation_desktop::dictation_desktop_status,
             dictation_desktop::dictation_desktop_configure,
             dictation_desktop::dictation_widget_show,
