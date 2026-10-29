@@ -1,3 +1,4 @@
+
 <p align="center">
   <img src="desktop/icons/128x128@2x.png" width="112" alt="Seventy Seven Labs app icon">
 </p>
@@ -6,7 +7,7 @@
 
 <p align="center">A free, local voice studio for Windows: type text and get natural speech, turn recordings into text and subtitles, dub videos and make audiobooks — all on your own computer.</p>
 
-<p align="center"><a href="https://github.com/6sta3rs/77-Labs/releases/latest"><b>⬇ Download for Windows</b></a> · <a href="docs/media/demo.mp4">▶ Watch the demo</a></p>
+<p align="center"><a href="https://github.com/6sta3rs/77-Labs/releases/latest"><b>⬇ Download for Windows</b></a> · [glos-cały-v4.wav](https://github.com/user-attachments/files/34139184/glos-caly-v4.wav)▶ Watch the demo</a></p>
 
 **Svelte 5 · TypeScript · Tauri 2 · Python/FastAPI · AGPL-3.0-only**
 
