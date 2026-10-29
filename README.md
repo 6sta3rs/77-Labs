@@ -2,7 +2,7 @@
 <p align="center">
   <img src="desktop/icons/128x128@2x.png" width="112" alt="Seventy Seven Labs app icon">
 </p>
-
+[glos-cały-v4.wav](https://github.com/user-attachments/files/34139184/glos-caly-v4.wav)
 <h1 align="center">Seventy Seven Labs</h1>
 
 <p align="center">A free, local voice studio for Windows: type text and get natural speech, turn recordings into text and subtitles, dub videos and make audiobooks — all on your own computer.</p>
