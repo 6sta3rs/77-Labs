@@ -1,10 +1,18 @@
-# Seventy Seven Labs
+<p align="center">
+  <img src="desktop/icons/128x128@2x.png" width="112" alt="Seventy Seven Labs app icon">
+</p>
+
+<h1 align="center">Seventy Seven Labs</h1>
 
 A local voice studio for Windows. Write narration, assign voices to speakers, work with transcripts, and keep projects on your computer.
 
 **Svelte 5 · TypeScript · Tauri 2 · Python/FastAPI · AGPL-3.0-only**
 
-Development version **0.2.2**, with a **Polish-language application interface** and English documentation. This repository includes the application source and pinned sources for the Seventy Seven Labs engine. Model weights, the Python environment, private recordings, and account data are not included.
+Development version **0.2.2**, with an **English and Polish application interface** and English documentation. This repository includes the application source and pinned sources for the Seventy Seven Labs engine. Model weights, the Python environment, private recordings, and account data are not included.
+
+[![Watch the 70-second demo: the voice orb changes color with each emotion](docs/media/demo-poster.png)](docs/media/demo.mp4)
+
+▶ [Watch the demo video](docs/media/demo.mp4): emotions, a customer call, an audiobook, speech to text and dubbing.
 
 ![Narration editor with a fictional dialogue](docs/screenshots/studio.png)
 
