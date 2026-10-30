@@ -41,7 +41,7 @@
     "postcss": "8.5.31",
     "svelte-check": "^4.3.3",
     "typescript": "~5.9.3",
-    "vite": "8.3.4"
+    "vite": "8.3.5"
   },
   "license": "AGPL-3.0-only",
   "description": "A local voice studio for Windows: narration, speech synthesis, and transcription."
