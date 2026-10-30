@@ -25,7 +25,7 @@
     "i18n:add": "node tools/dev/i18n-lang.mjs add"
   },
   "dependencies": {
-    "@lucide/svelte": "1.59.0",
+    "@lucide/svelte": "1.62.0",
     "@tauri-apps/api": "2.12.4",
     "@tauri-apps/plugin-http": "2.8.3",
     "@tauri-apps/plugin-process": "2.4.0",
